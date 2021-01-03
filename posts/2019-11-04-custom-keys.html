@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Justin Restivo's Blog - custom keybinds</title>
+        <link rel="stylesheet" href="../css/default.css" />
+    </head>
+    <body>
+        <header>
+            <div class="logo">
+                <a href="../index.html">Justin Restivo's Blog</a>
+            </div>
+            <nav>
+                <a href="../index.html">Home</a>
+                <a href="../about.html">About</a>
+                <a href="../contact.html">Contact</a>
+                <a href="https://github.com/DieracDelta">Github </a>
+            </nav>
+        </header>
+
+        <main role="main">
+            <h1>custom keybinds</h1>
+            <article>
+    <section class="header">
+        Posted on November  4, 2019
+        
+    </section>
+    <section>
+        <h3 id="how-to-bind-custom-usb-keyboard-keys-using-eudev-on-gentoo">how to bind custom usb keyboard keys using eudev on gentoo</h3>
+<p>This is mostly for my own sanity if I ever want to edit this again. Basically if you have a custom usb device and want to bind the keys, follow these instructions on gentoo running eudev (process is similar for systemd):</p>
+<ul>
+<li>make a /etc/udev/hwdb directory (for systemd; ignore otherwise)</li>
+<li>look in /lib/udev/hwdb for instructions (for gentoo)</li>
+</ul>
+<p>There is a mapping between scancodes and keycodes. Scancodes are what the device (usbkeyboard) make and they’re mapped by udev to keycodes. View usb devices and the scancodes they generate via evtest. The “value” is the scancode in hex. What you have to do is (1) DO NOT follow the instructions because udev doesn’t look in /etc/udev/hwdb. Instead it will work with /dev/udev/hwdb. Find your keyboard (in my case, by searching “Alienware”) in the 60-keyboards.hwdb file. Then append rules in there. The syntax is <code>KEYBOARD_KEY_$HEX_SYM=$CODE</code>. A concrete example I use is <code>KEYBOARD_KEY_92=p</code>. Then, to reload, run <code>sudo udevadm hwdb --update</code> and then <code>sudo udevadm trigger --verbose --sysname-match="event*"</code>.</p>
+    </section>
+</article>
+
+        </main>
+
+    </body>
+</html>

@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Justin Restivo's Blog - Getting Started With (neo)vim</title>
+        <link rel="stylesheet" href="../css/default.css" />
+    </head>
+    <body>
+        <header>
+            <div class="logo">
+                <a href="../index.html">Justin Restivo's Blog</a>
+            </div>
+            <nav>
+                <a href="../index.html">Home</a>
+                <a href="../about.html">About</a>
+                <a href="../contact.html">Contact</a>
+                <a href="https://github.com/DieracDelta">Github </a>
+            </nav>
+        </header>
+
+        <main role="main">
+            <h1>Getting Started With (neo)vim</h1>
+            <article>
+    <section class="header">
+        Posted on July 21, 2019
+        
+    </section>
+    <section>
+        <h2 id="what-is-vim-and-why-should-i-use-it">What is vim and why should I use it?</h2>
+<p>EDIT: my messy dots are <a href="https://gitea.justinrestivo.me/jrestivo/neovim_dots/src/branch/master/init.vim">HERE</a></p>
+<p>I’ve had people approach me and ask how to get started with vim. Based on my struggles with it, I’ve decided to write a guide describing my workflow. I ran through vimtutor four years ago, switched to and used spacemacs for about two years, then within the past year switched back to (neo)vim.</p>
+<p>First of all, I’ve gone with neovim. Neovim is basically vim but with nice async apis that you can play around with in languages other than vimscript (which is gross), like python or golang. From a user standpoint, you shouldn’t observe any visible differences. (EDIT: compiling head of neovim brings in a nice hover feature worth using)</p>
+<p>Now, let’s get started. What is vim and why use it? Vim is a modal editor, meaning that it supports different modes one may switch between. It makes for speedier text manipulation than the more traditional editor (e.g. microsoft word) in multiple ways. This part isn’t as interesting to me, so I won’t spend anymore time on it. Go run through vimtutor then come back. I’ll write the rest of this assuming you’re convinced that vim is a useful tool and want to use it for writing code. I’ll talk about ways I’ve optimized my workflow through vim. Mostly this is an aggregation of stack overflow posts and other blog posts.</p>
+<h2 id="writing-a-config-file-for-vim">Writing a config file for vim</h2>
+<p>So, first, vim has a config file. Typically it’s stored in <code>$HOME/.vimrc</code>. However, I’m going to:</p>
+<ul>
+<li>Assume you’re using neovim (though most of what I say will work for vim8)</li>
+<li>Assume you’ve created a <code>$HOME/.config/nvim</code> folder.</li>
+</ul>
+<p>Neovim will read from this folder. Within this folder, create a nvim.init file. This will be the equivalent of <code>$HOME/.vimrc</code>.</p>
+<p>So the first thing I did was lean on others config files. <a href="https://github.com/isaacmorneau/dotfiles/blob/master/.vim/vimrc">Isaac Morneau’s</a>’s config is amazing, and I think a fantastic starting point (this is where I started.) I’ll give a high level overview of what’s going on in his config. I won’t go into the details–a lot of the config options are really good and well commented. You should run through and pick and choose what you want from that. I ended up changing plugins and bindings (post line 94), and this is what I’ll spend most of my time talking about. On the first 100 lines or so, we’ve got a bunch of way saner defaults. Seriously, I can’t live without things like wrap, syntax highlighting, line numbers, system-wide clipboard etc. Go through and copy and paste the stuff you want into your config. Don’t be daunted by this. Just make sure each addition does what you want.</p>
+<h2 id="managing-buffers-windows-and-tabs-with-leader-key">managing buffers, windows, and tabs with leader key</h2>
+<p>I’ll talk a bit about how things work behind the scenes about tab/buffer management. I didn’t think this was particularly obvious from the tutorial. Vim has buffers. You can open a file in a buffer. Vim also has tabs. Think of tabs as the same sort of tabs as in your web browser. You can have the same buffer open in multiple tabs, and closing the buffer closes it across all tabs. You can also have multiple buffers open in a single tab. To create a new tab, do <code>:tabedit</code>. This might feel confusing but we’re about to add some keybinds to make it easier (in fact it’s very similar to how spacemacs does it). Oh, and each vim tab can be split into multiple windows.</p>
+<p>Vim has a leader key. You press this key, then a key combo to execute some sort of functionality. Coming from spacemacs, I had already internalized a bunch of keybinds based on the spacebar as a leader key. I would also recommend this as the leader key but you could definitely use other keys! To set a leader key, include in your config file:</p>
+<p><code>let mapleader = "\&lt;SPACE&gt;"</code></p>
+<p>Now, we can make shortcuts to specific tasks by using the spacebar in a key sequence. See my <a href="https://gitea.justinrestivo.me/jrestivo/neovim_dots/src/branch/master/init.vim">config files</a> for some examples. Basically, we can make life a bit easier. We can split windows via these key sequences. For example, to do a vertical split, do space+w+v. This means split a window vertically. E.g. the shortcuts are mnemonic. I’ve included a bunch of them:</p>
+<pre><code>map &lt;leader&gt;ws :sp&lt;cr&gt; &quot; window split
+map &lt;leader&gt;wv :vs&lt;cr&gt; &quot; window split vertical
+map &lt;leader&gt;bd :q&lt;cr&gt; &quot; buffer delete 
+map &lt;leader&gt;bD :Bclose!&lt;cr&gt; &quot; buffer close
+map &lt;leader&gt;wd :q&lt;cr&gt; &quot; window delete
+map &lt;leader&gt;bn :tabnext&lt;cr&gt; &quot; next tab
+map &lt;leader&gt;bp :tabprevious&lt;cr&gt; &quot; prev tab
+map &lt;leader&gt;bN :tabedit&lt;cr&gt; &quot; buffer new
+map &lt;leader&gt;wl :wincmd l&lt;cr&gt; &quot; go to right window
+map &lt;leader&gt;wj :wincmd j&lt;cr&gt; &quot; go to down window
+map &lt;leader&gt;wk :wincmd k&lt;cr&gt; &quot; go to up window
+map &lt;leader&gt;wh :wincmd h&lt;cr&gt; &quot; go to left window
+map &lt;leader&gt;tv :vsplit&lt;cr&gt; :terminal&lt;cr&gt; A &quot; new terminal in vertical split 
+map &lt;leader&gt;ts :split&lt;cr&gt; :terminal&lt;cr&gt; A &quot; new terminal in horizontal split
+map &lt;leader&gt;tn :tab term&lt;cr&gt; A &quot; new terminal in new tab
+map &lt;leader&gt;gt gt &quot; goto next tab
+map &lt;leader&gt;gT gT &quot; goto previous tab
+&quot; buffer management
+map &lt;leader&gt;bn :bn&lt;cr&gt; &quot; next buffer
+map &lt;leader&gt;bp :bp&lt;cr&gt; &quot; previous buffer</code></pre>
+<h2 id="getting-started-with-vim-plugin-manager">Getting started with vim plugin manager</h2>
+<p>The next thing to do is get a plugin manager. Vim has plugins–bits of vimscript that provide a <em>lot</em> of additional functionality. There are a lot of plugin managers out there. Isaac recommends <a href="https://github.com/junegunn/vim-plug">vim-plug</a>, and I’ve had only good experiences with it. It’s incredibly simple to set up and use, but I haven’t tried others because this one works so well. That being said, vim8 includes its own built-in plugin manager so if you’re using vim, you may want to try that out. To install plug, follow the instructions in the README, which is just a curl command in most cases. To use, introduce a section into your config that looks like (again the README’s example is great and I’m just re-explaining…):</p>
+<pre><code>call plug#begin('~/.vim/plugged')
+Plug 'github_username/repo_name'
+&quot; you can also include configuration settings
+&quot;... more plugins
+call plug#end()</code></pre>
+<p>Where you replace <code>github_username</code> with a github username and <code>repo_name</code> with the name of the plugin repo. Once you’ve included a plugin, run <code>:PlugInstall</code> to install plugins, <code>:PlugUpdate</code> to update, and <code>:PlugClean</code> to remove previously installed plugins no longer listed in your config file. Easy, right? I’ll now outline some of the more useful plugins (many of which Isaac showed me).</p>
+<h2 id="project-management">Project Management</h2>
+<p>The first plugins I want to discuss are related to project management. When you open a project directory, it’s often really annoying to do three things. I’ll go through them one by one:</p>
+<h3 id="project-management-1">Project Management</h3>
+<p>It’s really annoying to reopen files every time you want to open vim to edit a project (I’m using project to mean a directory). Luckily, my friend Isaac ran into and fixed this problem. He wrote his own <a href="https://github.com/isaacmorneau/vim-simple-sessions">plugin</a> in vimscript that I strongly recommend you try. In essence, it comes in two parts:</p>
+<ul>
+<li>a bash script to choose between pre-existing sessions.</li>
+<li>some execute mode commands to control how sessions work</li>
+</ul>
+<p>The bash script is something to paste into your .bashrc. I edited it (see below) to run in zshell (throw into .zshrc):</p>
+<pre><code>function nvimp() {
+        vcmd=$(command -v nvim &amp;&gt;/dev/null &amp;&amp; echo nvim || echo vim)
+        vfl=&quot;$HOME/.local/share/nvim/session&quot;
+        file=$(find $vfl -type f | fzf +m -1)
+        if [ -n &quot;$file&quot; ]; then
+                vcd=$(grep -m 1 -e 'cd ' &quot;$file&quot;)
+                eval $vcd
+                $vcmd
+        fi
+}</code></pre>
+<p>Note that this requires <a href="https://www.google.com/search?q=fzf&amp;oq=fzf&amp;aqs=chrome..69i57j69i60j0l4.700j0j1&amp;sourceid=chrome&amp;ie=UTF-8">FZF</a> to be installed. Then you can run this script and choose between saved sessions. To use the session, you run create a session with <code>Smk</code>, save with <code>Sss</code>, or remove with <code>Srm</code>. It will also open the session with you open the project directory in vim. This is really convenient for large projects.</p>
+<h2 id="grep-around-for-keywords-and-file-names">Grep around for keywords and file names</h2>
+<p>This is really helpful when you’re looking for something in a project but don’t remember the file path. You’ll need the two fzf plugins and <a href="https://github.com/ggreer/the_silver_searcher">Ag</a> for grepping:</p>
+<pre><code>Plug 'junegunn/fzf' &quot;fuzzy jumping arround
+Plug 'junegunn/fzf.vim'</code></pre>
+<p>Then you can add something akin to:</p>
+<pre><code>map &lt;leader&gt;bb :Buffers&lt;cr&gt;
+map &lt;leader&gt;bl :Lines&lt;cr&gt;
+map &lt;leader&gt;bt :BTags&lt;cr&gt;
+map &lt;leader&gt;bm :Marks&lt;cr&gt;</code></pre>
+<p>Triggering one of these will let you type in a phrase and it’ll try and match it to either a tag, mark, line, or buffer. Super helpful for code nav. Additionally, using <code>:Ag</code> will let you grep the directory.</p>
+<p><code>nmap &lt;silent&gt; &lt;leader&gt;h :History&lt;cr&gt;</code> will show recently opened files.</p>
+<p>And finally, the kicker is grepping the currently open directory. Do this by calling <code>:FZF</code>, or binding it to something (I bound it to the enter key with <code>map &lt;C-m&gt; :tabedit&lt;cr&gt;:FZF&lt;cr&gt;</code>).</p>
+<h2 id="codenav-intellisense">Codenav + intellisense</h2>
+<p>Codenav is important for both exploring huge codebases, and double checking that what you’re doing is right syntactically. This is typically the perk of using an IDE. But, you can now get VSCode’s intellisense and code nav in vim. This is nearly equivalent to Jetbrains IDEs, in my experience. The way that VScode does things (and vim/emacs, now) is via this <a href="https://microsoft.github.io/language-server-protocol/">language server protocol</a>. You’ll have a <em>language server</em> running in the background, and vim will query it for information that it will then relay to you. Most language servers support async APIs, so you won’t experience any latency, even for massive projects. The autocomplete/intellisense engine to use here is <a href="https://github.com/neoclide/coc.nvim">coc.nvim</a>, which does in fact both work with vim and neovim. There are alternatives which I did try, but this is the best on the market as of writing this post.</p>
+<h3 id="coc.nvim">Coc.nvim</h3>
+<p>To install, just like any other completion engine, you’ll throw the github repo into your list of plugins with Plug (with a bash script: <code>Plug 'neoclide/coc.nvim', {'do': './install.sh nightly'}</code>). Then, upon installation, you’ll need to choose the languages you’re interested in getting completion for. Then, you’ll need to do two things:</p>
+<ul>
+<li>Google around for a language server to integrate in, <em>install this language server separately</em>, and edit to tell coc.nvim about the language server in its own <em>separate</em> config file.</li>
+<li>Google around for coc.nvim support, and <code>:CocInstall</code> the relevant plugin.</li>
+</ul>
+<p>I’ll use C as the example here. First, choose a language server. I like using clangd, and that’s what I’ll use in this example. Clangd is part of the llvm project and most modern distros have a package that includes it. Note that there are other options such as ccls. Once you’ve successfully installed (or compiled) clangd, tell coc.nvim about it by including as an <a href="https://github.com/neoclide/coc.nvim/wiki/Language-servers">entry</a> in your coc config file (accessible via <code>:CocConfig</code>):</p>
+<pre><code>  &quot;languageserver&quot;: {
+        &quot;clangd&quot;: {
+              &quot;command&quot;: &quot;clangd&quot;,
+              &quot;args&quot;: [&quot;--background-index&quot;],
+              &quot;rootPatterns&quot;: [&quot;compile_flags.txt&quot;, &quot;compile_commands.json&quot;, &quot;.vim/&quot;, &quot;.git/&quot;, &quot;.hg/&quot;],
+              &quot;filetypes&quot;: [&quot;c&quot;, &quot;cpp&quot;, &quot;objc&quot;, &quot;objcpp&quot;]
+            }
+  }</code></pre>
+<p>Note that in the root directory of your project you’ll need to write a compile_commands.txt file for clangd to use. This is easy enough to do directly if your c project uses cmake (you can output directly during compilation). Otherwise, if you’re using some other build tool (like make), you can use <a href="https://github.com/rizsotto/Bear">bear</a> to generate this file. You feed bear the command to build the project and bear will both build the project once and autogenerate the compile_commands.txt file. E.g. Something incredibly simple like:</p>
+<pre><code>bear make </code></pre>
+<p>To give you a sense of how powerful this is, I’ve both used it on my own personal projects (smaller), and absolutely massive projects like qemu. Works like a charm in both cases, surprisingly.</p>
+<p>Other language servers of interest (that you can look at my dots to get a sense for):</p>
+<ul>
+<li>python: you’ll need to install the language server and jedi things for coc. Google around for that. Should be easy and just copy my config. Fantastic support, though. Makes editing things easy.</li>
+<li>docker: decent support for config files. Again, use google.</li>
+<li>rust: phenomenal support and linting via rls! Coc even installs the language server for you using rustup!</li>
+<li>markdown: good support and linting with efm</li>
+<li>Java: use the <a href="https://github.com/eclipse/eclipse.jdt.ls">eclipse language server</a>! It’s great! Eclipse level autocomplete/intellisense but in vim! There are a few args you have to pass in (see my config file), and obviously you the .jar to be on your path somewhere.</li>
+<li>latex: it’s great, but the source of another blog post</li>
+<li>golang: also fantastic support.</li>
+<li>bash: you can grab this but it seems like a bunch of effort…Do you really write enough bash for this to be relevant?</li>
+</ul>
+<h4 id="shortcuts-for-coc.nvim">shortcuts for coc.nvim</h4>
+<p>See below for the three main things I get out of coc.nvim and how to call them (forall language servers). Note that most of this is in the README.</p>
+<h5 id="intellisense">intellisense</h5>
+<p>Depending on the file you’ve got open, coc.nvim will start a language server at the root directory you’ve opened. Then, to get autocomplete/intellisense, you’ll need to enable sources. Neovim will automatically (or you specify based on file type in the coc config file) and by default enable a bunch of common ones such as a dictionary and words currently in the buffer. I set all of the ones that were not the language server to priority zero so the ended up last in the complete dropdown. To start the complete dropdown, use cntrl+n/p.</p>
+<h5 id="code-nav">code nav</h5>
+<pre><code>&quot; Manage extensions
+nnoremap &lt;silent&gt; &lt;leader&gt;e  :&lt;C-u&gt;CocList extensions&lt;cr&gt;
+&quot; Show commands
+nnoremap &lt;silent&gt; &lt;leader&gt;c  :&lt;C-u&gt;CocList commands&lt;cr&gt;
+&quot; Find symbol of current document
+nnoremap &lt;silent&gt; &lt;leader&gt;o  :&lt;C-u&gt;CocList outline&lt;cr&gt;
+&quot; Search workleader symbols
+nnoremap &lt;silent&gt; &lt;leader&gt;s  :&lt;C-u&gt;CocList -I symbols&lt;cr&gt;
+&quot; Resume latest coc list
+nnoremap &lt;silent&gt; &lt;leader&gt;p  :&lt;C-u&gt;CocListResume&lt;CR&gt;
+&quot; jump to definition using lang server
+nmap &lt;silent&gt; &lt;leader&gt;d &lt;Plug&gt;(coc-definition)
+&quot; jump to type definition using ls
+nmap &lt;silent&gt; &lt;leader&gt;td &lt;Plug&gt;(coc-type-definition)
+&quot; jump to implementation using ls
+nmap &lt;silent&gt; &lt;leader&gt;i &lt;Plug&gt;(coc-implementation)
+&quot; get method or type references using language server
+nmap &lt;silent&gt; &lt;leader&gt;r &lt;Plug&gt;(coc-references)</code></pre>
+<h6 id="docs">docs</h6>
+<p>Just as you can use “K” to look at git commit details given a hash, and the man pages for c/bash functions, you can also use “K” to look at the included docs (I’ve mostly used this for Rust) via this:</p>
+<pre><code>nnoremap &lt;silent&gt; K :call &lt;SID&gt;show_documentation()&lt;CR&gt;
+function! s:show_documentation()
+  if (index(['vim','help'], &amp;filetype) &gt;= 0)
+    execute 'h '.expand('&lt;cword&gt;')
+  else
+    call CocAction('doHover')
+  endif
+endfunction</code></pre>
+<h5 id="errors">errors</h5>
+<p>Cycle through errors (denoted diagnostics by coc.nvim) found by the language server via:</p>
+<pre><code>// all errors
+nnoremap &lt;silent&gt; &lt;leader&gt;a  :&lt;C-u&gt;CocList diagnostics&lt;cr&gt;
+// cycle
+nmap &lt;silent&gt; [c &lt;Plug&gt;(coc-diagnostic-prev)
+nmap &lt;silent&gt; ]c &lt;Plug&gt;(con-diagnostic-next)</code></pre>
+<h3 id="alternatives">alternatives</h3>
+<p>Now, there have come times where just straight coc.nvim is good but too much effort to configure. An easier alternative is just tagging for code nav. I also find that this is good as backup in case coc.nvim doesn’t have the relevant language sever. Install <a href="https://github.com/universal-ctags/ctags.git">exhuberant-ctags</a> and ludovicchabant/vim-gutentags. Now, you can use cntrl+] to jump to definition.</p>
+<h2 id="other-useful-plugins">other useful plugins</h2>
+<ul>
+<li>airblade/vim-gitgutter: tracks git changes</li>
+<li>chrisbra/Colorizer: highlights hex codes</li>
+<li>sheerun/vim-polyglot: fantastic syntax highlighting for almost every language. Doesn’t play nice with vim-latex (I’ll talk about this later), so include <code>let g:polyglot_disabled = ['latex']</code> somewhere.</li>
+<li>vim-syntastic/syntastic for non-language server syntax checking.</li>
+<li>jreybert/vimagit: magit but for vim instead of emacs. This is super helpful for seeing git summaries and diffs from various commits. Also allows for staging/committing from within vim.</li>
+<li>scrooloose/nerdcommenter needed to comment things out based on filetype.</li>
+<li>Raimondi/delimitMate: auto inserted delimiters (e.g. typing ‘(’ will autoinsert ‘)’)</li>
+</ul>
+<h2 id="aesthetics">aesthetics</h2>
+<p>I’ll do another blog post on this but I really like what isaac did. Basically you get a status bar on the bottom with vim-airline, and onedark color scheme from vim-airline-themes that you can enable with <code>colorscheme onedark</code>. You can also set individual colors and characters (again, see my init.vim).</p>
+    </section>
+</article>
+
+        </main>
+
+    </body>
+</html>
