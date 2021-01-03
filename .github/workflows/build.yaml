@@ -12,12 +12,12 @@ jobs:
       with:
         nix_path: nixpkgs=channel:nixos-unstable
     - run: nix build . -o site
-deploy:
-  provider: pages
-  skip_cleanup: true
-  github_token: ${{ secrets.GITHUB_TOKEN }}
-  keep_history: true
-  target_branch: master
-  local_dir: site
-  on:
-    tags: true
+ deploy:
+   provider: pages
+   skip_cleanup: true
+   github_token: ${{ secrets.GITHUB_TOKEN }}
+   keep_history: true
+   target_branch: master
+   local_dir: site
+   on:
+     tags: true
