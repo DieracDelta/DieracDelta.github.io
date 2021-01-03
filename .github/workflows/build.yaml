@@ -16,7 +16,7 @@ jobs:
          - run: nix build . -o site
          - name: Deploy 🚀
            uses: JamesIves/github-pages-deploy-action@releases/v2
-           with:
+           env:
               GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
               BRANCH: master # The branch the action should deploy to.
