@@ -1,0 +1,10 @@
+.direnv/
+dist/
+dist-newstyle/
+_cache/
+_site/
+*.hi
+*.o
+.ghc.environment.*
+*~
+[#]*[#]
