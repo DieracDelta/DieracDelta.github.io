@@ -34,7 +34,6 @@
           export LANG=en_US.UTF-8
           site build
           mkdir -p $out
-          echo "justin.restivo.me" >> $out/CNAME
           cp -r _site/* $out
         '';
       };
