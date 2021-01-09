@@ -12,9 +12,6 @@ header {
   border-bottom: 0.2rem solid #659f08;
 }
 
-.circular--portrait {
-}
-
 img {
   width: 40%;
   height: 20%;
@@ -23,7 +20,7 @@ img {
   overflow: hidden;
   border-radius: 50%;
   float: right;
-  margin-top: -10%;
+  margin-top: -5%;
 }
 
 nav {
@@ -42,7 +39,6 @@ a {
   text-decoration: none;
   color: #659f08;
 }
-
 
 footer {
   margin-top: 3rem;
@@ -134,7 +130,7 @@ article .header {
 
 @media (min-width: 640px) {
   body {
-    width: 60rem;
+    width: 80rem;
     margin: 0 auto;
     padding: 0;
   }
