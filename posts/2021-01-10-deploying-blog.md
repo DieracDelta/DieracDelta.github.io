@@ -61,3 +61,13 @@ Generating the blog content is done by first `nix develop`-ing, then running
 Then building is as easy as `nix build .`. The website workflow is
 easy to control from the `Main.hs` file, and the template's css
 and html is easy enough to modify as well.
+
+# Google Analytics #
+
+I'm also interested in data, and one way to get data is to hook
+the site into google analytics. Google gives your site a script to put in the
+`HEAD` of each page, and it will provide you with analytics based on the 
+requests to the page. I've done this and it's pretty nifty 
+(though I'm the only user). Hakyll makes this easy, since all I need do is 
+modify the template used to include the analytics script and boom it's 
+on all webpages.
