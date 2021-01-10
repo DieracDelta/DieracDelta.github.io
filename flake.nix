@@ -49,13 +49,10 @@
       packages.x86_64-linux = {
         inherit (pkgs) justinrestivo-me-builder justinrestivo-me;
       };
-      devShell.x86_64-linux = pkgs.haskellPackages.shellFor { packages = p: [ p.builder ]; };
-      /*pkgs.mkShell {*/
-      #  nativeBuildInputs = [
-      #    pkgs.haskellPackages.ghcid
-      #    pkgs.haskellPackages.builder
-      #    pkgs.haskellPackages.cabal-install
-      #  ];
-      #};
+      devShell.x86_64-linux =
+        #   pkgs.haskellPackages.shellFor {
+        #   packages = p: [ p.justinrestivo-me-builder ];
+        # };
+        pkgs.mkShell { nativeBuildInputs = [ pkgs.justinrestivo-me-builder ]; };
     };
 }

@@ -58,9 +58,22 @@ The steps are:
 
 Generating the blog content is done by first `nix develop`-ing, then running
 `hakyll-init` in the root directory; this generates the template to modify.
-Then building is as easy as `nix build .`. The website workflow is
-easy to control from the `Main.hs` file, and the template's css
-and html is easy enough to modify as well.
+Then building is as easy as:
+
+``` bash
+nix build .
+```
+
+The website workflow is easy to control from the `Main.hs` file, and the 
+template's css and html is easy enough to modify as well.
+
+As with all static website generators, live refresh upon modification of 
+css is a must for rapid prototyping. Hakyll allows this via:
+
+``` bash
+nix develop
+site --watch
+```
 
 # Google Analytics #
 
@@ -71,3 +84,10 @@ requests to the page. I've done this and it's pretty nifty
 (though I'm the only user). Hakyll makes this easy, since all I need do is 
 modify the template used to include the analytics script and boom it's 
 on all webpages.
+
+# Adding style #
+
+To make the site look a little less outdated, I'm using `nerdfonts`. This was
+as easy as including a line in the `HEAD` section and a little bit of `css` 
+per nerdfont README.
+
