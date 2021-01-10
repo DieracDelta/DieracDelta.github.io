@@ -10,7 +10,7 @@ body {
 }
 
 header {
-  border-bottom: 0.2rem solid #659f08;
+  border-bottom: 0.2rem solid #fc5a03;
 }
 
 img {
@@ -23,6 +23,10 @@ img {
   margin-top: -5%;
 }
 
+.topele {
+  color: #659f08;
+}
+
 nav {
   text-align: right;
 }
@@ -30,9 +34,26 @@ nav {
 nav a {
   font-size: 1.8rem;
   font-weight: bold;
-  color: #659f08;
+  color: #fc5a03;
+
   text-decoration: none;
   text-transform: uppercase;
+}
+
+.weblistitem {
+}
+
+.bloglisttitle {
+  align: left;
+  width: 80%;
+  text-align: left;
+  color: #fc5a03;
+}
+
+.bloglistdate {
+  text-align: right;
+  width: 50%;
+  color: #fc5a03;
 }
 
 a {
@@ -61,7 +82,6 @@ h2 {
 article .header {
   font-size: 1.4rem;
   font-style: italic;
-  color: #659f08;
 }
 
 .logo a {

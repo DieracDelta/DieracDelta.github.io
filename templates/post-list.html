@@ -1,7 +1,11 @@
-<ul>
+<table>
     $for(posts)$
-        <li>
-            <a href="$url$">$title$</a> - $date$
-        </li>
+        <tr>
+            <th class="bloglisttitle">*
+                <a href="$url$"> $title$ </a>
+                </th>
+            <th class="bloglistdate"> $date$ </th>
+
+        </tr>
     $endfor$
-</ul>
+</table>
