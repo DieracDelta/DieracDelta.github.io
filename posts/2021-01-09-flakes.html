@@ -1,14 +1,18 @@
 <!doctype html>
 <html lang="en">
     <head>
+        <!-- google analytics -->
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-PMP32CMWHS"></script>
         <script>
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
+         window.dataLayer = window.dataLayer || [];
+         function gtag(){dataLayer.push(arguments);}
+         gtag('js', new Date());
 
-            gtag('config', 'G-PMP32CMWHS');
+         gtag('config', 'G-PMP32CMWHS');
         </script>
+        <!-- nerdfonts -->
+        <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hack-font@3/build/web/hack.css">
+
         <meta charset="utf-8">
         <meta http-equiv="x-ua-compatible" content="ie=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -54,7 +58,7 @@
 <p>This part is simple enough; it’s outlined on the <a href="https://nixos.wiki/wiki/Flakes">wiki</a>. The input list will probably include the stable, unstable, and home-manager channels, and the output list can contain only your <code>configuration.nix</code> and <code>home.nix</code> (for home-manager) nixos modules, as outlined <a href="https://github.com/nix-community/home-manager#nix-flakes">on the home-manager readme</a>.</p>
 <p>Before building your system, flakes requires that the directory you’re building from be a git repo, and that all files being used in the build be staged.</p>
 <p>Then you can build your system by running (in the repo root directory):</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a><span class="fu">sudo</span> nixos-rebuild switch --flake <span class="va">$HOST_NAME</span></span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a><span class="fu">sudo</span> nixos-rebuild switch --flake <span class="va">$HOST_NAME</span></span></code></pre></div>
 <p>Note that since we’re using flakes, flakes will create a <code>flake.lock</code> file that will allow us to build the repo on any machine <em>down to the commit used</em>.</p>
 <p>Note what we’re already getting with very little expended effort:</p>
 <ul>

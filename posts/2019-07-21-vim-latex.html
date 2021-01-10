@@ -1,14 +1,18 @@
 <!doctype html>
 <html lang="en">
     <head>
+        <!-- google analytics -->
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-PMP32CMWHS"></script>
         <script>
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
+         window.dataLayer = window.dataLayer || [];
+         function gtag(){dataLayer.push(arguments);}
+         gtag('js', new Date());
 
-            gtag('config', 'G-PMP32CMWHS');
+         gtag('config', 'G-PMP32CMWHS');
         </script>
+        <!-- nerdfonts -->
+        <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hack-font@3/build/web/hack.css">
+
         <meta charset="utf-8">
         <meta http-equiv="x-ua-compatible" content="ie=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -39,27 +43,27 @@
         <p>I’ll give a brief overview on how to get a decent vim workflow going. I started out with reading <a href="https://castel.dev/post/lecture-notes-1/">this blog</a>, and I strongly recommend you also do this. However, some of the things he suggested I could not get to work. That being said I’ll just give an overview of things I enabled, as they are somewhat different than what he’s done.</p>
 <h2 id="coc.nvim">coc.nvim</h2>
 <p>The first thing I did was grab integration with coc.nvim. This entailed installing the <a href="https://github.com/latex-lsp/texlab">texlabs language server</a> (see previous blog post), enabling it in the CocConfig file, and installing <code>lervag/vimtex</code>. You’ll want to add <code>"coc.source.vimtex": true,</code> to your config file, and under language servers, add:</p>
-<pre><code>&quot;latex&quot;: {
-        &quot;command&quot;: &quot;java&quot;,
-        &quot;args&quot;: [
-                &quot;-jar&quot;,
-                &quot;$PATHTOCOMPILERTEXLAB/texlab.jar&quot;
-        ],
-        // not start server at home directory, since it won't work.
-        &quot;ignoredRootPaths&quot;: [
-                &quot;~&quot;
-        ],
-        &quot;filetypes&quot;: [
-                &quot;tex&quot;,
-                &quot;bib&quot;,
-                &quot;plaintex&quot;,
-                &quot;context&quot;
-        ]
-},</code></pre>
+<div class="sourceCode" id="cb1"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a><span class="er">&quot;latex&quot;:</span> <span class="fu">{</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a>        <span class="dt">&quot;command&quot;</span><span class="fu">:</span> <span class="st">&quot;java&quot;</span><span class="fu">,</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a>        <span class="dt">&quot;args&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a>                <span class="st">&quot;-jar&quot;</span><span class="ot">,</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a>                <span class="st">&quot;$PATHTOCOMPILERTEXLAB/texlab.jar&quot;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true"></a>        <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true"></a>        <span class="er">//</span> <span class="er">not</span> <span class="er">start</span> <span class="er">server</span> <span class="er">at</span> <span class="er">home</span> <span class="er">directory</span><span class="fu">,</span> <span class="er">since</span> <span class="er">it</span> <span class="er">won't</span> <span class="er">work.</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true"></a>        <span class="dt">&quot;ignoredRootPaths&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true"></a>                <span class="st">&quot;~&quot;</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true"></a>        <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true"></a>        <span class="dt">&quot;filetypes&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true"></a>                <span class="st">&quot;tex&quot;</span><span class="ot">,</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true"></a>                <span class="st">&quot;bib&quot;</span><span class="ot">,</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true"></a>                <span class="st">&quot;plaintex&quot;</span><span class="ot">,</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true"></a>                <span class="st">&quot;context&quot;</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true"></a>        <span class="ot">]</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true"></a><span class="fu">}</span><span class="er">,</span></span></code></pre></div>
 <p>And finally get vimtex integration with coc.nvim with <code>:CocInstall coc-vimtex</code>. This will provide syntax checking and auto complete both for functions and references from your bibliography.</p>
 <h2 id="vimtex">vimtex</h2>
 <p>Next, to configure vimtex:</p>
-<pre><code>Plug 'lervag/vimtex'
+<pre class="vimscript"><code>Plug 'lervag/vimtex'
 let g:tex_flavor='latex'
 let g:vimtex_view_method='zathura'
 let g:vimtex_quickfix_mode=0
@@ -115,7 +119,7 @@ autocmd FileType tex setlocal ts=2 sw=2 sts=0 expandtab spell</code></pre>
 <span id="cb3-13"><a href="#cb3-13" aria-hidden="true"></a>endsnippet</span></code></pre></div>
 <p>The former saves you from having to type  you’re in normal mode and want a boldface snippet. Same goes for rust. The $1, $2, $3 specify arguments.</p>
 <p>To configure triggering the snippets:</p>
-<pre><code>let g:UltiSnipsExpandTrigger='&lt;c-h&gt;'
+<pre class="vimscript"><code>let g:UltiSnipsExpandTrigger='&lt;c-h&gt;'
 let g:UltiSnipsJumpForwardTrigger='&lt;c-h&gt;'
 let g:UltiSnipsJumpBackwardTrigger='&lt;c-g&gt;'
 let g:UltiSnipsSnippetDirectories=['UltiSnips', '$HOME/.config/nvim/snippets/UltiSnips/']</code></pre>
