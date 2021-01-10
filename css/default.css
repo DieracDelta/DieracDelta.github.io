@@ -1,6 +1,15 @@
 html {
   font-size: 100%;
-  font-family: Hack, monospace; 
+  font-family: Hack, monospace;
+}
+
+ul {
+  list-style: none;
+}
+
+li::before {
+  content: "*   ";
+  color: #fc5a03;
 }
 
 body {
@@ -11,6 +20,15 @@ body {
 
 header {
   border-bottom: 0.2rem solid #fc5a03;
+  color: #fc5a03;
+}
+
+.header {
+  color: #fc5a03;
+}
+
+code {
+  color: #fc5a03;
 }
 
 img {
@@ -19,6 +37,8 @@ img {
   position: relative;
   overflow: hidden;
   border-radius: 50%;
+  border-style: outset;
+  border-color: #659f08;
   float: right;
   margin-top: -5%;
 }
