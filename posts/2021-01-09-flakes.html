@@ -55,11 +55,11 @@
 <p>Before building your system, flakes requires that the directory you’re building from be a git repo, and that all files being used in the build be staged.</p>
 <p>Then you can build your system by running (in the repo root directory):</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a><span class="fu">sudo</span> nixos-rebuild switch --flake <span class="va">$HOST_NAME</span></span></code></pre></div>
-<p>Note that since we’re using flakes, flakes will create a <code>flake.lock</code> file that will allow us to build the repo on any machine. This is super powerful.</p>
-<p>Note what we’re already getting with very little effort:</p>
+<p>Note that since we’re using flakes, flakes will create a <code>flake.lock</code> file that will allow us to build the repo on any machine <em>down to the commit used</em>.</p>
+<p>Note what we’re already getting with very little expended effort:</p>
 <ul>
-<li>a monolithic repo for both our <em>user</em> and <em>system</em> configuration</li>
-<li>completely consistent builds</li>
+<li>a monolithic repo for both our <em>user</em> and <em>system</em> configuration. I was already doing this pre-flakes, but I had to run two separate build commands. The fact that I can manage them both without having to deal explicitly with mutliple channels is neat.</li>
+<li>identical builds proccesses. Of course, compiler non-determinism cannot be avoided and service management is sometimes sketchy, but in general everything up to that is the same. Specifically, the commit hash of the repos used <em>and</em> the way the repos are built <em>will not change</em>. This is a long winded way of saying <em>if it built and ran on one machine targeting amd64, it will also build on all other machines targeting amd64</em>.</li>
 </ul>
 <h2 id="nixflk">nixflk</h2>
 <p>The initial flakes are pretty cool, but there are some nifty abstractions that one can add on top. I ended up using <a href="https://github.com/nrdxp/nixflk">nixflks</a> and my friend’s <a href="https://github.com/gytis-ivaskevicius/nixfiles">fork</a> of nixflks as my starting ground. I’ll talk more to the fork, since those are the abstractions I’ve been using. My dotfiles are <a href="https://github.com/DieracDelta/flakes">here</a>.</p>
