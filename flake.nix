@@ -53,6 +53,8 @@
         #   pkgs.haskellPackages.shellFor {
         #   packages = p: [ p.justinrestivo-me-builder ];
         # };
-        pkgs.mkShell { nativeBuildInputs = [ pkgs.justinrestivo-me-builder ]; };
+        pkgs.mkShell {
+          nativeBuildInputs = [ pkgs.justinrestivo-me-builder pkgs.pandoc ];
+        };
     };
 }

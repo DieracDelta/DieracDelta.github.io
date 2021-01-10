@@ -14,11 +14,9 @@ jobs:
               extra_nix_config:
                  experimental-features = nix-command flakes
          - run: nix build . -o site
-         - name: Deploy 🚀
-           uses: JamesIves/github-pages-deploy-action@releases/v3
+         - uses: crazy-max/ghaction-github-pages@v2
            with:
-              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-              BRANCH: gh-pages # The branch the action should deploy to.
-              FOLDER: site # The folder the action should deploy.
-              CLEAN: true # Automatically remove deleted files from the deploy branch
+              build_dir: site
+              target_branch: gh-pages
+              keep_history: true
+              env: ${{ secrets.GITHUB_TOKEN }}
