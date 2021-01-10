@@ -20,15 +20,18 @@
         <link rel="stylesheet" href="../css/default.css" />
     </head>
     <body>
-        <header>
+        <header class="header">
             <div class="logo">
                 <a href="../index.html">Justin Restivo</a>
             </div>
             <nav>
-                <a href="../index.html">Home</a>
-                <a href="../about.html">About</a>
-                <a href="../contact.html">Contact</a>
-                <a href="https://github.com/DieracDelta">Github </a>
+                <a href="../index.html" class="topele">Home</a>
+                <a> | </a>
+                <a href="../about.html" class="topele">About</a>
+                <a> | </a>
+                <a href="../contact.html" class="topele">Contact</a>
+                <a> | </a>
+                <a href="https://github.com/DieracDelta" class="topele">Github</a>
             </nav>
         </header>
 
@@ -47,11 +50,11 @@
 <h1 id="mechanics">Mechanics</h1>
 <h2 id="getting-nix-flakes">Getting nix flakes</h2>
 <p>Switching flakes was nearly trivial, even if you’re using home-manager. The first step is to install flakes on your system. This is done by including the following in your <code>configuration.nix</code>:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a>  <span class="ex">nix</span> = {</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a>      <span class="ex">package</span> = pkgs.nixUnstable<span class="kw">;</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a>      <span class="ex">extraOptions</span> = <span class="st">''</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a>        <span class="ex">experimental-features</span> = nix-command flakes</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a>      <span class="st">''</span>;</span>
+<div class="sourceCode" id="cb1"><pre class="sourceCode elixir"><code class="sourceCode elixir"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a>  nix <span class="op">=</span> {</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a>      package <span class="op">=</span> pkgs<span class="op">.</span>nixUnstable;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a>      extraOptions <span class="op">=</span> <span class="vs">''</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a>        experimental<span class="op">-</span>features <span class="op">=</span> nix<span class="op">-</span>command flakes</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a>      <span class="vs">''</span>;</span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true"></a>     };</span></code></pre></div>
 <p>This moves the <code>nix</code> package manager to unstable. Then, add <code>nixFlakes</code> to the list of packages to install flakes.</p>
 <h2 id="enabling-flakes">Enabling flakes</h2>
