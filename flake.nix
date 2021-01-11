@@ -4,7 +4,12 @@
     flake = false;
   };
 
-  outputs = { self, nixpkgs, hakyll }:
+  inputs.justinrestivo_resume = {
+    url = "git+ssh://git@github.com/DieracDelta/resume";
+    flake = true;
+  };
+
+  outputs = { self, nixpkgs, hakyll, justinrestivo_resume }:
     let
       inherit (builtins) filterSource;
       inherit (nixpkgs.lib) flip;
@@ -32,7 +37,7 @@
           name = "justinrestivo-me";
           src = src;
           phases = "unpackPhase buildPhase";
-          buildInputs = [ final.justinrestivo-me-builder ];
+          buildInputs = [ final.justinrestivo-me-builder justinrestivo_resume];
           buildPhase = ''
             export LOCALE_ARCHIVE="${pkgs.glibcLocales}/lib/locale/locale-archive";
             export LANG=en_US.UTF-8
@@ -41,6 +46,7 @@
             echo "justin.restivo.me" >> $out/CNAME
             cp -r _site/* $out
             cp sitemap.xml $out
+            cp ${justinrestivo_resume}/justin_restivo_resume.pdf $out
           '';
         };
       };

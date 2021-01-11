@@ -17,7 +17,41 @@
         "type": "github"
       }
     },
+    "justinrestivo_resume": {
+      "inputs": {
+        "nixpkgs": "nixpkgs"
+      },
+      "locked": {
+        "lastModified": 1610318584,
+        "narHash": "sha256-tCL84S1wsxnsO8TcpqV8rqZJd0+qjmAsG7b2UuCXBvM=",
+        "ref": "master",
+        "rev": "04ec4d4bb9fbf122f6502480c0ebe65ca17bd308",
+        "revCount": 15,
+        "type": "git",
+        "url": "ssh://git@github.com/DieracDelta/resume"
+      },
+      "original": {
+        "type": "git",
+        "url": "ssh://git@github.com/DieracDelta/resume"
+      }
+    },
     "nixpkgs": {
+      "locked": {
+        "lastModified": 1610124236,
+        "narHash": "sha256-jLUcft5MxVuYL0gQIgS55cPLdF2R7p736zpXecZNLes=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "0cfd08f4881bbfdaa57e68835b923d4290588d98",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-20.09",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_2": {
       "locked": {
         "lastModified": 1603918233,
         "narHash": "sha256-kc3v+TMNjJRiV9/HinAx7qsWI2wGPHToGnCeOYmahLI=",
@@ -33,7 +67,8 @@
     "root": {
       "inputs": {
         "hakyll": "hakyll",
-        "nixpkgs": "nixpkgs"
+        "justinrestivo_resume": "justinrestivo_resume",
+        "nixpkgs": "nixpkgs_2"
       }
     }
   },
