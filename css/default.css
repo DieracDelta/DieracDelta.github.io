@@ -9,6 +9,8 @@ ul {
 
 th {
   font-size: 100%;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 li::before {
@@ -57,8 +59,7 @@ nav {
 }
 
 nav a {
-  /*font-size: 1.8rem;*/
-  font-size: ;
+  font-size: 1.8rem;
   font-weight: bold;
   color: #fc5a03;
 
@@ -177,6 +178,7 @@ article .header {
 
 @media (min-width: 640px) {
   body {
+    font-size: 23px;
     width: 80%;
     margin: 0 auto;
     padding: 0;
