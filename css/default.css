@@ -8,7 +8,7 @@ ul {
 }
 
 th {
-  font-size: 100%;
+  /*font-size: 100%;*/
   overflow: hidden;
   white-space: nowrap;
 }
@@ -39,7 +39,7 @@ code {
 }
 
 img {
-  width: 30%;
+  width: 20%;
   height: auto;
   position: relative;
   overflow: hidden;
@@ -58,11 +58,23 @@ nav {
   text-align: right;
 }
 
-nav a {
+nav span {
   font-size: 1.8rem;
   font-weight: bold;
   color: #fc5a03;
 
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+span {
+  text-decoration: none;
+  color: #659f08;
+}
+
+nav a {
+  font-weight: bold;
+  color: #fc5a03;
   text-decoration: none;
   text-transform: uppercase;
 }
@@ -86,6 +98,12 @@ nav a {
 a {
   text-decoration: none;
   color: #659f08;
+}
+
+.logo span {
+  font-weight: bold;
+  color: #659f08;
+  text-decoration: none;
 }
 
 footer {
@@ -172,7 +190,36 @@ article .header {
   }
   nav a {
     display: inline;
-    margin: 0 0.6rem;
+  }
+}
+
+@media (min-width: 2000px){
+  body {
+    font-size: 23px;
+    width: 50%;
+    margin: 0 auto;
+    padding: 0;
+  }
+  header {
+    margin: 0 0 3rem;
+    padding: 1.2rem 0;
+  }
+  nav {
+    margin: 0;
+    text-align: right;
+  }
+  nav a {
+    display: inline;
+  }
+  footer {
+    text-align: right;
+  }
+  .logo {
+    margin: 0;
+    text-align: left;
+  }
+  .logo a {
+    float: left;
   }
 }
 
@@ -192,7 +239,6 @@ article .header {
     text-align: right;
   }
   nav a {
-    margin: 0 0 0 1.2rem;
     display: inline;
   }
   footer {
@@ -204,7 +250,6 @@ article .header {
   }
   .logo a {
     float: left;
-    font-size: 1.8rem;
   }
 }
 

@@ -91,6 +91,87 @@ on all webpages.
 # Adding style #
 
 To make the site look a little less outdated, I'm using `nerdfonts`. This was
-as easy as including a line in the `HEAD` section and a little bit of `css` 
+as easy as including a line in the `HEAD` section and a little bit of `css`
 per nerdfont README.
+
+# Adding the Resume #
+
+So, my resume is built with latex. I would open source (and perhaps will)
+the repo I'm using for it. However, there's personally identifying information
+like my mail address and phone number in the git history, and I'm too lazy
+to scrub that.
+
+In any case: my resume is in latex and built with xelatex and latexmk. I recently
+turned it into a flake by modifying the default template to look like:
+
+``` elixir
+{
+  description = "Justin Restivo Resume";
+
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-20.09";
+
+  outputs = { self, nixpkgs }: {
+
+    defaultPackage.x86_64-linux =
+      with import nixpkgs { system = "x86_64-linux"; };
+      stdenv.mkDerivation {
+        name = "justinrestivo_resume";
+        src = self;
+        buildPhase = "latexmk -pdf";
+        buildInputs = with nixpkgs;
+          [
+            (texlive.combine {
+              inherit (texlive) scheme-medium lipsum fmtcount datetime;
+            })
+          ];
+        installPhase = "mkdir -p $out/; mv *.pdf $out/";
+      };
+  };
+}
+```
+
+This is a very simple flake that basically defines the latex dependencies
+and latexmk build command.
+
+Now, if I want to build this into my website flake, I can list the resume 
+repo as an input to the flake:
+
+``` elixir
+
+  inputs.justinrestivo_resume = {
+    url = "git+ssh://git@github.com/DieracDelta/resume";
+    flake = true;
+  };
+```
+
+
+Then, in the build phase of `justinrestivo-me`,
+I can just copy the pdf output of my blog's flake into the output site
+directory and have it be accessible (and linked to by the blog):
+
+``` sh
+
+cp ${justinrestivo_resume}/justin_restivo_resume.pdf $out
+```
+
+In theory this is great, but I still needed it to play nicely with CI.
+This all built fine locally, but did not with github actions. It
+couldn't grab the flake since github CI didn't have permissions to
+clone the private repo that contained my resume flake. To get around this,
+I had to add in another github action that started ssh-agent with a custom
+private ssh key. The relevant piece of the yaml is:
+
+``` yaml
+         - uses: webfactory/ssh-agent@v0.4.1
+           with:
+              ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+```
+
+So first I had to generate a private ssh key, add it to my githubs, and 
+then as a repo secret with the label `secrets.SSH_PRIVATE_KEY`.
+
+Still, after I had ssh-agent start like that, everything worked smoothly.
+Now, nix builds my resume as a dependency, then builds my website with
+the resulting resume pdf included.
+
 
