@@ -2,7 +2,7 @@
 author:
   name: "Justin Restivo"
 date: 2021-01-10
-title: Deploying hakyll blog with nix and github actions
+title: Deploying Hakyll Blog with Nix and Github Actions
 ---
 
 # Motivation #
