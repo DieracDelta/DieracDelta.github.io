@@ -54,7 +54,7 @@
 <li>Discuss what I have tried to do with nixos, and the varying degrees of success I’ve reached (and complain about the pain points).</li>
 <li>Was it worthwhile to switch?</li>
 </ul>
-<h1 id="past-experiences">Past experiences</h1>
+<h1 id="past-experiences"><a href="#past-experiences"># Past experiences</a></h1>
 <p>I’ve been using Linux on and off for the past 7 years. My progression in terms of distros has been:</p>
 <ul>
 <li>2013-2016: Dissatisfied with windows, I found out about Linux and installed Ubuntu 11.10/12.04/12.10 onto three different computers. I stayed on Linux for about 2 years and a half years. I was mostly enthralled by compiz and the speed of Linux compared to the disastrous Windows Vista on my relatively weak hardware. Remember Unity? I loved that and gnome 3. I didn’t dig into how the package manager or command line worked since the Ubuntu Software Center existed. But then, I upgraded my hardware, making it more or less unnecessary to have Linux.</li>
@@ -64,7 +64,7 @@
 <li>I briefly installed Bedrock Linux to let myself install packages from other distros in the hope that this would let me update things. This felt like a major hack which I wouldn’t recommend. The concept is cool, but in practice it got messy really quickly. I needed something that took this concept of installing differently packaged versions of the same package and did it better.</li>
 </ul>
 <p>This leads us to my decision to switch off Gentoo and onto NixOS.</p>
-<h1 id="why-did-i-switch">Why did I switch?</h1>
+<h1 id="why-did-i-switch"><a href="#why-did-i-switch"># Why did I switch?</a></h1>
 <p>I really like developing in docker. Whenever I needed to develop a project, I’d write a Dockerfile for it that had the relevant toolchain installed, then spin up a docker image with a mounted shared volume between this docker container and my host. This made development really easy, and I liked the idea of having a sand-boxed dev environment on a per project basis a lot. However, it does have a couple of pain points:</p>
 <ul>
 <li>Memory usage is through the roof! The final docker container in my last project was over 50 gigs. Let’s not even mention the cached 30 steps on the way to that final version (this was so unmanageable I had to disable caching). Every time I wanted to upgrade the toolchain by touching the Dockerfile, I’d have to wait ages for everything to rebuild, and my memory usage was still through the roof. Docker really doesn’t care about how much memory it uses and pruning unused images/containers still left hundreds of gigs of used storage in <code>/var/docker</code> for no apparent reason. That being said, due to the consistent dev environment it provided, at the time I thought it was the best alternative I had.</li>
@@ -91,19 +91,19 @@
 <p>Finally, I wanted to elaborate a bit on how easy it is to modify packages (as this is a source based distro). It’s really easy. Similarly to gentoo, nix has this concept of an overlay. You can either modify attributes of an existing package or define your own new package pretty easily by feeding in a github link to the source and some build instructions. For example, since rootbar which uses ninja and nix knows how to build packages built with ninja, it only takes a few lines to explain the build process with the nix language.</p>
 <p>TLDR; Nix is able to solve most of my problems with the distros I’ve used in the past. It’s able to replace docker for me in development, for a given state defined in a configuration file, always build and maintain in a deterministic way a bijection to a resulting linux and package configuration, give me a choice between stability and bleeding edge, and be source based enough for me to compile custom packages.</p>
 <p>This also makes rolling back really easy. Since all packages are stored in the nix store, if updating broke something, one can easily switch back to a previous state since all the packages haven’t been deleted from the nix store.</p>
-<h2 id="projects">Projects</h2>
+<h2 id="projects"><a href="#projects">## Projects</a></h2>
 <p>I’ve had the opportunity to try a couple of different languages out with these <code>nix.shell</code> expressions to manage project-specific dependencies. Here are the results:</p>
-<h3 id="rust">Rust</h3>
+<h3 id="rust"><a href="#rust">### Rust</a></h3>
 <p>I’m a big fan of Rust, and it was important to me that Rust ran smoothly on Nix. Although much of the rust tooling (cargo, rustup) doesn’t work, the mozilla overlay does a fantastic job of making the same tooling options available through their Rust overlay.</p>
 <p>I built a <a href="https://github.com/DieracDelta/filehost_rust">filehost</a> using Rust and Rocket.rs. This was really easy and I had no problems installing packages, building, or developing with RLS on emacs.</p>
 <p>It’s also worth mentioning that even the cross compiler stuff works well. For example, a kernel written in rust, <a href="https://github.com/tock/tock/blob/master/shell.nix">Tock</a>, showcases how easy it is to grab a 32 bit cross compiling toolchain for RISC-V both for gcc and rustc/llvm.</p>
-<h3 id="python">Python</h3>
+<h3 id="python"><a href="#python">### Python</a></h3>
 <p>Python works great–you can build packages in to your custom build using your <code>shell.nix</code> similarly to venvs. Nix is a far better python package manager than something like pip. I’ve had nothing but pain with pip…</p>
-<h3 id="systemd-boot">systemd-boot</h3>
+<h3 id="systemd-boot"><a href="#systemd-boot">### systemd-boot</a></h3>
 <p>This can be a pain to enable on some distros, but on NixOS, it’s as simple as setting the <code>boot.loader.systemd-boot.enable</code> flag to true.</p>
-<h3 id="docker">docker</h3>
+<h3 id="docker"><a href="#docker">### docker</a></h3>
 <p>Docker is as easy as toggling a flag or two as well. And after I had it enabled, it worked as easily as on other distros. It was easier than on Gentoo, as I didn’t have to recompile the kernel and add a bunch of extra kernel modules.</p>
-<h2 id="gpu-passthrough">GPU Passthrough</h2>
+<h2 id="gpu-passthrough"><a href="#gpu-passthrough">## GPU Passthrough</a></h2>
 <p>I ended up doing a GPU passthrough to a windows virtual machine and since I only had a single monitor, I also enabled streaming with looking glass. My GPUs were a Radeon RX 5600 XT and 550X. I passed the faster card (5600 XT) to the windows VM. Note that currently (april 2020), this card suffers from the navi reset bug and requires a kernel patch. This kernel patch doesn’t help a huge amount, and the computer will freeze if you restart the vm too many times. The performance also wasn’t great (I’m getting 30 fps on the Witcher 3 on low settings). However, I haven’t gotten to applying optimizations like CPU pinnings and huge pages.</p>
 <p>Getting to this workable state was much easier on NixOS than doing the equivalent exercise on a fairly versatile distribution like arch or gentoo. There are already some good blog posts about this, but the gist of it for me lived in a single <a href="https://github.com/DieracDelta/nix_home_manager_configs/blob/master/dotfiles/gpu_passthrough.nix">file</a>.</p>
 <p>What’s happening? I get the latest kernel:</p>
