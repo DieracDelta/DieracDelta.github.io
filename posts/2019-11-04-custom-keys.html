@@ -16,7 +16,7 @@
         <meta charset="utf-8">
         <meta http-equiv="x-ua-compatible" content="ie=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Justin Restivo - custom keybinds</title>
+        <title>Justin Restivo - Custom Keybinds on Gentoo</title>
         <link rel="stylesheet" href="../css/default.css" />
     </head>
     <body>
@@ -40,7 +40,7 @@
         </header>
 
         <main role="main">
-            <h1>custom keybinds</h1>
+            <h1>Custom Keybinds on Gentoo</h1>
             <article>
     <section class="header">
         Posted on November  4, 2019
@@ -53,7 +53,8 @@
 <li>make a /etc/udev/hwdb directory (for systemd; ignore otherwise)</li>
 <li>look in /lib/udev/hwdb for instructions (for gentoo)</li>
 </ul>
-<p>There is a mapping between scancodes and keycodes. Scancodes are what the device (usbkeyboard) make and they’re mapped by udev to keycodes. View usb devices and the scancodes they generate via evtest. The “value” is the scancode in hex. What you have to do is (1) DO NOT follow the instructions because udev doesn’t look in /etc/udev/hwdb. Instead it will work with /dev/udev/hwdb. Find your keyboard (in my case, by searching “Alienware”) in the 60-keyboards.hwdb file. Then append rules in there. The syntax is <code>KEYBOARD_KEY_$HEX_SYM=$CODE</code>. A concrete example I use is <code>KEYBOARD_KEY_92=p</code>. Then, to reload, run <code>sudo udevadm hwdb --update</code> and then <code>sudo udevadm trigger --verbose --sysname-match="event*"</code>.</p>
+<p>There is a mapping between scancodes and keycodes. Scancodes are what the device (usbkeyboard) generate and they’re mapped by udev to keycodes.</p>
+<p>To view usb devices and the scancodes they generate, run evtest. The “value” is the scancode in hex. Find the keyboard (in my case, by searching “Alienware”) in the 60-keyboards.hwdb file. Then append rules in there. The syntax is <code>KEYBOARD_KEY_$HEX_SYM=$CODE</code>. A concrete example I use is <code>KEYBOARD_KEY_92=p</code>. Then, to reload, run <code>udevadm hwdb --update</code> and then <code>udevadm trigger --verbose --sysname-match="event*"</code>. Only works on gentoo.</p>
     </section>
 </article>
 
