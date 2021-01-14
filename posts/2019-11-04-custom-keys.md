@@ -14,7 +14,7 @@ aliases:
 - /blog/custom\_keybinds
 ---
 
-### how to bind custom usb keyboard keys using eudev on gentoo###
+# how to bind custom usb keyboard keys using eudev on gentoo#
 
 This is mostly for my own sanity if I ever want to edit this again. Basically if you have a custom usb device and want to bind the keys, follow these instructions on gentoo running eudev (process is similar for systemd):
 

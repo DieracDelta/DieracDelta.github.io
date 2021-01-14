@@ -2,7 +2,17 @@
 {-# LANGUAGE OverloadedStrings #-}
 import           Data.Monoid                    ( mappend )
 import           Hakyll
+import Text.Pandoc.Definition
+  ( Pandoc(..), Block(Header, Plain), Inline(Link, Space, Str), nullAttr )
+import Text.Pandoc.Walk (walk)
 
+addSectionLinks :: Pandoc -> Pandoc
+addSectionLinks = walk f where
+  f (Header n attr@(idAttr, _, _) inlines) | n >= 1 =
+    let newLinkText = (replicate n (Str "#")) ++ [Space] ++ inlines
+        link = Link nullAttr (newLinkText) ("#" <> idAttr, "")
+    in Header n attr [link]
+  f x = x
 
 --------------------------------------------------------------------------------
 main :: IO ()
@@ -18,14 +28,14 @@ main = hakyll $ do
   match (fromList ["about.md", "contact.md"]) $ do
     route $ setExtension "html"
     compile
-      $   pandocCompiler
+      $ pandocCompiler
       >>= loadAndApplyTemplate "templates/default.html" defaultContext
       >>= relativizeUrls
 
   match "posts/*" $ do
     route $ setExtension "html"
     compile
-      $   pandocCompiler
+      $ pandocCompilerWithTransform defaultHakyllReaderOptions defaultHakyllWriterOptions addSectionLinks
       >>= loadAndApplyTemplate "templates/post.html"    postCtx
       >>= loadAndApplyTemplate "templates/default.html" postCtx
       >>= relativizeUrls

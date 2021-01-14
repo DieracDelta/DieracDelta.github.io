@@ -11,6 +11,7 @@ executable site
                , containers
                , filepath
                , hakyll >= 4.10
+               , pandoc-types
   ghc-options: -Wall
                -Wcompat
                -Wincomplete-uni-patterns
