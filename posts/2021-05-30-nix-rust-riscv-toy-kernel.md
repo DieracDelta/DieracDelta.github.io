@@ -14,7 +14,9 @@ The purpose of this tutorial is to showcase two main things:
 
 Often times there's a large ramp up for even getting hands wet with embedded dev, and I think Nix can substantially lower that barrier. Furthermore, writing in Rust prevents many a triple fault at compile time through the merits of its type system. Pairing the two seems like a good idea.
 
-One of my biggest initial frustrations with embedded dev was getting a cross compiling toolchain. The "goto" cross compiler [page](https://wiki.osdev.org/GCC_Cross-Compiler) is pretty intimidating for a beginner. Even now, each time I've started on an embedded project it takes me anywhere from a few hours to a week to get the new toolchain built.
+One of my biggest initial frustrations with embedded dev was getting a cross compiling toolchain. The "goto" cross compiler [page](https://wiki.osdev.org/GCC_Cross-Compiler) is pretty intimidating for a beginner. Even now, each time I've started on an embedded project it takes me anywhere from a few hours to a week to get the new toolchain built. With `nix` this goes from an undefined amount of time to minutes.
+
+The repo I'm using for this example is located [here](https://github.com/DieracDelta/NixKernelTutorial).
 
 # Background
 
@@ -174,7 +176,7 @@ use core::panic::PanicInfo;
 
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
-    loop {}
+  loop {}
 }
 
 #[naked]
@@ -215,7 +217,7 @@ sample_package = naersk_lib.buildPackage {
 
 The `pname` becomes the name of the package, and the root is the top level directory that `naersk` builds the package at. `cargoBuild` is a function that takes in the default cargo build command (which we subsequently drop), and return a new cargo build command to be used. The only difference here is that `CARGO_BUILD_TARGET` cannot be our source directory. We need it to be built in the derivation's output directory, so we set it to `$out` (which points there).
 
-We'd also like a script that runs this for us in qemu. We can create one:
+We'd also like a script that runs this in qemu. We can create one:
 
 ```nix
 sample_usage = pkgs.writeScript "run_toy_kernel" ''
@@ -335,9 +337,9 @@ pub extern "C" fn main() -> ! {
     }
     loop {}
 }
-
-And now we have a Rust kernel that prints "hello world". Admitteldy it's not flashy, but it works.
 ```
+
+And now we have a Rust kernel that prints "hello world" build and runnable with nix.
 
 ## Adding CI
 
