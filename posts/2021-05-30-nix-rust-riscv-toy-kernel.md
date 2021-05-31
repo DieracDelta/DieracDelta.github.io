@@ -1,7 +1,7 @@
 ---
 author:
   name: "Justin Restivo"
-date: 2021-02-15
+date: 2021-06-30
 title: Writing a "hello world" Riscv Kernel with Nix in Rust
 ---
 
@@ -46,7 +46,7 @@ First, we start with the generic `flake` template:
   {}
   ```
 
-The outputs will build our kernel, and the inputs will be pinned packages used to build our inputs. The inputs I've chosen are:
+The outputs will build our kernel, and the inputs will be pinned packages used to build our outputs. The inputs I've chosen are:
 
 - Master branch of `nixpkgs`: The choice of master was pretty arbitrary, we could have done stable instead. Nixpkgs consists of a set of 80k+ package definitions in a monorepo to choose from. We'll use this to snag a bunch of packages like gcc, gdb, and qemu.
 - `rust-overlay`: we'll use this for obtaining a version of the rust cross compiler and cargo.
@@ -59,19 +59,19 @@ The outputs will build our kernel, and the inputs will be pinned packages used t
 First, we'll grab the gnu toolchain. In order to do so, we need to specify that this toolchain is cross compiled. Nix makes this easy. The nixpkgs repo defines a function in its `default.nix` file:
 
 ```
-[system information] -> [package definitions]
+{system information} -> {package definitions}
 ```
 
-In order to invoke that function, we run `import` which tells nix to execute the function in the `default.nix` and return the result. In this case, we must some system information in an attribute set argument to this function: specifically that our host system (denoted localSystem) is x8664 linux and our target system (denoted crossSystem) is riscv linux. We include the triples and some information:
+In order to invoke that function, we run `import` which tells nix to execute the function in the `default.nix` and return the result. In this case, we must some system information in an attribute set argument to this function: specifically that our host system (denoted `localSystem`) is `x8664` linux and our target system (denoted `crossSystem`) is riscv linux. We include the triples and some information:
 
 ```nix
-    riscvPkgs = import nixpkgs {
-      localSystem = "${system}";
-      crossSystem = {
-        config = "riscv64-unknown-linux-gnu";
-        abi = "lp64";
-      };
-    };
+riscvPkgs = import nixpkgs {
+  localSystem = "${system}";
+  crossSystem = {
+    config = "riscv64-unknown-linux-gnu";
+    abi = "lp64";
+  };
+};
 ```
 
 This will return us a package set targeting `riscv64-unknown-linux-gnu` with the `lp64` ABI under the `riscvPkgs` variable. `riscvPkgs.gcc` will give us a gcc version compiled to run on a riscv host that compiles to riscv. This is not quite what we want. Instead, we'll use `riscvPkgs.buildPackages.gcc`. This will get us a cross compiler from our host, x8664 linux, to our target, riscv64 linux. The reason this is denoted `buildPackages` is because these packages are used to build the target packages. That is, to build riscv packages targeting riscv.
@@ -98,7 +98,7 @@ For example:
 )
 ```
 
-This overwrites the qemu package with null. So our resulting package set with this overlay will simply be null. Now all that remains is to override the `src` attribute of the `qemu` package. We know that this is the right attribute to override since `nix edit nixpkgs#qemu`shows this attribute as where the source is being placed. We use the `overrideAttrs` package attribute to do this. That attribute takes in a function: `{oldAttributes} -> {newAttributes}`. The new attributes are merged with the unioned attributes and any duplicates are replaced with the values in `newAttributes`.
+This overwrites the qemu package with null. So our resulting package set with this overlay will simply be null. Now all that remains is to override the `src` attribute of the `qemu` package. We know that this is the right attribute to override since `nix edit nixpkgs#qemu` shows this attribute as where the source is being placed. We use the `overrideAttrs` package attribute to do this. That attribute takes in a function: `{oldAttributes} -> {newAttributes}`. The new attributes unioned with the old attributes and any duplicates are replaced with the values in `newAttributes`.
 
 So, our final expression ends up as:
 ```nix
@@ -292,18 +292,19 @@ extern "C" {
     static _end_stack: usize;
 }
 ...
-... _ start ...
-asm!(
-    "
-        la sp, {end_stack}
-        j main
-    ",
-    end_stack = sym _end_stack,
-    options(noreturn)
-);
+... fn _start( ... {
+  asm!(
+      "
+          la sp, {end_stack}
+          j main
+      ",
+      end_stack = sym _end_stack,
+      options(noreturn)
+  );
+}
 ```
 
-The `_end_stack` extern C definition tells the rust compiler to look for this symbol in the linker script. Then all we do is move the symbol into `sp`, and jump to main. We have to specify that the function does not return in order for the rust compiler to not return errors. We'll need to define a `main` function to actually jump to, which we'll do later on.
+The `_end_stack` extern C definition tells the rust compiler to look for this symbol in the linker script. Then all we do is move the symbol into `sp`, and jump to main. We have to specify that the function does not return in order for the rust compiler to not return errors. We'll also need to define a `main` function to actually jump to, which we'll do later on.
 
 ## Using OpenSBI to print
 
