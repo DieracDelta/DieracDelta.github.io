@@ -50,15 +50,99 @@
         <h1 id="motivation"><a href="#motivation"># Motivation</a></h1>
 <p>The purpose of this tutorial is to showcase two main things:</p>
 <ul>
-<li>How great <code>nix</code> can be for embedded development</li>
-<li>Writing a “hello world” kernel for riscv in rust</li>
+<li>How great <code>nix</code> can be for speeding up embedded development</li>
+<li>Writing a “hello world” kernel for riscv64 in Rust</li>
 </ul>
-<p>Often times there’s a large ramp up for even getting hands wet with embedded dev, and I think Nix can defnitely be used to lower that barrier substantially. Furthermore, writing in Rust prevents many a triple fault at compile time by through the merits of its type system. Pairing the two seemed like a good idea.</p>
+<p>Often times there’s a large ramp up for even getting hands wet with embedded dev, and I think Nix can substantially lower that barrier. Furthermore, writing in Rust prevents many a triple fault at compile time through the merits of its type system. Pairing the two seems like a good idea.</p>
+<p>One of my biggest initial frustrations with embedded dev was getting a cross compiling toolchain. The “goto” cross compiler <a href="https://wiki.osdev.org/GCC_Cross-Compiler">page</a> is pretty intimidating for a beginner. Even now, each time I’ve started on an embedded project it takes me anywhere from a few hours to a week to get the new toolchain built.</p>
+<h1 id="background"><a href="#background"># Background</a></h1>
+<p>I’m writing this for readers new to the nix ecosystem but have familiarity with the language before as well as a familiarity with kernel development (though perhaps not with Rust).</p>
 <h1 id="setting-up-the-dev-environment"><a href="#setting-up-the-dev-environment"># Setting up the dev environment</a></h1>
 <p>Before beginning development, a bunch of requisite tooling must be installed. This will be done through the <code>nix</code> package manager. More specifically, we’ll use the experimental <code>flakes</code> feature, which provides convenient pinning and an easy to use CLI.</p>
-<h2 id="rust-toolchain"><a href="#rust-toolchain">## Rust toolchain</a></h2>
+<p>First, we start with the generic <code>flake</code> template:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a><span class="kw">{</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a>  <span class="ex">description</span> = <span class="st">&quot;Example for presentation&quot;</span><span class="kw">;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a>  <span class="ex">inputs</span> = {</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a>    <span class="ex">nixpkgs.url</span> = <span class="st">&quot;nixpkgs/master&quot;</span><span class="kw">;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a>    <span class="ex">rust-overlay</span> = {</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true"></a>      <span class="ex">url</span> = <span class="st">&quot;github:oxalica/rust-overlay&quot;</span><span class="kw">;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true"></a>      <span class="ex">inputs.nixpkgs.follows</span> = <span class="st">&quot;nixpkgs&quot;</span><span class="kw">;</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true"></a>    <span class="kw">}</span>;</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true"></a>    <span class="ex">naersk</span> = {</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true"></a>      <span class="ex">url</span> = <span class="st">&quot;github:nmattia/naersk&quot;</span><span class="kw">;</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true"></a>      <span class="ex">inputs.nixpkgs.follows</span> = <span class="st">&quot;nixpkgs&quot;</span><span class="kw">;</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true"></a>    };</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true"></a>  };</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true"></a>  <span class="ex">outputs</span> = inputs@{self, nixpkgs, rust-overlay, naersk, ... }:</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true"></a>  {}</span></code></pre></div>
+<p>The outputs will build our kernel, and the inputs will be pinned packages used to build our inputs. The inputs I’ve chosen are:</p>
+<ul>
+<li>Master branch of <code>nixpkgs</code>: The choice of master was pretty arbitrary, we could have done stable instead. Nixpkgs consists of a set of 80k+ package definitions in a monorepo to choose from. We’ll use this to snag a bunch of packages like gcc, gdb, and qemu.</li>
+<li><code>rust-overlay</code>: we’ll use this for obtaining a version of the rust cross compiler and cargo.</li>
+<li><code>naersk</code>: we’ll use this for building our rust packages.</li>
+</ul>
+<p><code>output</code> is a function of the described pinned inputs. In theory, it will (sans compiler nondeterminism) always build the same outputs for the same set of inputs.</p>
 <h2 id="gnu-riscv-cross-compiler-toolchain"><a href="#gnu-riscv-cross-compiler-toolchain">## GNU riscv cross compiler toolchain</a></h2>
+<p>First, we’ll grab the gnu toolchain. In order to do so, we need to specify that this toolchain is cross compiled. Nix makes this easy. The nixpkgs repo defines a function in its <code>default.nix</code> file:</p>
+<pre><code>[system information] -&gt; [package definitions]</code></pre>
+<p>In order to invoke that function, we run <code>import</code> which tells nix to execute the function in the <code>default.nix</code> and return the result. In this case, we must some system information in an attribute set argument to this function: specifically that our host system (denoted localSystem) is x8664 linux and our target system (denoted crossSystem) is riscv linux. We include the triples and some information:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a>    <span class="ex">riscvPkgs</span> = import nixpkgs {</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a>      <span class="ex">localSystem</span> = <span class="st">&quot;</span><span class="va">${system}</span><span class="st">&quot;</span><span class="kw">;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a>      <span class="ex">crossSystem</span> = {</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a>        <span class="ex">config</span> = <span class="st">&quot;riscv64-unknown-linux-gnu&quot;</span><span class="kw">;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a>        <span class="ex">abi</span> = <span class="st">&quot;lp64&quot;</span><span class="kw">;</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true"></a>      };</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true"></a>    };</span></code></pre></div>
+<p>This will return us a package set targeting <code>riscv64-unknown-linux-gnu</code> with the <code>lp64</code> ABI under the <code>riscvPkgs</code> variable. <code>riscvPkgs.gcc</code> will give us a gcc version compiled to run on a riscv host that compiles to riscv. This is not quite what we want. Instead, we’ll use <code>riscvPkgs.buildPackages.gcc</code>. This will get us a cross compiler from our host, x8664 linux, to our target, riscv64 linux. The reason this is denoted <code>buildPackages</code> is because these packages are used to build the target packages. That is, to build riscv packages targeting riscv.</p>
 <h2 id="qemu"><a href="#qemu">## Qemu</a></h2>
+<p>Nixpkgs contains a qemu package definition. So first, we’ll need to get a version of nixpkgs targeting x86-64-linux. So we just import nixpkgs <code>default.nix</code> again, this time without specifying a crossSystem. Nixpkgs assumes the target is the same as the host by default:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a>      <span class="ex">pkgs</span> = import nixpkgs {</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true"></a>        <span class="ex">localSystem</span> = <span class="st">&quot;</span><span class="va">${system}</span><span class="st">&quot;</span><span class="kw">;</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true"></a>      };</span></code></pre></div>
+<p>Unfortunately, the qemu version in nixpkgs is slightly out of date. So, we’ll need to override the source to get the latest version. We do this by providing an “overlay” which is a way to modify package definitions. When we import nixpkgs, we can provide a list of overlays/package definition overrides that nixpkgs will apply.</p>
+<p>More technically, an overlay is a function that takes in the original nixpkgs package set and the final “result” package set. This overlay function overwrites package attributes in the old package set in its returned attribute set. That returned attribute set is then magically merged with all other overlays to form the final package set.</p>
+<p>For example:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a><span class="kw">(</span><span class="ex">final</span>: prev:</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a>  <span class="kw">{</span> <span class="ex">qemu</span> = null<span class="kw">;}</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true"></a><span class="kw">)</span></span></code></pre></div>
+<p>This overwrites the qemu package with null. So our resulting package set with this overlay will simply be null. Now all that remains is to override the <code>src</code> attribute of the <code>qemu</code> package. We know that this is the right attribute to override since <code>nix edit nixpkgs#qemu</code>shows this attribute as where the source is being placed. We use the <code>overrideAttrs</code> package attribute to do this. That attribute takes in a function: <code>{oldAttributes} -&gt; {newAttributes}</code>. The new attributes are merged with the unioned attributes and any duplicates are replaced with the values in <code>newAttributes</code>.</p>
+<p>So, our final expression ends up as:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a><span class="ex">pkgs</span> = import nixpkgs {</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true"></a>  <span class="ex">localSystem</span> = <span class="st">&quot;x86_64-linux&quot;</span><span class="kw">;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true"></a>  <span class="ex">overlays</span> = [</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true"></a>    <span class="kw">(</span><span class="ex">final</span>: prev:</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true"></a>      <span class="kw">{</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true"></a>        <span class="ex">qemu</span> = prev.qemu.overrideAttrs (oldAttrs: {</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true"></a>          <span class="ex">src</span> = builtins.fetchurl {</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true"></a>            <span class="ex">url</span> = <span class="st">&quot;https://download.qemu.org/qemu-6.0.0.tar.xz&quot;</span><span class="kw">;</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true"></a>            <span class="ex">sha256</span> = <span class="st">&quot;1f9hz8rf12jm8baa7kda34yl4hyl0xh0c4ap03krfjx23i3img47&quot;</span><span class="kw">;</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true"></a>          <span class="kw">}</span>;</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true"></a>        }<span class="kw">)</span>;</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true"></a>      }</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true"></a>    )</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true"></a>  ];</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true"></a>};</span></code></pre></div>
+<p><code>builtins.fetchurl</code> wgets url attribute at build time and ensures the sha256 hash matches. Now, from this we can just reach in and grab our modified qemu package via <code>pkgs.qemu</code>.</p>
+<h2 id="rust-toolchain"><a href="#rust-toolchain">## Rust toolchain</a></h2>
+<p>Next, let’s grab the rust cross compiler toolchain. To do this, we use the <code>rust-overlay</code> input. This input provides a bunch of outputs. One for each toolchain we might want. We add this overlay to our overlay list in our <code>pkgs</code> definition to gain access to rust binaries <code>rust-overlay</code> provides:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true"></a><span class="ex">...</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true"></a>  <span class="ex">overlays</span> = [rustoverlay.overlay ... ]<span class="kw">;</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true"></a><span class="ex">...</span></span></code></pre></div>
+<p>We’re going to use a fairly recent version of nightly, so we grab the May 10th one: <code>pkgs.rust-bin.nightly."2021-05-10.default"</code>. This is almost good enough, except it’s not a cross compiler. The package definition is a <em>function</em> that takes input arguments. We can override those input arguments to say we would like a cross compiler by using the override attribute:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true"></a></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true"></a><span class="ex">rust_build</span> = pkgs.rust-bin.nightly.<span class="st">&quot;2021-05-10&quot;</span>.default.override {</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true"></a>  <span class="ex">targets</span> = [ <span class="st">&quot;riscv64imac-unknown-none-elf&quot;</span> ]<span class="kw">;</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true"></a>  <span class="ex">extensions</span> = [ <span class="st">&quot;rust-src&quot;</span> <span class="st">&quot;clippy&quot;</span> <span class="st">&quot;cargo&quot;</span> <span class="st">&quot;rustfmt-preview&quot;</span> ]<span class="kw">;</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true"></a>};</span></code></pre></div>
+<p>Note I also overwrote the extensions attribute as well; this will get us some convenient tooling. Since nixpkgs doesn’t have rustup, this is the declarative equivalent to <code>rustup toolchain add riscv64imac-unknown-none-elf</code> and <code>rustup component add rust-src clippy cargo rustfmt-preview</code>. To access this tooling, we just include the <code>rust_build</code> derivation wherever we need it.</p>
+<h2 id="generating-a-nix-shell"><a href="#generating-a-nix-shell">## Generating a Nix Shell</a></h2>
+<p>Using our imports, we can now add a development shell with all of these dependencies installed by defining a <code>devshell.x86_64-linux</code> attribute in our output attribute set:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true"></a><span class="ex">devShell.x86_64-linux</span> = pkgs.mkShell {</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true"></a>  <span class="ex">nativeBuildInputs</span> = [ pkgs.qemu rust_build riscvPkgs.buildPackages.gcc riscvPkgs.buildPackages.gdb ]<span class="kw">;</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true"></a>};</span></code></pre></div>
+<p>When we run <code>nix develop</code>, the packages listed in <code>nativeBuildInputs</code> will be built (or pulled from the cache) and inclued on our path. This is very useful for <code>per-project</code> tooling. Now, we can write the rust kernel.</p>
 <h1 id="writing-rust-kernel"><a href="#writing-rust-kernel"># Writing Rust Kernel</a></h1>
 <h2 id="compiler-invocation"><a href="#compiler-invocation">## Compiler invocation</a></h2>
 <h2 id="adding-a-linker-script"><a href="#adding-a-linker-script">## Adding a linker script</a></h2>
