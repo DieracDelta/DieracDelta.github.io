@@ -21,7 +21,7 @@ jobs:
             nix build . -o site -L
             ls -a
             ls -a site/
-         - uses: crazy-max/ghaction-github-pages@bec28bbdd0e567c60e73f4b7ef1e030115e81660
+         - uses: crazy-max/ghaction-github-pages@8f06ab4000fed6be5ff1fe113aca078422695daf
            if: success()
            with:
               verbose: true
