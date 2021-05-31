@@ -166,53 +166,107 @@
 <p>The exclamation mark return type means that the functions do not return. The Rust compiler requires this.</p>
 <p>Now we’ll need to figure out how to compile this with cargo.</p>
 <h2 id="compiler-invocation"><a href="#compiler-invocation">## Compiler invocation</a></h2>
-<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true"></a><span class="ex">cargo</span> rustc --release --target=<span class="dt">\&quot;</span>riscv64imac-unknown-none-elf<span class="dt">\&quot;</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true"></a>        <span class="kw">```</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true"></a></span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true"></a><span class="ex">will</span> build the kernel. It will also generate a <span class="kw">`</span><span class="ex">Cargo.lock</span><span class="kw">`</span> <span class="fu">file</span> that we can <span class="kw">`</span>git add<span class="kw">`</span><span class="bu">.</span> <span class="ex">In</span> order to build our derivation with nix, we<span class="st">'ll use `naersk`. `naersk` provides a `lib.x86_64-linux.buildPackage` function that will use cargo to build rust packages with nix. First, we tell `naersk` to use our cross compiler by overriding its input rust toolchain (in much the same fashion as earlier):</span></span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true"></a></span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true"></a><span class="st">```nix</span></span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true"></a><span class="st">naersk_lib = naersk.lib.&quot;${system}&quot;.override {</span></span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true"></a><span class="st">  rustc = rust_build;</span></span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true"></a><span class="st">  cargo = rust_build;</span></span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true"></a><span class="st">};</span></span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true"></a><span class="ex">cargo</span> rustc --release --target=<span class="dt">\&quot;</span>riscv64imac-unknown-none-elf<span class="dt">\&quot;</span></span></code></pre></div>
+<p>will build the kernel. It will also generate a <code>Cargo.lock</code> file that we can <code>git add</code>. In order to build our derivation with nix, we’ll use <code>naersk</code>. <code>naersk</code> provides a <code>lib.x86_64-linux.buildPackage</code> function that will use cargo to build rust packages with nix. First, we tell <code>naersk</code> to use our cross compiler by overriding its input rust toolchain (in much the same fashion as earlier):</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true"></a><span class="ex">naersk_lib</span> = naersk.lib.<span class="st">&quot;</span><span class="va">${system}</span><span class="st">&quot;</span>.override {</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true"></a>  <span class="ex">rustc</span> = rust_build<span class="kw">;</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true"></a>  <span class="ex">cargo</span> = rust_build<span class="kw">;</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true"></a>};</span></code></pre></div>
 <p>Now, we can use this <code>naersk_lib</code> to build our package:</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true"></a>sample_package <span class="op">=</span> naersk_lib<span class="op">.</span>buildPackage <span class="op">{</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true"></a>  pname <span class="op">=</span> <span class="st">&quot;example_kernel&quot;</span><span class="op">;</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true"></a>  root <span class="op">=</span> <span class="op">./.;</span></span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true"></a>  cargoBuild <span class="op">=</span> _orig<span class="op">:</span> <span class="st">&quot;CARGO_BUILD_TARGET_DIR=$out cargo rustc --release --target=</span><span class="sc">\&quot;</span><span class="st">riscv64imac-unknown-none-elf</span><span class="sc">\&quot;</span><span class="st">&quot;</span><span class="op">;</span></span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true"></a><span class="op">};</span></span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true"></a>      ```</span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true"></a></span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true"></a>The `pname` becomes the name of the package<span class="op">,</span> and the root is the top level directory that `naersk` builds the package at<span class="op">.</span> `cargoBuild` is a function that takes <span class="kw">in</span> the <span class="kw">default</span> cargo build command (which we subsequentally drop)<span class="op">,</span> and <span class="kw">return</span> a new cargo build command to be used<span class="op">.</span> The only difference here is that `CARGO_BUILD_TARGET` cannot be our source directory<span class="op">.</span> We need it to be built <span class="kw">in</span> the derivation<span class="ot">'s</span> output directory<span class="op">,</span> so we set it to `<span class="op">$</span>out` (which points there)<span class="op">.</span></span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true"></a></span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true"></a>We<span class="ot">'d</span> also like a script that runs this <span class="kw">for</span> us <span class="kw">in</span> qemu<span class="op">.</span> We can create one<span class="op">:</span></span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true"></a></span>
-<span id="cb12-12"><a href="#cb12-12" aria-hidden="true"></a>```nix</span>
-<span id="cb12-13"><a href="#cb12-13" aria-hidden="true"></a>sample_usage <span class="op">=</span> pkgs<span class="op">.</span>writeScript <span class="st">&quot;run_toy_kernel&quot;</span> <span class="ch">''</span></span>
-<span id="cb12-14"><a href="#cb12-14" aria-hidden="true"></a>  #<span class="op">!/</span>usr<span class="op">/</span>bin<span class="op">/</span>env bash</span>
-<span id="cb12-15"><a href="#cb12-15" aria-hidden="true"></a>  <span class="op">${</span>pkgs<span class="op">.</span>qemu<span class="op">}/</span>bin<span class="op">/</span>qemu<span class="op">-</span>system<span class="op">-</span>riscv64 <span class="op">-</span>kernel <span class="op">${</span>sample_package<span class="op">}/</span>riscv64imac<span class="op">-</span>unknown<span class="op">-</span>none<span class="op">-</span>elf<span class="op">/</span>release<span class="op">/</span>nix_example_kernel <span class="op">-</span>machine sifive_u</span>
-<span id="cb12-16"><a href="#cb12-16" aria-hidden="true"></a><span class="ch">''</span><span class="op">;</span></span>
-<span id="cb12-17"><a href="#cb12-17" aria-hidden="true"></a></span>
-<span id="cb12-18"><a href="#cb12-18" aria-hidden="true"></a>This creates a sample script that runs the kernel nix builds (with openSBI <span class="kw">as</span> the bios) on the sifive_u machine<span class="op">.</span> We will <span class="kw">use</span> this <span class="kw">for</span> testing<span class="op">.</span></span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true"></a>sample_package <span class="op">=</span> naersk_lib<span class="op">.</span>buildPackage <span class="op">{</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true"></a>  pname <span class="op">=</span> <span class="st">&quot;example_kernel&quot;</span><span class="op">;</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true"></a>  root <span class="op">=</span> <span class="op">./.;</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true"></a>  cargoBuild <span class="op">=</span> _orig<span class="op">:</span> <span class="st">&quot;CARGO_BUILD_TARGET_DIR=$out cargo rustc --release --target=</span><span class="sc">\&quot;</span><span class="st">riscv64imac-unknown-none-elf</span><span class="sc">\&quot;</span><span class="st">&quot;</span><span class="op">;</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true"></a><span class="op">};</span></span></code></pre></div>
+<p>The <code>pname</code> becomes the name of the package, and the root is the top level directory that <code>naersk</code> builds the package at. <code>cargoBuild</code> is a function that takes in the default cargo build command (which we subsequently drop), and return a new cargo build command to be used. The only difference here is that <code>CARGO_BUILD_TARGET</code> cannot be our source directory. We need it to be built in the derivation’s output directory, so we set it to <code>$out</code> (which points there).</p>
+<p>We’d also like a script that runs this for us in qemu. We can create one:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true"></a><span class="ex">sample_usage</span> = pkgs.writeScript <span class="st">&quot;run_toy_kernel&quot;</span> <span class="st">''</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true"></a>  <span class="co">#!/usr/bin/env bash</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true"></a>  <span class="va">${pkgs</span><span class="er">.qemu</span><span class="va">}</span><span class="ex">/bin/qemu-system-riscv64</span> -kernel <span class="va">${sample_package}</span>/riscv64imac-unknown-none-elf/release/nix_example_kernel -machine sifive_u</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true"></a><span class="st">''</span>;</span></code></pre></div>
+<p>This creates a sample script that runs the kernel nix builds (with openSBI as the bios) on the sifive_u machine. We will use this for testing.</p>
 <p>In order to make these outputs accessible, we must add them to the output attribute set:</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true"></a><span class="ex">packages.riscv64-linux.kernel</span> = sample_package<span class="kw">;</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true"></a><span class="ex">packages.riscv64-linux.defaultPackage</span> = sample_package<span class="kw">;</span></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true"></a><span class="ex">apps.x86_64-linux.toy_kernel</span> = {</span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true"></a>  <span class="bu">type</span> = <span class="st">&quot;app&quot;</span><span class="kw">;</span></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true"></a>  <span class="ex">program</span> = <span class="st">&quot;</span><span class="va">${sample_usage}</span><span class="st">&quot;</span><span class="kw">;</span></span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true"></a>};</span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true"></a><span class="ex">defaultApp.x86_64-linux</span> = self.apps.x86_64-linux.toy_kernel<span class="kw">;</span></span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true"></a><span class="ex">packages.riscv64-linux.kernel</span> = sample_package<span class="kw">;</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true"></a><span class="ex">packages.riscv64-linux.defaultPackage</span> = sample_package<span class="kw">;</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true"></a><span class="ex">apps.x86_64-linux.toy_kernel</span> = {</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true"></a>  <span class="bu">type</span> = <span class="st">&quot;app&quot;</span><span class="kw">;</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true"></a>  <span class="ex">program</span> = <span class="st">&quot;</span><span class="va">${sample_usage}</span><span class="st">&quot;</span><span class="kw">;</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true"></a>};</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true"></a><span class="ex">defaultApp.x86_64-linux</span> = self.apps.x86_64-linux.toy_kernel<span class="kw">;</span></span></code></pre></div>
 <p>The <code>defaultApp</code> is the application that is run on the local repo when <code>nix run .</code> is executed; we make this our bash script. Furthermore, we can call this from any x8664 machine running linux by calling <code>nix run github:DieracDelta/NixKernelTutorial</code>. The same goes for <code>defaultPackage</code>. This may be build by running <code>nix build .</code> or <code>nix build github:DieracDelta/NixKernelTutorial</code>.</p>
 <h2 id="adding-a-linker-script"><a href="#adding-a-linker-script">## Adding a linker script</a></h2>
-<p>We want our kernel to do something actually useful: to print hello world.</p>
+<p>We want our kernel to do something actually useful: to print hello world. In order to do this, we’ll have to make sure our ELF sections get placed in the correct spot to match the memory map of the sifive_u board. We’ll also need a stack. Our requirements are: OpenSBI expects the <code>_start</code> symbol at <code>0x80200000</code> on the <code>sifive_u</code> machine. We know this because when we <code>nix run</code> our kernel and look at serial output of qemu with what we have so far, we’ll see openSBI printed: <code>Domain0 Next Address     : 0x0000000080200000</code>.</p>
+<p>Here’s the example linker script I’m using:</p>
+<pre><code>OUTPUT_ARCH( &quot;riscv&quot; )
+
+ENTRY( _start )
+
+MEMORY
+{
+  ram (rwx) : ORIGIN = 0x80200000, LENGTH = 0x80000
+}
+
+SECTIONS
+{
+  .kernel : {
+    *(.text.init) *(.text .text.*)
+    *(.rodata .rodata.*)
+    *(.sdata .sdata.*) *(.data .data.*)
+    *(.sbss .sbss.*) *(.bss .bss.*)
+  } &gt; ram
+
+  .stack (NOLOAD) : {
+    . = . + 0x10000;
+    PROVIDE(_end_stack = .);
+  } &gt; ram
+
+}</code></pre>
+<p>This should see familiar. I’ve chosen the length attribute arbitrarily, but this allocates a <code>kernel</code>section to load in the elf sections into. It places the <code>text.init</code> section fist, then the rest of the common sections you’ll find in an elf.</p>
+<p>I’ve also allocated a stack region of size <code>0x10000</code>.</p>
+<p>To build this with cargo, we need to add an argument through llvm and to the linker:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true"></a><span class="ex">cargo</span> rustc --release --target=<span class="dt">\&quot;</span>riscv64imac-unknown-none-elf<span class="dt">\&quot;</span> -- -Clink-arg=-Tlinker.ld</span></code></pre></div>
 <h2 id="setting-up-the-stack"><a href="#setting-up-the-stack">## Setting up the stack</a></h2>
+<p>In our <code>_start</code> function we must set up the stack. We can do this with some inline assembly:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true"></a><span class="kw">extern</span> <span class="st">&quot;C&quot;</span> <span class="op">{</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true"></a>    <span class="kw">static</span> _end_stack<span class="op">:</span> <span class="dt">usize</span><span class="op">;</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true"></a><span class="op">}</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true"></a><span class="op">...</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true"></a><span class="op">...</span> _ start <span class="op">...</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true"></a><span class="pp">asm!</span>(</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true"></a>    <span class="st">&quot;</span></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true"></a><span class="st">        la sp, {end_stack}</span></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true"></a><span class="st">        j main</span></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true"></a><span class="st">    &quot;</span><span class="op">,</span></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true"></a>    end_stack <span class="op">=</span> sym _end_stack<span class="op">,</span></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true"></a>    options(noreturn)</span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true"></a>)<span class="op">;</span></span></code></pre></div>
+<p>The <code>_end_stack</code> extern C definition tells the rust compiler to look for this symbol in the linker script. Then all we do is move the symbol into <code>sp</code>, and jump to main. We have to specify that the function does not return in order for the rust compiler to not return errors. We’ll need to define a <code>main</code> function to actually jump to, which we’ll do later on.</p>
 <h2 id="using-opensbi-to-print"><a href="#using-opensbi-to-print">## Using OpenSBI to print</a></h2>
-<h2 id="debugging-with-gdb"><a href="#debugging-with-gdb">## Debugging with GDB</a></h2>
-<h1 id="packaging"><a href="#packaging"># Packaging</a></h1>
-<h2 id="kernel"><a href="#kernel">## Kernel</a></h2>
-<h2 id="qemu-1"><a href="#qemu-1">## Qemu</a></h2>
+<p>We’re using OpenSBI as a SEE or Supervisor Execution Environment. It runs in M mode (equivalent to Ring 0 on x86) and ensures that the kernel (running in S-mode/Ring 1) doesn’t have as much power. The kernel can make “syscalls” to the SEE in much the same way that a userspace application makes syscalls to the kernel.</p>
+<p>We would like to print “hello world” to the uart. We could do this by implementing a UART driver, but it’s easier to just let openSBI do it for us. According to the <a href="https://github.com/riscv/riscv-sbi-doc/blob/master/riscv-sbi.adoc">SBI spec</a>, if we do a syscall (ecall instruction) from S mode (which our kernel is running in) to SBI with the SBI Extension ID (EID) of 1 stored in<code>a7</code>, and the address of the character we wish to print stored in <code>a0</code>, openSBI will print will print that character for us using its UART implementation. So we write a function to do this:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true"></a><span class="kw">unsafe</span> <span class="kw">fn</span> write_char(ch<span class="op">:</span> <span class="dt">u8</span>) <span class="op">{</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true"></a>    <span class="pp">asm!</span>(</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true"></a>    <span class="st">&quot;</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true"></a><span class="st">    li a7, 0x1</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true"></a><span class="st">    lw a0, 0({0})</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true"></a><span class="st">    ecall</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true"></a><span class="st">    &quot;</span> <span class="op">,</span> <span class="kw">in</span>(reg) (<span class="op">&amp;</span>ch)<span class="op">,</span> out(<span class="st">&quot;a0&quot;</span>) _<span class="op">,</span> out(<span class="st">&quot;a7&quot;</span>) _</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true"></a>    )<span class="op">;</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true"></a><span class="op">}</span></span></code></pre></div>
+<p>This is more or less the same as C’s inline assembly. Note that <code>a0</code> and <code>a7</code> are clobbered. Furthermore we wish to put the address of <code>ch</code> as an input. We do this by saying (in english) use input register for the address of <code>ch</code>. This is now accessible via <code>{0}</code>. We can then call this function in <code>main</code> to print hello world:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true"></a><span class="at">#[</span>no_mangle<span class="at">]</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true"></a><span class="kw">pub</span> <span class="kw">extern</span> <span class="st">&quot;C&quot;</span> <span class="kw">fn</span> main() <span class="op">-&gt;</span> <span class="op">!</span> <span class="op">{</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true"></a>    <span class="kw">unsafe</span> <span class="op">{</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true"></a>        <span class="st">&quot;Hello World from a nixified rust kernel :D</span><span class="sc">\n</span><span class="st">&quot;</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true"></a>            <span class="op">.</span>chars()</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true"></a>            <span class="op">.</span>for_each(<span class="op">|</span>c<span class="op">|</span> write_char(c <span class="kw">as</span> <span class="dt">u8</span>))<span class="op">;</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true"></a>    <span class="op">}</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true"></a>    <span class="kw">loop</span> <span class="op">{}</span></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true"></a><span class="op">}</span></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true"></a></span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true"></a>And now we have a Rust kernel that prints <span class="st">&quot;hello world&quot;</span><span class="op">.</span> Admitteldy it<span class="ot">'s</span> not flashy<span class="op">,</span> but it works<span class="op">.</span></span></code></pre></div>
 <h2 id="adding-ci"><a href="#adding-ci">## Adding CI</a></h2>
+<p>It’s trivial to add a github action that builds the kernel using <code>nix</code>. I’ve talked about this in my other posts so I won’t repeat myself. See the <code>cachix.yml</code> workflow file.</p>
     </section>
 </article>
 
