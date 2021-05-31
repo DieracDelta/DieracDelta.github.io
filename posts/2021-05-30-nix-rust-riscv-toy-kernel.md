@@ -213,7 +213,7 @@ sample_package = naersk_lib.buildPackage {
 };
       ```
 
-The `pname` becomes the name of the package, and the root is the top level directory that `naersk` builds the package at. `cargoBuild` is a function that takes in the default cargo build command (which we subsequentally drop), and return a new cargo build command to be used. The only difference here is that `CARGO_BUILD_TARGET` cannot be our source directory. We need it to be built in the derivation's output directory, so we set it to `$out` (which points there).
+The `pname` becomes the name of the package, and the root is the top level directory that `naersk` builds the package at. `cargoBuild` is a function that takes in the default cargo build command (which we subsequently drop), and return a new cargo build command to be used. The only difference here is that `CARGO_BUILD_TARGET` cannot be our source directory. We need it to be built in the derivation's output directory, so we set it to `$out` (which points there).
 
 We'd also like a script that runs this for us in qemu. We can create one:
 
@@ -241,18 +241,102 @@ The `defaultApp` is the application that is run on the local repo when `nix run 
 
 ## Adding a linker script
 
-We want our kernel to do something actually useful: to print hello world.
+We want our kernel to do something actually useful: to print hello world. In order to do this, we'll have to make sure our ELF sections get placed in the correct spot to match the memory map of the sifive_u board. We'll also need a stack. Our requirements are: OpenSBI expects the `_start` symbol at `0x80200000` on the `sifive_u` machine. We know this because when we `nix run` our kernel and look at serial output of qemu with what we have so far, we'll see openSBI printed: `Domain0 Next Address     : 0x0000000080200000 `.
+
+Here's the example linker script I'm using:
+
+```
+OUTPUT_ARCH( "riscv" )
+
+ENTRY( _start )
+
+MEMORY
+{
+  ram (rwx) : ORIGIN = 0x80200000, LENGTH = 0x80000
+}
+
+SECTIONS
+{
+  .kernel : {
+    *(.text.init) *(.text .text.*)
+    *(.rodata .rodata.*)
+    *(.sdata .sdata.*) *(.data .data.*)
+    *(.sbss .sbss.*) *(.bss .bss.*)
+  } > ram
+
+  .stack (NOLOAD) : {
+    . = . + 0x10000;
+    PROVIDE(_end_stack = .);
+  } > ram
+
+}
+```
+
+This should see familiar. I've chosen the length attribute arbitrarily, but this allocates a `kernel`section to load in the elf sections into. It places the `text.init` section fist, then the rest of the common sections you'll find in an elf.
+
+I've also allocated a stack region of size `0x10000`.
+
+To build this with cargo, we need to add an argument through llvm and to the linker:
+
+```nix
+cargo rustc --release --target=\"riscv64imac-unknown-none-elf\" -- -Clink-arg=-Tlinker.ld
+```
 
 ## Setting up the stack
 
+In our `_start` function we must set up the stack. We can do this with some inline assembly:
+
+```rust
+extern "C" {
+    static _end_stack: usize;
+}
+...
+... _ start ...
+asm!(
+    "
+        la sp, {end_stack}
+        j main
+    ",
+    end_stack = sym _end_stack,
+    options(noreturn)
+);
+```
+
+The `_end_stack` extern C definition tells the rust compiler to look for this symbol in the linker script. Then all we do is move the symbol into `sp`, and jump to main. We have to specify that the function does not return in order for the rust compiler to not return errors. We'll need to define a `main` function to actually jump to, which we'll do later on.
+
 ## Using OpenSBI to print
 
-## Debugging with GDB
+We're using OpenSBI as a SEE or Supervisor Execution Environment. It runs in M mode (equivalent to Ring 0 on x86) and ensures that the kernel (running in S-mode/Ring 1) doesn't have as much power. The kernel can make "syscalls" to the SEE in much the same way that a userspace application makes syscalls to the kernel.
 
-# Packaging
+We would like to print "hello world" to the uart. We could do this by implementing a UART driver, but it's easier to just let openSBI do it for us. According to the [SBI spec](https://github.com/riscv/riscv-sbi-doc/blob/master/riscv-sbi.adoc), if we do a syscall (ecall instruction) from S mode (which our kernel is running in) to SBI with the SBI Extension ID (EID) of 1 stored in`a7`, and the address of the character we wish to print stored in `a0`, openSBI will print will print that character for us using its UART implementation. So we write a function to do this:
 
-## Kernel
+```rust
+unsafe fn write_char(ch: u8) {
+    asm!(
+    "
+    li a7, 0x1
+    lw a0, 0({0})
+    ecall
+    " , in(reg) (&ch), out("a0") _, out("a7") _
+    );
+}
+```
+This is more or less the same as C's inline assembly. Note that `a0` and `a7` are clobbered. Furthermore we wish to put the address of `ch` as an input. We do this by saying (in english) use input register for the address of `ch`. This is now accessible via `{0}`. We can then call this function in `main` to print hello world:
 
-## Qemu
+```rust
+#[no_mangle]
+pub extern "C" fn main() -> ! {
+    unsafe {
+        "Hello World from a nixified rust kernel :D\n"
+            .chars()
+            .for_each(|c| write_char(c as u8));
+    }
+    loop {}
+}
+
+And now we have a Rust kernel that prints "hello world". Admitteldy it's not flashy, but it works.
+```
 
 ## Adding CI
+
+It's trivial to add a github action that builds the kernel using `nix`. I've talked about this in my other posts so I won't repeat myself. See the `cachix.yml` workflow file.
