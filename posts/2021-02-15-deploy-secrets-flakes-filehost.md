@@ -2,7 +2,7 @@
 author:
   name: "Justin Restivo"
 date: 2021-02-15
-title: Deploying a Rust filehost to Oracle Cloud with Rocket.rs, Nixos, Flakes, Sops, and Deploy-rs
+title: Deploying a Nix Rust filehost
 ---
 
 # Motivation #
@@ -289,6 +289,7 @@ So, secrets may be added, such as the filehost secret key, then committed to the
 configuration git repo and pushed to a git host (in this case github).
 
 
+TODO finish the rest of this post
 
 # Systemd Service #
 
