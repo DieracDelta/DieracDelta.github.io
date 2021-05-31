@@ -54,7 +54,8 @@
 <li>Writing a “hello world” kernel for riscv64 in Rust</li>
 </ul>
 <p>Often times there’s a large ramp up for even getting hands wet with embedded dev, and I think Nix can substantially lower that barrier. Furthermore, writing in Rust prevents many a triple fault at compile time through the merits of its type system. Pairing the two seems like a good idea.</p>
-<p>One of my biggest initial frustrations with embedded dev was getting a cross compiling toolchain. The “goto” cross compiler <a href="https://wiki.osdev.org/GCC_Cross-Compiler">page</a> is pretty intimidating for a beginner. Even now, each time I’ve started on an embedded project it takes me anywhere from a few hours to a week to get the new toolchain built.</p>
+<p>One of my biggest initial frustrations with embedded dev was getting a cross compiling toolchain. The “goto” cross compiler <a href="https://wiki.osdev.org/GCC_Cross-Compiler">page</a> is pretty intimidating for a beginner. Even now, each time I’ve started on an embedded project it takes me anywhere from a few hours to a week to get the new toolchain built. With <code>nix</code> this goes from an undefined amount of time to minutes.</p>
+<p>The repo I’m using for this example is located <a href="https://github.com/DieracDelta/NixKernelTutorial">here</a>.</p>
 <h1 id="background"><a href="#background"># Background</a></h1>
 <p>I’m writing this for readers new to the nix ecosystem but have familiarity with the language before as well as a familiarity with kernel development (though perhaps not with Rust).</p>
 <h1 id="setting-up-the-dev-environment"><a href="#setting-up-the-dev-environment"># Setting up the dev environment</a></h1>
@@ -155,7 +156,7 @@
 <span id="cb10-6"><a href="#cb10-6" aria-hidden="true"></a></span>
 <span id="cb10-7"><a href="#cb10-7" aria-hidden="true"></a><span class="at">#[</span>panic_handler<span class="at">]</span></span>
 <span id="cb10-8"><a href="#cb10-8" aria-hidden="true"></a><span class="kw">fn</span> panic(_info<span class="op">:</span> <span class="op">&amp;</span>PanicInfo) <span class="op">-&gt;</span> <span class="op">!</span> <span class="op">{</span></span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true"></a>    <span class="kw">loop</span> <span class="op">{}</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true"></a>  <span class="kw">loop</span> <span class="op">{}</span></span>
 <span id="cb10-10"><a href="#cb10-10" aria-hidden="true"></a><span class="op">}</span></span>
 <span id="cb10-11"><a href="#cb10-11" aria-hidden="true"></a></span>
 <span id="cb10-12"><a href="#cb10-12" aria-hidden="true"></a><span class="at">#[</span>naked<span class="at">]</span></span>
@@ -179,7 +180,7 @@
 <span id="cb13-4"><a href="#cb13-4" aria-hidden="true"></a>  cargoBuild <span class="op">=</span> _orig<span class="op">:</span> <span class="st">&quot;CARGO_BUILD_TARGET_DIR=$out cargo rustc --release --target=</span><span class="sc">\&quot;</span><span class="st">riscv64imac-unknown-none-elf</span><span class="sc">\&quot;</span><span class="st">&quot;</span><span class="op">;</span></span>
 <span id="cb13-5"><a href="#cb13-5" aria-hidden="true"></a><span class="op">};</span></span></code></pre></div>
 <p>The <code>pname</code> becomes the name of the package, and the root is the top level directory that <code>naersk</code> builds the package at. <code>cargoBuild</code> is a function that takes in the default cargo build command (which we subsequently drop), and return a new cargo build command to be used. The only difference here is that <code>CARGO_BUILD_TARGET</code> cannot be our source directory. We need it to be built in the derivation’s output directory, so we set it to <code>$out</code> (which points there).</p>
-<p>We’d also like a script that runs this for us in qemu. We can create one:</p>
+<p>We’d also like a script that runs this in qemu. We can create one:</p>
 <div class="sourceCode" id="cb14"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true"></a><span class="ex">sample_usage</span> = pkgs.writeScript <span class="st">&quot;run_toy_kernel&quot;</span> <span class="st">''</span></span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true"></a>  <span class="co">#!/usr/bin/env bash</span></span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true"></a>  <span class="va">${pkgs</span><span class="er">.qemu</span><span class="va">}</span><span class="ex">/bin/qemu-system-riscv64</span> -kernel <span class="va">${sample_package}</span>/riscv64imac-unknown-none-elf/release/nix_example_kernel -machine sifive_u</span>
@@ -263,9 +264,8 @@ SECTIONS
 <span id="cb20-6"><a href="#cb20-6" aria-hidden="true"></a>            <span class="op">.</span>for_each(<span class="op">|</span>c<span class="op">|</span> write_char(c <span class="kw">as</span> <span class="dt">u8</span>))<span class="op">;</span></span>
 <span id="cb20-7"><a href="#cb20-7" aria-hidden="true"></a>    <span class="op">}</span></span>
 <span id="cb20-8"><a href="#cb20-8" aria-hidden="true"></a>    <span class="kw">loop</span> <span class="op">{}</span></span>
-<span id="cb20-9"><a href="#cb20-9" aria-hidden="true"></a><span class="op">}</span></span>
-<span id="cb20-10"><a href="#cb20-10" aria-hidden="true"></a></span>
-<span id="cb20-11"><a href="#cb20-11" aria-hidden="true"></a>And now we have a Rust kernel that prints <span class="st">&quot;hello world&quot;</span><span class="op">.</span> Admitteldy it<span class="ot">'s</span> not flashy<span class="op">,</span> but it works<span class="op">.</span></span></code></pre></div>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true"></a><span class="op">}</span></span></code></pre></div>
+<p>And now we have a Rust kernel that prints “hello world” build and runnable with nix.</p>
 <h2 id="adding-ci"><a href="#adding-ci">## Adding CI</a></h2>
 <p>It’s trivial to add a github action that builds the kernel using <code>nix</code>. I’ve talked about this in my other posts so I won’t repeat myself. See the <code>cachix.yml</code> workflow file.</p>
     </section>
