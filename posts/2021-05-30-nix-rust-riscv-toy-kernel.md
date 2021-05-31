@@ -192,7 +192,7 @@ Now we'll need to figure out how to compile this with cargo.
 
 ```bash
 cargo rustc --release --target=\"riscv64imac-unknown-none-elf\"
-        ```
+```
 
 will build the kernel. It will also generate a `Cargo.lock` file that we can `git add`. In order to build our derivation with nix, we'll use `naersk`. `naersk` provides a `lib.x86_64-linux.buildPackage` function that will use cargo to build rust packages with nix. First, we tell `naersk` to use our cross compiler by overriding its input rust toolchain (in much the same fashion as earlier):
 
@@ -211,7 +211,7 @@ sample_package = naersk_lib.buildPackage {
   root = ./.;
   cargoBuild = _orig: "CARGO_BUILD_TARGET_DIR=$out cargo rustc --release --target=\"riscv64imac-unknown-none-elf\"";
 };
-      ```
+```
 
 The `pname` becomes the name of the package, and the root is the top level directory that `naersk` builds the package at. `cargoBuild` is a function that takes in the default cargo build command (which we subsequently drop), and return a new cargo build command to be used. The only difference here is that `CARGO_BUILD_TARGET` cannot be our source directory. We need it to be built in the derivation's output directory, so we set it to `$out` (which points there).
 
@@ -222,11 +222,12 @@ sample_usage = pkgs.writeScript "run_toy_kernel" ''
   #!/usr/bin/env bash
   ${pkgs.qemu}/bin/qemu-system-riscv64 -kernel ${sample_package}/riscv64imac-unknown-none-elf/release/nix_example_kernel -machine sifive_u
 '';
-
-This creates a sample script that runs the kernel nix builds (with openSBI as the bios) on the sifive_u machine. We will use this for testing.
 ```
 
+This creates a sample script that runs the kernel nix builds (with openSBI as the bios) on the sifive_u machine. We will use this for testing.
+
 In order to make these outputs accessible, we must add them to the output attribute set:
+
 ```nix
 packages.riscv64-linux.kernel = sample_package;
 packages.riscv64-linux.defaultPackage = sample_package;
