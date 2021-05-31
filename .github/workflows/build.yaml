@@ -17,6 +17,7 @@ jobs:
               extra_nix_config:
                  experimental-features = nix-command flakes
          - run: |
+            echo "PWD IS $PWD"
             nix build . -o site -L
             ls -a
             ls -a site/
