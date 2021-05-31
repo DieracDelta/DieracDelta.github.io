@@ -143,10 +143,70 @@
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true"></a>  <span class="ex">nativeBuildInputs</span> = [ pkgs.qemu rust_build riscvPkgs.buildPackages.gcc riscvPkgs.buildPackages.gdb ]<span class="kw">;</span></span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true"></a>};</span></code></pre></div>
 <p>When we run <code>nix develop</code>, the packages listed in <code>nativeBuildInputs</code> will be built (or pulled from the cache) and inclued on our path. This is very useful for <code>per-project</code> tooling. Now, we can write the rust kernel.</p>
-<h1 id="writing-rust-kernel"><a href="#writing-rust-kernel"># Writing Rust Kernel</a></h1>
+<h1 id="writing-a-hello-world-rust-kernel"><a href="#writing-a-hello-world-rust-kernel"># Writing a “Hello World” Rust Kernel</a></h1>
+<p>Our rust kernel is simply a proof of concept that a 64 bit kernel may be written and rust on qemu in rust. We’ll target the <code>sifive_u</code> machine on qemu and use the openSBI bootloader our bios.</p>
+<h2 id="boilerplate"><a href="#boilerplate">## Boilerplate</a></h2>
+<p>We first create a <code>Cargo.toml</code> file. Pretty standard so far. We don’t bother to specify any targets. Then we create a <code>src/main.rs</code> file. We include a <code>_start</code> symbol and a panic handler. This is what Rust requires to compiler properly. We enable <code>no_std</code>, <code>no_main</code> and <code>naked_functions</code>, as we will only be using the <code>core</code> rust library and thus be running on bare metal.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true"></a><span class="at">#![</span>no_std<span class="at">]</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true"></a><span class="at">#![</span>no_main<span class="at">]</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true"></a><span class="at">#![</span>feature<span class="at">(</span>naked_functions<span class="at">)]</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true"></a></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true"></a><span class="kw">use</span> <span class="pp">core::panic::</span>PanicInfo<span class="op">;</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true"></a></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true"></a><span class="at">#[</span>panic_handler<span class="at">]</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true"></a><span class="kw">fn</span> panic(_info<span class="op">:</span> <span class="op">&amp;</span>PanicInfo) <span class="op">-&gt;</span> <span class="op">!</span> <span class="op">{</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true"></a>    <span class="kw">loop</span> <span class="op">{}</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true"></a><span class="op">}</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true"></a></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true"></a><span class="at">#[</span>naked<span class="at">]</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true"></a><span class="at">#[</span>no_mangle<span class="at">]</span></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true"></a><span class="kw">pub</span> <span class="kw">extern</span> <span class="st">&quot;C&quot;</span> <span class="kw">fn</span> _start() <span class="op">-&gt;</span> <span class="op">!</span> <span class="op">{</span></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true"></a>  <span class="kw">loop</span> <span class="op">{}</span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true"></a><span class="op">}</span></span></code></pre></div>
+<p>The exclamation mark return type means that the functions do not return. The Rust compiler requires this.</p>
+<p>Now we’ll need to figure out how to compile this with cargo.</p>
 <h2 id="compiler-invocation"><a href="#compiler-invocation">## Compiler invocation</a></h2>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true"></a><span class="ex">cargo</span> rustc --release --target=<span class="dt">\&quot;</span>riscv64imac-unknown-none-elf<span class="dt">\&quot;</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true"></a>        <span class="kw">```</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true"></a></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true"></a><span class="ex">will</span> build the kernel. It will also generate a <span class="kw">`</span><span class="ex">Cargo.lock</span><span class="kw">`</span> <span class="fu">file</span> that we can <span class="kw">`</span>git add<span class="kw">`</span><span class="bu">.</span> <span class="ex">In</span> order to build our derivation with nix, we<span class="st">'ll use `naersk`. `naersk` provides a `lib.x86_64-linux.buildPackage` function that will use cargo to build rust packages with nix. First, we tell `naersk` to use our cross compiler by overriding its input rust toolchain (in much the same fashion as earlier):</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true"></a></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true"></a><span class="st">```nix</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true"></a><span class="st">naersk_lib = naersk.lib.&quot;${system}&quot;.override {</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true"></a><span class="st">  rustc = rust_build;</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true"></a><span class="st">  cargo = rust_build;</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true"></a><span class="st">};</span></span></code></pre></div>
+<p>Now, we can use this <code>naersk_lib</code> to build our package:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true"></a>sample_package <span class="op">=</span> naersk_lib<span class="op">.</span>buildPackage <span class="op">{</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true"></a>  pname <span class="op">=</span> <span class="st">&quot;example_kernel&quot;</span><span class="op">;</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true"></a>  root <span class="op">=</span> <span class="op">./.;</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true"></a>  cargoBuild <span class="op">=</span> _orig<span class="op">:</span> <span class="st">&quot;CARGO_BUILD_TARGET_DIR=$out cargo rustc --release --target=</span><span class="sc">\&quot;</span><span class="st">riscv64imac-unknown-none-elf</span><span class="sc">\&quot;</span><span class="st">&quot;</span><span class="op">;</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true"></a><span class="op">};</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true"></a>      ```</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true"></a></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true"></a>The `pname` becomes the name of the package<span class="op">,</span> and the root is the top level directory that `naersk` builds the package at<span class="op">.</span> `cargoBuild` is a function that takes <span class="kw">in</span> the <span class="kw">default</span> cargo build command (which we subsequentally drop)<span class="op">,</span> and <span class="kw">return</span> a new cargo build command to be used<span class="op">.</span> The only difference here is that `CARGO_BUILD_TARGET` cannot be our source directory<span class="op">.</span> We need it to be built <span class="kw">in</span> the derivation<span class="ot">'s</span> output directory<span class="op">,</span> so we set it to `<span class="op">$</span>out` (which points there)<span class="op">.</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true"></a></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true"></a>We<span class="ot">'d</span> also like a script that runs this <span class="kw">for</span> us <span class="kw">in</span> qemu<span class="op">.</span> We can create one<span class="op">:</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true"></a></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true"></a>```nix</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true"></a>sample_usage <span class="op">=</span> pkgs<span class="op">.</span>writeScript <span class="st">&quot;run_toy_kernel&quot;</span> <span class="ch">''</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true"></a>  #<span class="op">!/</span>usr<span class="op">/</span>bin<span class="op">/</span>env bash</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true"></a>  <span class="op">${</span>pkgs<span class="op">.</span>qemu<span class="op">}/</span>bin<span class="op">/</span>qemu<span class="op">-</span>system<span class="op">-</span>riscv64 <span class="op">-</span>kernel <span class="op">${</span>sample_package<span class="op">}/</span>riscv64imac<span class="op">-</span>unknown<span class="op">-</span>none<span class="op">-</span>elf<span class="op">/</span>release<span class="op">/</span>nix_example_kernel <span class="op">-</span>machine sifive_u</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true"></a><span class="ch">''</span><span class="op">;</span></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true"></a></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true"></a>This creates a sample script that runs the kernel nix builds (with openSBI <span class="kw">as</span> the bios) on the sifive_u machine<span class="op">.</span> We will <span class="kw">use</span> this <span class="kw">for</span> testing<span class="op">.</span></span></code></pre></div>
+<p>In order to make these outputs accessible, we must add them to the output attribute set:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true"></a><span class="ex">packages.riscv64-linux.kernel</span> = sample_package<span class="kw">;</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true"></a><span class="ex">packages.riscv64-linux.defaultPackage</span> = sample_package<span class="kw">;</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true"></a><span class="ex">apps.x86_64-linux.toy_kernel</span> = {</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true"></a>  <span class="bu">type</span> = <span class="st">&quot;app&quot;</span><span class="kw">;</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true"></a>  <span class="ex">program</span> = <span class="st">&quot;</span><span class="va">${sample_usage}</span><span class="st">&quot;</span><span class="kw">;</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true"></a>};</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true"></a><span class="ex">defaultApp.x86_64-linux</span> = self.apps.x86_64-linux.toy_kernel<span class="kw">;</span></span></code></pre></div>
+<p>The <code>defaultApp</code> is the application that is run on the local repo when <code>nix run .</code> is executed; we make this our bash script. Furthermore, we can call this from any x8664 machine running linux by calling <code>nix run github:DieracDelta/NixKernelTutorial</code>. The same goes for <code>defaultPackage</code>. This may be build by running <code>nix build .</code> or <code>nix build github:DieracDelta/NixKernelTutorial</code>.</p>
 <h2 id="adding-a-linker-script"><a href="#adding-a-linker-script">## Adding a linker script</a></h2>
-<h2 id="allocating-a-stack"><a href="#allocating-a-stack">## Allocating a stack</a></h2>
+<p>We want our kernel to do something actually useful: to print hello world.</p>
+<h2 id="setting-up-the-stack"><a href="#setting-up-the-stack">## Setting up the stack</a></h2>
 <h2 id="using-opensbi-to-print"><a href="#using-opensbi-to-print">## Using OpenSBI to print</a></h2>
 <h2 id="debugging-with-gdb"><a href="#debugging-with-gdb">## Debugging with GDB</a></h2>
 <h1 id="packaging"><a href="#packaging"># Packaging</a></h1>
