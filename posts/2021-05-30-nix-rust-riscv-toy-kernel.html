@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <!-- google analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-PMP32CMWHS"></script>
+        <script>
+         window.dataLayer = window.dataLayer || [];
+         function gtag(){dataLayer.push(arguments);}
+         gtag('js', new Date());
+
+         gtag('config', 'G-PMP32CMWHS');
+        </script>
+        <!-- nerdfonts -->
+        <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hack-font@3/build/web/hack.css">
+
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Justin Restivo - Writing a "hello world" Riscv Kernel with Nix in Rust</title>
+        <link rel="stylesheet" href="../css/default.css" />
+    </head>
+    <body>
+        <header class="header">
+            <div class="logo">
+                <a href="../index.html">Justin Restivo</a>
+            </div>
+            <nav>
+                <a href="../index.html" class="topele">Home</a>
+                <span> | </span>
+                <a href="../about.html" class="topele">About</a>
+                <span> | </span>
+                <a href="../contact.html" class="topele">Contact</a>
+                <span> | </span>
+                <a href="https://www.linkedin.com/in/justinprestivo" class="topele">Linkedin</a>
+                <span> | </span>
+                <!--<a href="/justin_restivo_resume.pdf" class="topele">Resume</a>-->
+                <!--<span> | </span>-->
+                <a href="https://github.com/DieracDelta" class="topele">Github</a>
+            </nav>
+        </header>
+
+        <main role="main">
+            <h1>Writing a "hello world" Riscv Kernel with Nix in Rust</h1>
+            <article>
+    <section class="header">
+        Posted on February 15, 2021
+        
+    </section>
+    <section>
+        <h1 id="motivation"><a href="#motivation"># Motivation</a></h1>
+<p>The purpose of this tutorial is to showcase two main things:</p>
+<ul>
+<li>How great <code>nix</code> can be for embedded development</li>
+<li>Writing a “hello world” kernel for riscv in rust</li>
+</ul>
+<p>Often times there’s a large ramp up for even getting hands wet with embedded dev, and I think Nix can defnitely be used to lower that barrier substantially. Furthermore, writing in Rust prevents many a triple fault at compile time by through the merits of its type system. Pairing the two seemed like a good idea.</p>
+<h1 id="setting-up-the-dev-environment"><a href="#setting-up-the-dev-environment"># Setting up the dev environment</a></h1>
+<p>Before beginning development, a bunch of requisite tooling must be installed. This will be done through the <code>nix</code> package manager. More specifically, we’ll use the experimental <code>flakes</code> feature, which provides convenient pinning and an easy to use CLI.</p>
+<h2 id="rust-toolchain"><a href="#rust-toolchain">## Rust toolchain</a></h2>
+<h2 id="gnu-riscv-cross-compiler-toolchain"><a href="#gnu-riscv-cross-compiler-toolchain">## GNU riscv cross compiler toolchain</a></h2>
+<h2 id="qemu"><a href="#qemu">## Qemu</a></h2>
+<h1 id="writing-rust-kernel"><a href="#writing-rust-kernel"># Writing Rust Kernel</a></h1>
+<h2 id="compiler-invocation"><a href="#compiler-invocation">## Compiler invocation</a></h2>
+<h2 id="adding-a-linker-script"><a href="#adding-a-linker-script">## Adding a linker script</a></h2>
+<h2 id="allocating-a-stack"><a href="#allocating-a-stack">## Allocating a stack</a></h2>
+<h2 id="using-opensbi-to-print"><a href="#using-opensbi-to-print">## Using OpenSBI to print</a></h2>
+<h2 id="debugging-with-gdb"><a href="#debugging-with-gdb">## Debugging with GDB</a></h2>
+<h1 id="packaging"><a href="#packaging"># Packaging</a></h1>
+<h2 id="kernel"><a href="#kernel">## Kernel</a></h2>
+<h2 id="qemu-1"><a href="#qemu-1">## Qemu</a></h2>
+<h2 id="adding-ci"><a href="#adding-ci">## Adding CI</a></h2>
+    </section>
+</article>
+
+        </main>
+
+    </body>
+</html>
