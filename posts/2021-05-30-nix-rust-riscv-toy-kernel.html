@@ -43,7 +43,7 @@
             <h1>Writing a "hello world" Riscv Kernel with Nix in Rust</h1>
             <article>
     <section class="header">
-        Posted on February 15, 2021
+        Posted on June 30, 2021
         
     </section>
     <section>
@@ -77,7 +77,7 @@
 <span id="cb1-15"><a href="#cb1-15" aria-hidden="true"></a></span>
 <span id="cb1-16"><a href="#cb1-16" aria-hidden="true"></a>  <span class="ex">outputs</span> = inputs@{self, nixpkgs, rust-overlay, naersk, ... }:</span>
 <span id="cb1-17"><a href="#cb1-17" aria-hidden="true"></a>  {}</span></code></pre></div>
-<p>The outputs will build our kernel, and the inputs will be pinned packages used to build our inputs. The inputs I’ve chosen are:</p>
+<p>The outputs will build our kernel, and the inputs will be pinned packages used to build our outputs. The inputs I’ve chosen are:</p>
 <ul>
 <li>Master branch of <code>nixpkgs</code>: The choice of master was pretty arbitrary, we could have done stable instead. Nixpkgs consists of a set of 80k+ package definitions in a monorepo to choose from. We’ll use this to snag a bunch of packages like gcc, gdb, and qemu.</li>
 <li><code>rust-overlay</code>: we’ll use this for obtaining a version of the rust cross compiler and cargo.</li>
@@ -86,15 +86,15 @@
 <p><code>output</code> is a function of the described pinned inputs. In theory, it will (sans compiler nondeterminism) always build the same outputs for the same set of inputs.</p>
 <h2 id="gnu-riscv-cross-compiler-toolchain"><a href="#gnu-riscv-cross-compiler-toolchain">## GNU riscv cross compiler toolchain</a></h2>
 <p>First, we’ll grab the gnu toolchain. In order to do so, we need to specify that this toolchain is cross compiled. Nix makes this easy. The nixpkgs repo defines a function in its <code>default.nix</code> file:</p>
-<pre><code>[system information] -&gt; [package definitions]</code></pre>
-<p>In order to invoke that function, we run <code>import</code> which tells nix to execute the function in the <code>default.nix</code> and return the result. In this case, we must some system information in an attribute set argument to this function: specifically that our host system (denoted localSystem) is x8664 linux and our target system (denoted crossSystem) is riscv linux. We include the triples and some information:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a>    <span class="ex">riscvPkgs</span> = import nixpkgs {</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a>      <span class="ex">localSystem</span> = <span class="st">&quot;</span><span class="va">${system}</span><span class="st">&quot;</span><span class="kw">;</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a>      <span class="ex">crossSystem</span> = {</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a>        <span class="ex">config</span> = <span class="st">&quot;riscv64-unknown-linux-gnu&quot;</span><span class="kw">;</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a>        <span class="ex">abi</span> = <span class="st">&quot;lp64&quot;</span><span class="kw">;</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true"></a>      };</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true"></a>    };</span></code></pre></div>
+<pre><code>{system information} -&gt; {package definitions}</code></pre>
+<p>In order to invoke that function, we run <code>import</code> which tells nix to execute the function in the <code>default.nix</code> and return the result. In this case, we must some system information in an attribute set argument to this function: specifically that our host system (denoted <code>localSystem</code>) is <code>x8664</code> linux and our target system (denoted <code>crossSystem</code>) is riscv linux. We include the triples and some information:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="ex">riscvPkgs</span> = import nixpkgs {</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a>  <span class="ex">localSystem</span> = <span class="st">&quot;</span><span class="va">${system}</span><span class="st">&quot;</span><span class="kw">;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a>  <span class="ex">crossSystem</span> = {</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a>    <span class="ex">config</span> = <span class="st">&quot;riscv64-unknown-linux-gnu&quot;</span><span class="kw">;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a>    <span class="ex">abi</span> = <span class="st">&quot;lp64&quot;</span><span class="kw">;</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true"></a>  };</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true"></a>};</span></code></pre></div>
 <p>This will return us a package set targeting <code>riscv64-unknown-linux-gnu</code> with the <code>lp64</code> ABI under the <code>riscvPkgs</code> variable. <code>riscvPkgs.gcc</code> will give us a gcc version compiled to run on a riscv host that compiles to riscv. This is not quite what we want. Instead, we’ll use <code>riscvPkgs.buildPackages.gcc</code>. This will get us a cross compiler from our host, x8664 linux, to our target, riscv64 linux. The reason this is denoted <code>buildPackages</code> is because these packages are used to build the target packages. That is, to build riscv packages targeting riscv.</p>
 <h2 id="qemu"><a href="#qemu">## Qemu</a></h2>
 <p>Nixpkgs contains a qemu package definition. So first, we’ll need to get a version of nixpkgs targeting x86-64-linux. So we just import nixpkgs <code>default.nix</code> again, this time without specifying a crossSystem. Nixpkgs assumes the target is the same as the host by default:</p>
@@ -107,7 +107,7 @@
 <div class="sourceCode" id="cb5"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a><span class="kw">(</span><span class="ex">final</span>: prev:</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a>  <span class="kw">{</span> <span class="ex">qemu</span> = null<span class="kw">;}</span></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true"></a><span class="kw">)</span></span></code></pre></div>
-<p>This overwrites the qemu package with null. So our resulting package set with this overlay will simply be null. Now all that remains is to override the <code>src</code> attribute of the <code>qemu</code> package. We know that this is the right attribute to override since <code>nix edit nixpkgs#qemu</code>shows this attribute as where the source is being placed. We use the <code>overrideAttrs</code> package attribute to do this. That attribute takes in a function: <code>{oldAttributes} -&gt; {newAttributes}</code>. The new attributes are merged with the unioned attributes and any duplicates are replaced with the values in <code>newAttributes</code>.</p>
+<p>This overwrites the qemu package with null. So our resulting package set with this overlay will simply be null. Now all that remains is to override the <code>src</code> attribute of the <code>qemu</code> package. We know that this is the right attribute to override since <code>nix edit nixpkgs#qemu</code> shows this attribute as where the source is being placed. We use the <code>overrideAttrs</code> package attribute to do this. That attribute takes in a function: <code>{oldAttributes} -&gt; {newAttributes}</code>. The new attributes unioned with the old attributes and any duplicates are replaced with the values in <code>newAttributes</code>.</p>
 <p>So, our final expression ends up as:</p>
 <div class="sourceCode" id="cb6"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a><span class="ex">pkgs</span> = import nixpkgs {</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true"></a>  <span class="ex">localSystem</span> = <span class="st">&quot;x86_64-linux&quot;</span><span class="kw">;</span></span>
@@ -231,16 +231,17 @@ SECTIONS
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true"></a>    <span class="kw">static</span> _end_stack<span class="op">:</span> <span class="dt">usize</span><span class="op">;</span></span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true"></a><span class="op">}</span></span>
 <span id="cb18-4"><a href="#cb18-4" aria-hidden="true"></a><span class="op">...</span></span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true"></a><span class="op">...</span> _ start <span class="op">...</span></span>
-<span id="cb18-6"><a href="#cb18-6" aria-hidden="true"></a><span class="pp">asm!</span>(</span>
-<span id="cb18-7"><a href="#cb18-7" aria-hidden="true"></a>    <span class="st">&quot;</span></span>
-<span id="cb18-8"><a href="#cb18-8" aria-hidden="true"></a><span class="st">        la sp, {end_stack}</span></span>
-<span id="cb18-9"><a href="#cb18-9" aria-hidden="true"></a><span class="st">        j main</span></span>
-<span id="cb18-10"><a href="#cb18-10" aria-hidden="true"></a><span class="st">    &quot;</span><span class="op">,</span></span>
-<span id="cb18-11"><a href="#cb18-11" aria-hidden="true"></a>    end_stack <span class="op">=</span> sym _end_stack<span class="op">,</span></span>
-<span id="cb18-12"><a href="#cb18-12" aria-hidden="true"></a>    options(noreturn)</span>
-<span id="cb18-13"><a href="#cb18-13" aria-hidden="true"></a>)<span class="op">;</span></span></code></pre></div>
-<p>The <code>_end_stack</code> extern C definition tells the rust compiler to look for this symbol in the linker script. Then all we do is move the symbol into <code>sp</code>, and jump to main. We have to specify that the function does not return in order for the rust compiler to not return errors. We’ll need to define a <code>main</code> function to actually jump to, which we’ll do later on.</p>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true"></a><span class="op">...</span> <span class="kw">fn</span> _start( <span class="op">...</span> <span class="op">{</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true"></a>  <span class="pp">asm!</span>(</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true"></a>      <span class="st">&quot;</span></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true"></a><span class="st">          la sp, {end_stack}</span></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true"></a><span class="st">          j main</span></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true"></a><span class="st">      &quot;</span><span class="op">,</span></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true"></a>      end_stack <span class="op">=</span> sym _end_stack<span class="op">,</span></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true"></a>      options(noreturn)</span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true"></a>  )<span class="op">;</span></span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true"></a><span class="op">}</span></span></code></pre></div>
+<p>The <code>_end_stack</code> extern C definition tells the rust compiler to look for this symbol in the linker script. Then all we do is move the symbol into <code>sp</code>, and jump to main. We have to specify that the function does not return in order for the rust compiler to not return errors. We’ll also need to define a <code>main</code> function to actually jump to, which we’ll do later on.</p>
 <h2 id="using-opensbi-to-print"><a href="#using-opensbi-to-print">## Using OpenSBI to print</a></h2>
 <p>We’re using OpenSBI as a SEE or Supervisor Execution Environment. It runs in M mode (equivalent to Ring 0 on x86) and ensures that the kernel (running in S-mode/Ring 1) doesn’t have as much power. The kernel can make “syscalls” to the SEE in much the same way that a userspace application makes syscalls to the kernel.</p>
 <p>We would like to print “hello world” to the uart. We could do this by implementing a UART driver, but it’s easier to just let openSBI do it for us. According to the <a href="https://github.com/riscv/riscv-sbi-doc/blob/master/riscv-sbi.adoc">SBI spec</a>, if we do a syscall (ecall instruction) from S mode (which our kernel is running in) to SBI with the SBI Extension ID (EID) of 1 stored in<code>a7</code>, and the address of the character we wish to print stored in <code>a0</code>, openSBI will print will print that character for us using its UART implementation. So we write a function to do this:</p>
