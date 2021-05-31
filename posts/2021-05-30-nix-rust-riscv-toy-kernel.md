@@ -157,13 +157,93 @@ devShell.x86_64-linux = pkgs.mkShell {
 
 When we run `nix develop`, the packages listed in `nativeBuildInputs` will be built (or pulled from the cache) and inclued on our path. This is very useful for `per-project` tooling. Now, we can write the rust kernel.
 
-# Writing Rust Kernel
+# Writing a "Hello World" Rust Kernel
+
+Our rust kernel is simply a proof of concept that a 64 bit kernel may be written and rust on qemu in rust. We'll target the `sifive_u` machine on qemu and use the openSBI bootloader our bios.
+
+## Boilerplate
+
+We first create a `Cargo.toml` file. Pretty standard so far. We don't bother to specify any targets. Then we create a `src/main.rs` file. We include a `_start` symbol and a panic handler. This is what Rust requires to compiler properly. We enable `no_std`, `no_main` and `naked_functions`, as we will only be using the `core` rust library and thus be running on bare metal.
+
+```rust
+#![no_std]
+#![no_main]
+#![feature(naked_functions)]
+
+use core::panic::PanicInfo;
+
+#[panic_handler]
+fn panic(_info: &PanicInfo) -> ! {
+    loop {}
+}
+
+#[naked]
+#[no_mangle]
+pub extern "C" fn _start() -> ! {
+  loop {}
+}
+```
+
+The exclamation mark return type means that the functions do not return. The Rust compiler requires this.
+
+Now we'll need to figure out how to compile this with cargo.
 
 ## Compiler invocation
 
+```bash
+cargo rustc --release --target=\"riscv64imac-unknown-none-elf\"
+        ```
+
+will build the kernel. It will also generate a `Cargo.lock` file that we can `git add`. In order to build our derivation with nix, we'll use `naersk`. `naersk` provides a `lib.x86_64-linux.buildPackage` function that will use cargo to build rust packages with nix. First, we tell `naersk` to use our cross compiler by overriding its input rust toolchain (in much the same fashion as earlier):
+
+```nix
+naersk_lib = naersk.lib."${system}".override {
+  rustc = rust_build;
+  cargo = rust_build;
+};
+```
+
+Now, we can use this `naersk_lib` to build our package:
+
+```rust
+sample_package = naersk_lib.buildPackage {
+  pname = "example_kernel";
+  root = ./.;
+  cargoBuild = _orig: "CARGO_BUILD_TARGET_DIR=$out cargo rustc --release --target=\"riscv64imac-unknown-none-elf\"";
+};
+      ```
+
+The `pname` becomes the name of the package, and the root is the top level directory that `naersk` builds the package at. `cargoBuild` is a function that takes in the default cargo build command (which we subsequentally drop), and return a new cargo build command to be used. The only difference here is that `CARGO_BUILD_TARGET` cannot be our source directory. We need it to be built in the derivation's output directory, so we set it to `$out` (which points there).
+
+We'd also like a script that runs this for us in qemu. We can create one:
+
+```nix
+sample_usage = pkgs.writeScript "run_toy_kernel" ''
+  #!/usr/bin/env bash
+  ${pkgs.qemu}/bin/qemu-system-riscv64 -kernel ${sample_package}/riscv64imac-unknown-none-elf/release/nix_example_kernel -machine sifive_u
+'';
+
+This creates a sample script that runs the kernel nix builds (with openSBI as the bios) on the sifive_u machine. We will use this for testing.
+```
+
+In order to make these outputs accessible, we must add them to the output attribute set:
+```nix
+packages.riscv64-linux.kernel = sample_package;
+packages.riscv64-linux.defaultPackage = sample_package;
+apps.x86_64-linux.toy_kernel = {
+  type = "app";
+  program = "${sample_usage}";
+};
+defaultApp.x86_64-linux = self.apps.x86_64-linux.toy_kernel;
+```
+
+The `defaultApp` is the application that is run on the local repo when `nix run .` is executed; we make this our bash script. Furthermore, we can call this from any x8664 machine running linux by calling `nix run github:DieracDelta/NixKernelTutorial`. The same goes for `defaultPackage`. This may be build by running `nix build .` or `nix build github:DieracDelta/NixKernelTutorial`.
+
 ## Adding a linker script
 
-## Allocating a stack
+We want our kernel to do something actually useful: to print hello world.
+
+## Setting up the stack
 
 ## Using OpenSBI to print
 
