@@ -25,7 +25,7 @@ Special thanks to:
 
 # Expected Background
 
-I'm writing this for readers new to the nix ecosystem but have familiarity with the language before as well as a familiarity with kernel development (though perhaps not with Rust).
+I'm writing this for readers new to the Nix ecosystem but who have some familiarity with the Nix language and flakes as well as with kernel development (though perhaps not with Rust).
 
 # Setting up the dev environment
 
@@ -82,7 +82,7 @@ riscvPkgs = import nixpkgs {
 };
 ```
 
-This will return a package set targeting `riscv64-unknown-linux-gnu` with the `lp64` ABI assigned to the `riscvPkgs` variable. `riscvPkgs.gcc` will give us a gcc version compiled to run on a riscv linux host that compiles to for a riscv linux target. This is not quite what we want. Instead, we'll use `riscvPkgs.buildPackages.gcc` which returns a cross compiler from our host, x8664 linux, to our target, riscv64 linux. The reason this is denoted `buildPackages` is because these packages are used to build the target packages. These packages run on x8664 linux.
+This will return a package set targeting `riscv64-unknown-linux-gnu` with the `lp64` ABI assigned to the `riscvPkgs` variable. `riscvPkgs.gcc` will give us a gcc version compiled to run on a riscv linux host and compile to a riscv linux target. This is not quite what we want. Instead, we'll use `riscvPkgs.buildPackages.gcc` which returns a cross compiler from our host, x8664 linux, to our target, riscv64 linux. The reason this is denoted `buildPackages` is because these packages are used to build the target packages. These packages run on x8664 linux.
 
 ## Qemu
 
@@ -173,11 +173,11 @@ When we run `nix develop`, the packages listed in `nativeBuildInputs` will be bu
 
 # Writing a "Hello World" Rust Kernel
 
-Our rust kernel is a proof of concept that a 64 bit kernel may be written with rust on qemu in rust. We'll target the `sifive_u` machine on qemu and use the openSBI bootloader as our bios.
+Our rust kernel is a proof of concept that a 64 bit kernel targeting riscv may be written with rust. We'll target the `sifive_u` machine on qemu and use the openSBI bootloader as our bios.
 
 ## Boilerplate
 
-We first create a `Cargo.toml` file. Pretty standard so far. We don't bother to specify any targets as the defaults are good enough. Then we create a `src/main.rs` file. We include a `_start` symbol and a panic handler. This is the bare minimum Rust requires to compile properly. We enable `no_std`, as we will only be using the `core` rust library on bare metal,`no_main` as initially we will not have a `main` function, and `naked_functions` as we do not want Rust to start pushing registers to the stack in`_start` before we have initialized the stack pointer.
+We first create a `Cargo.toml` file. Pretty standard so far. We don't bother to specify any targets as the defaults are good enough. Then we create a `src/main.rs` file. We include a `_start` symbol and a panic handler. This is the bare minimum Rust requires to compile properly. We enable `no_std`, as we will only be using the `core` rust library on bare metal, `no_main` as initially we will not have a `main` function, and `naked_functions` as we do not want Rust to start pushing registers to the stack in `_start` before we have initialized the stack pointer.
 
 ```rust
 #![no_std]
@@ -198,7 +198,7 @@ pub extern "C" fn _start() -> ! {
 }
 ```
 
-The exclamation mark return type means that the functions do not return. Another compile time check of the Rust compiler.
+The exclamation mark return type means that the functions do not return. Another compile time check by Rustc.
 
 
 ## Compiler invocation
@@ -329,7 +329,7 @@ extern "C" {
 }
 ```
 
-The `_end_stack` extern C definition tells the rust compiler to look for this symbol in the linker script. Then all we do is move the symbol into `sp`, and jump to main. We have to specify that the function does not return in order for the rust compiler to not return errors. We'll also need to define a `main` function to actually jump to, which we'll do later on.
+The `_end_stack` extern C definition tells the rust compiler to look for this symbol in the linker script. Then all we do is move the symbol into `sp`, and jump to main. We have to specify that the function does not return in order for the rust compiler's checks to pass. We'll also need to define a `main` function to actually jump to, which we'll do later on.
 
 ## Using OpenSBI to print
 
@@ -362,7 +362,7 @@ pub extern "C" fn main() -> ! {
 }
 ```
 
-And now we have a Rust kernel that prints "hello world" built by and runnable with nix.
+And now we have a Rust kernel that prints "hello world" built by and runnable with nix. `nix run github:DieracDelta/NixKernelTutorial`
 
 ## Adding CI
 
