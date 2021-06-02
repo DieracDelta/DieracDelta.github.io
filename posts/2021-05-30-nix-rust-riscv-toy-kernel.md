@@ -288,7 +288,7 @@ SECTIONS
 }
 ```
 
-I've chosen the RAM length attribute arbitrarily, but this allocates a `kernel`section to load in the elf sections into and a stack. We can see this in the objdump (`objdump -h riscv64imac-unknown-none-elf/release/nix_example_kernel`):
+I've chosen the RAM length attribute arbitrarily, but this allocates a `kernel` section to load in the elf sections into and a stack. We can see this in the objdump (`objdump -h riscv64imac-unknown-none-elf/release/nix_example_kernel`):
 
 ```
 Sections:
