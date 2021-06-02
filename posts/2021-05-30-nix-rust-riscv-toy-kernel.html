@@ -56,7 +56,11 @@
 <p>Often times there’s a large ramp up for even getting hands wet with embedded dev, and I think Nix can substantially lower that barrier. Furthermore, writing in Rust prevents many a triple fault at compile time through the merits of its type system. Pairing the two seems like a good idea.</p>
 <p>One of my biggest initial frustrations with embedded dev was getting a cross compiling toolchain. The “goto” cross compiler <a href="https://wiki.osdev.org/GCC_Cross-Compiler">page</a> is pretty intimidating for a beginner. Even now, each time I’ve started on an embedded project it takes me anywhere from a few hours to a week to get the new toolchain built. With <code>nix</code> this goes from an undefined amount of time to minutes.</p>
 <p>The repo I’m using for this example is located <a href="https://github.com/DieracDelta/NixKernelTutorial">here</a>. Note that I am not doing anything new: several rust kernels already exist and nix has great riscv support. I’m just rehashing and hopefully explaining.</p>
-<p>Special thanks to: - <a href="https://github.com/tock/tock">Tock</a> for lots of great examples of inline assembly. They even have nix support! - <a href="https://github.com/noteed/riscv-hello-asm">This</a> github repo for a bare metal example.</p>
+<p>Special thanks to:</p>
+<ul>
+<li><a href="https://github.com/tock/tock">Tock</a> for lots of great examples of inline assembly. They even have nix support!</li>
+<li><a href="https://github.com/noteed/riscv-hello-asm">This</a> github repo for a bare metal example.</li>
+</ul>
 <h1 id="expected-background"><a href="#expected-background"># Expected Background</a></h1>
 <p>I’m writing this for readers new to the nix ecosystem but have familiarity with the language before as well as a familiarity with kernel development (though perhaps not with Rust).</p>
 <h1 id="setting-up-the-dev-environment"><a href="#setting-up-the-dev-environment"># Setting up the dev environment</a></h1>
