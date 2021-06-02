@@ -1,7 +1,7 @@
 ---
 author:
   name: "Justin Restivo"
-date: 2021-06-30
+date: 2021-05-30
 title: Writing a "hello world" Riscv Kernel with Nix in Rust
 ---
 
