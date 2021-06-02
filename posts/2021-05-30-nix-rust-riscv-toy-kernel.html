@@ -53,7 +53,7 @@
 <li>How great <code>nix</code> can be for speeding up embedded development</li>
 <li>Writing a “hello world” kernel for riscv64 in Rust</li>
 </ul>
-<p>Often times there’s a large ramp up for even getting hands wet with embedded dev, and I think Nix can substantially lower that barrier. Furthermore, writing in Rust prevents many a triple fault at compile time through the merits of its type system. Pairing the two seems like a good idea.</p>
+<p>Often times there’s a large ramp up for starting out in embedded dev. I think Nix can substantially lower the barrier to entry. Furthermore, writing in Rust prevents many a triple fault at compile time through the merits of its type system. Pairing the two seems like a good idea.</p>
 <p>One of my biggest initial frustrations with embedded dev was getting a cross compiling toolchain. The “goto” cross compiler <a href="https://wiki.osdev.org/GCC_Cross-Compiler">page</a> is pretty intimidating for a beginner. Even now, each time I’ve started on an embedded project it takes me anywhere from a few hours to a week to get the new toolchain built. With <code>nix</code> this goes from an undefined amount of time to minutes.</p>
 <p>The repo I’m using for this example is located <a href="https://github.com/DieracDelta/NixKernelTutorial">here</a>. Note that I am not doing anything new: several rust kernels already exist and nix has great riscv support. I’m just rehashing and hopefully explaining.</p>
 <p>Special thanks to:</p>
@@ -64,7 +64,7 @@
 <h1 id="expected-background"><a href="#expected-background"># Expected Background</a></h1>
 <p>I’m writing this for readers new to the nix ecosystem but have familiarity with the language before as well as a familiarity with kernel development (though perhaps not with Rust).</p>
 <h1 id="setting-up-the-dev-environment"><a href="#setting-up-the-dev-environment"># Setting up the dev environment</a></h1>
-<p>Before beginning development, a bunch of requisite tooling must be installed. This will be done through the <code>nix</code> package manager. More specifically, we’ll use the experimental <code>flakes</code> feature, which provides convenient package pinning and an easy to use CLI.</p>
+<p>Before beginning development, we must install a bunch of requisite tooling. We use <code>nix</code> package manager for this purpose. More specifically, we’ll use the experimental <code>flakes</code> feature, which provides convenient package pinning and an easy to use CLI.</p>
 <p>First, we start with the generic <code>flake</code> template:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a><span class="kw">{</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a>  <span class="ex">description</span> = <span class="st">&quot;Example for presentation&quot;</span><span class="kw">;</span></span>
@@ -84,7 +84,7 @@
 <span id="cb1-16"><a href="#cb1-16" aria-hidden="true"></a>  <span class="ex">outputs</span> = inputs@{self, nixpkgs, rust-overlay, naersk, ... }:</span>
 <span id="cb1-17"><a href="#cb1-17" aria-hidden="true"></a>  {}</span>
 <span id="cb1-18"><a href="#cb1-18" aria-hidden="true"></a>}</span></code></pre></div>
-<p>The outputs will build our kernel, and the inputs will be fixed “pinned” packages used to build our outputs. The inputs I’ve chosen are:</p>
+<p>The outputs will build our kernel, and the inputs are fixed/“pinned” packages used to build our outputs. The inputs I’ve chosen are:</p>
 <ul>
 <li>Master branch of <code>nixpkgs</code>: The choice of master was pretty arbitrary, we could have done stable instead. Nixpkgs consists of a set of 80k+ package definitions in a monorepo to choose from. We’ll use this to snag a bunch of packages like gcc, gdb, and qemu.</li>
 <li><code>rust-overlay</code>: we’ll use this for obtaining a version of the rust cross compiler and cargo.</li>
