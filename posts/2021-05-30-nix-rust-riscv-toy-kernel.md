@@ -12,7 +12,7 @@ The purpose of this tutorial is to showcase two main things:
 - How great `nix` can be for speeding up embedded development
 - Writing a "hello world" kernel for riscv64 in Rust
 
-Often times there's a large ramp up for even getting hands wet with embedded dev, and I think Nix can substantially lower that barrier. Furthermore, writing in Rust prevents many a triple fault at compile time through the merits of its type system. Pairing the two seems like a good idea.
+Often times there's a large ramp up for starting out in embedded dev. I think Nix can substantially lower the barrier to entry. Furthermore, writing in Rust prevents many a triple fault at compile time through the merits of its type system. Pairing the two seems like a good idea.
 
 One of my biggest initial frustrations with embedded dev was getting a cross compiling toolchain. The "goto" cross compiler [page](https://wiki.osdev.org/GCC_Cross-Compiler) is pretty intimidating for a beginner. Even now, each time I've started on an embedded project it takes me anywhere from a few hours to a week to get the new toolchain built. With `nix` this goes from an undefined amount of time to minutes.
 
@@ -29,7 +29,7 @@ I'm writing this for readers new to the nix ecosystem but have familiarity with 
 
 # Setting up the dev environment
 
-Before beginning development, a bunch of requisite tooling must be installed. This will be done through the `nix` package manager. More specifically, we'll use the experimental `flakes` feature, which provides convenient package pinning and an easy to use CLI.
+Before beginning development, we must install a bunch of requisite tooling. We use `nix` package manager for this purpose. More specifically, we'll use the experimental `flakes` feature, which provides convenient package pinning and an easy to use CLI.
 
 First, we start with the generic `flake` template:
 
@@ -54,7 +54,7 @@ First, we start with the generic `flake` template:
 }
   ```
 
-The outputs will build our kernel, and the inputs will be fixed "pinned" packages used to build our outputs. The inputs I've chosen are:
+The outputs will build our kernel, and the inputs are fixed/"pinned" packages used to build our outputs. The inputs I've chosen are:
 
 - Master branch of `nixpkgs`: The choice of master was pretty arbitrary, we could have done stable instead. Nixpkgs consists of a set of 80k+ package definitions in a monorepo to choose from. We'll use this to snag a bunch of packages like gcc, gdb, and qemu.
 - `rust-overlay`: we'll use this for obtaining a version of the rust cross compiler and cargo.
