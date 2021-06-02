@@ -62,7 +62,7 @@
 <li><a href="https://github.com/noteed/riscv-hello-asm">This</a> github repo for a bare metal example.</li>
 </ul>
 <h1 id="expected-background"><a href="#expected-background"># Expected Background</a></h1>
-<p>I’m writing this for readers new to the nix ecosystem but have familiarity with the language before as well as a familiarity with kernel development (though perhaps not with Rust).</p>
+<p>I’m writing this for readers new to the Nix ecosystem but who have some familiarity with the Nix language and flakes as well as with kernel development (though perhaps not with Rust).</p>
 <h1 id="setting-up-the-dev-environment"><a href="#setting-up-the-dev-environment"># Setting up the dev environment</a></h1>
 <p>Before beginning development, we must install a bunch of requisite tooling. We use <code>nix</code> package manager for this purpose. More specifically, we’ll use the experimental <code>flakes</code> feature, which provides convenient package pinning and an easy to use CLI.</p>
 <p>First, we start with the generic <code>flake</code> template:</p>
@@ -102,7 +102,7 @@
 <span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a>    <span class="ex">abi</span> = <span class="st">&quot;lp64&quot;</span><span class="kw">;</span></span>
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true"></a>  };</span>
 <span id="cb3-7"><a href="#cb3-7" aria-hidden="true"></a>};</span></code></pre></div>
-<p>This will return a package set targeting <code>riscv64-unknown-linux-gnu</code> with the <code>lp64</code> ABI assigned to the <code>riscvPkgs</code> variable. <code>riscvPkgs.gcc</code> will give us a gcc version compiled to run on a riscv linux host that compiles to for a riscv linux target. This is not quite what we want. Instead, we’ll use <code>riscvPkgs.buildPackages.gcc</code> which returns a cross compiler from our host, x8664 linux, to our target, riscv64 linux. The reason this is denoted <code>buildPackages</code> is because these packages are used to build the target packages. These packages run on x8664 linux.</p>
+<p>This will return a package set targeting <code>riscv64-unknown-linux-gnu</code> with the <code>lp64</code> ABI assigned to the <code>riscvPkgs</code> variable. <code>riscvPkgs.gcc</code> will give us a gcc version compiled to run on a riscv linux host and compile to a riscv linux target. This is not quite what we want. Instead, we’ll use <code>riscvPkgs.buildPackages.gcc</code> which returns a cross compiler from our host, x8664 linux, to our target, riscv64 linux. The reason this is denoted <code>buildPackages</code> is because these packages are used to build the target packages. These packages run on x8664 linux.</p>
 <h2 id="qemu"><a href="#qemu">## Qemu</a></h2>
 <p>Nixpkgs contains a qemu package definition. So first, we’ll need to get a version of nixpkgs targeting x86-64-linux. So we just import nixpkgs <code>default.nix</code> again, this time without specifying a crossSystem. Nixpkgs assumes the target is the same as the host by default:</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a><span class="ex">pkgs</span> = import nixpkgs {</span>
@@ -154,9 +154,9 @@
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true"></a>};</span></code></pre></div>
 <p>When we run <code>nix develop</code>, the packages listed in <code>nativeBuildInputs</code> will be built (or pulled from a local/remote cache) and included on our path. This is very useful for <code>per-project</code> tooling. Now that we have the relevant toolchains, we can write the rust kernel.</p>
 <h1 id="writing-a-hello-world-rust-kernel"><a href="#writing-a-hello-world-rust-kernel"># Writing a “Hello World” Rust Kernel</a></h1>
-<p>Our rust kernel is a proof of concept that a 64 bit kernel may be written with rust on qemu in rust. We’ll target the <code>sifive_u</code> machine on qemu and use the openSBI bootloader as our bios.</p>
+<p>Our rust kernel is a proof of concept that a 64 bit kernel targeting riscv may be written with rust. We’ll target the <code>sifive_u</code> machine on qemu and use the openSBI bootloader as our bios.</p>
 <h2 id="boilerplate"><a href="#boilerplate">## Boilerplate</a></h2>
-<p>We first create a <code>Cargo.toml</code> file. Pretty standard so far. We don’t bother to specify any targets as the defaults are good enough. Then we create a <code>src/main.rs</code> file. We include a <code>_start</code> symbol and a panic handler. This is the bare minimum Rust requires to compile properly. We enable <code>no_std</code>, as we will only be using the <code>core</code> rust library on bare metal,<code>no_main</code> as initially we will not have a <code>main</code> function, and <code>naked_functions</code> as we do not want Rust to start pushing registers to the stack in<code>_start</code> before we have initialized the stack pointer.</p>
+<p>We first create a <code>Cargo.toml</code> file. Pretty standard so far. We don’t bother to specify any targets as the defaults are good enough. Then we create a <code>src/main.rs</code> file. We include a <code>_start</code> symbol and a panic handler. This is the bare minimum Rust requires to compile properly. We enable <code>no_std</code>, as we will only be using the <code>core</code> rust library on bare metal, <code>no_main</code> as initially we will not have a <code>main</code> function, and <code>naked_functions</code> as we do not want Rust to start pushing registers to the stack in <code>_start</code> before we have initialized the stack pointer.</p>
 <div class="sourceCode" id="cb11"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true"></a><span class="at">#![</span>no_std<span class="at">]</span></span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true"></a><span class="at">#![</span>no_main<span class="at">]</span></span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true"></a><span class="at">#![</span>feature<span class="at">(</span>naked_functions<span class="at">)]</span></span>
@@ -173,7 +173,7 @@
 <span id="cb11-14"><a href="#cb11-14" aria-hidden="true"></a><span class="kw">pub</span> <span class="kw">extern</span> <span class="st">&quot;C&quot;</span> <span class="kw">fn</span> _start() <span class="op">-&gt;</span> <span class="op">!</span> <span class="op">{</span></span>
 <span id="cb11-15"><a href="#cb11-15" aria-hidden="true"></a>  <span class="kw">loop</span> <span class="op">{}</span></span>
 <span id="cb11-16"><a href="#cb11-16" aria-hidden="true"></a><span class="op">}</span></span></code></pre></div>
-<p>The exclamation mark return type means that the functions do not return. Another compile time check of the Rust compiler.</p>
+<p>The exclamation mark return type means that the functions do not return. Another compile time check by Rustc.</p>
 <h2 id="compiler-invocation"><a href="#compiler-invocation">## Compiler invocation</a></h2>
 <p>We need to compile our kernel. It turns out that</p>
 <div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true"></a><span class="ex">cargo</span> rustc --release --target=<span class="st">&quot;riscv64imac-unknown-none-elf&quot;</span></span></code></pre></div>
@@ -258,7 +258,7 @@ Idx Name              Size      VMA               LMA               File off  Al
 <span id="cb20-12"><a href="#cb20-12" aria-hidden="true"></a>      options(noreturn)</span>
 <span id="cb20-13"><a href="#cb20-13" aria-hidden="true"></a>  )<span class="op">;</span></span>
 <span id="cb20-14"><a href="#cb20-14" aria-hidden="true"></a><span class="op">}</span></span></code></pre></div>
-<p>The <code>_end_stack</code> extern C definition tells the rust compiler to look for this symbol in the linker script. Then all we do is move the symbol into <code>sp</code>, and jump to main. We have to specify that the function does not return in order for the rust compiler to not return errors. We’ll also need to define a <code>main</code> function to actually jump to, which we’ll do later on.</p>
+<p>The <code>_end_stack</code> extern C definition tells the rust compiler to look for this symbol in the linker script. Then all we do is move the symbol into <code>sp</code>, and jump to main. We have to specify that the function does not return in order for the rust compiler’s checks to pass. We’ll also need to define a <code>main</code> function to actually jump to, which we’ll do later on.</p>
 <h2 id="using-opensbi-to-print"><a href="#using-opensbi-to-print">## Using OpenSBI to print</a></h2>
 <p>We’re using OpenSBI as a SEE or Supervisor Execution Environment. It runs in M mode (equivalent to Ring 0 on x86) and ensures that the kernel (running in S-mode/Ring 1) doesn’t have as much power. The kernel can make “syscalls” to the SEE in much the same way that a userspace application makes syscalls to the kernel.</p>
 <p>We would like to print “hello world” to one of the UARTs. We could do this by implementing a UART driver, but it’s easier to just let openSBI do it for us. Not to mention this post is getting rather long. According to the <a href="https://github.com/riscv/riscv-sbi-doc/blob/master/riscv-sbi.adoc">SBI spec</a>, if we do a syscall (ecall instruction) from S mode (which our kernel is running in) to SBI running in M mode with the SBI Extension ID (EID) of 1 stored in <code>a7</code>, and the address of the character we wish to print stored in <code>a0</code>, openSBI will print will print that character for us using its UART implementation. So we write a function to do this:</p>
@@ -281,7 +281,7 @@ Idx Name              Size      VMA               LMA               File off  Al
 <span id="cb22-7"><a href="#cb22-7" aria-hidden="true"></a>    <span class="op">}</span></span>
 <span id="cb22-8"><a href="#cb22-8" aria-hidden="true"></a>    <span class="kw">loop</span> <span class="op">{}</span></span>
 <span id="cb22-9"><a href="#cb22-9" aria-hidden="true"></a><span class="op">}</span></span></code></pre></div>
-<p>And now we have a Rust kernel that prints “hello world” built by and runnable with nix.</p>
+<p>And now we have a Rust kernel that prints “hello world” built by and runnable with nix. <code>nix run github:DieracDelta/NixKernelTutorial</code></p>
 <h2 id="adding-ci"><a href="#adding-ci">## Adding CI</a></h2>
 <p>It’s trivial to add a github action that builds the kernel using <code>nix</code>. I’ve talked about this in my other posts so I won’t repeat myself. See the <code>cachix.yml</code> workflow file.</p>
     </section>
