@@ -19,6 +19,7 @@ One of my biggest initial frustrations with embedded dev was getting a cross com
 The repo I'm using for this example is located [here](https://github.com/DieracDelta/NixKernelTutorial). Note that I am not doing anything new: several rust kernels already exist and nix has great riscv support. I'm just rehashing and hopefully explaining.
 
 Special thanks to:
+
 - [Tock](https://github.com/tock/tock) for lots of great examples of inline assembly. They even have nix support!
 - [This](https://github.com/noteed/riscv-hello-asm) github repo for a bare metal example.
 
