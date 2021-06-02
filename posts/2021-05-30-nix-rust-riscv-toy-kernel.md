@@ -203,15 +203,15 @@ The exclamation mark return type means that the functions do not return. Another
 
 ## Compiler invocation
 
-Now we'll need to figure out how to compile. It turns out that
+We need to compile our kernel. It turns out that
 
 ```bash
-cargo rustc --release --target=\"riscv64imac-unknown-none-elf\"
+cargo rustc --release --target="riscv64imac-unknown-none-elf"
 ```
 
-will cross compile the kernel to a riscv64imac target. We invoke cargo like this since we'll need to pass flags to the linker later on. This command will also generate a `Cargo.lock` file that we must `git add` so nix flakes may track it.
+will cross compile the kernel to a riscv64imac target. We invoke cargo in this unorthodox way because we'll need to pass flags to the linker later on. This command will also generate a `Cargo.lock` file that we must `git add` so nix flakes may track it.
 
-In order to build our derivation with nix, we'll use `naersk`. `naersk` provides a `lib.x86_64-linux.buildPackage` function that will use cargo to build rust packages with nix. First, we tell `naersk` to use our cross compiler by overriding its input rust toolchain (in the same way as the rust-overlay override):
+In order to build our derivation with nix, we'll use `Naersk`. `Naersk` provides a `lib.x86_64-linux.buildPackage` function that will use cargo (and `Cargo.lock`) to build rust packages with nix. We tell `Naersk` to use our cross compiler by overriding its input rust toolchain (in the same way as the rust-overlay override):
 
 ```nix
 naersk_lib = naersk.lib."${system}".override {
@@ -220,7 +220,7 @@ naersk_lib = naersk.lib."${system}".override {
 };
 ```
 
-Now, we can use this `naersk_lib` to build our package:
+We use this `naersk_lib` to build our package:
 
 ```rust
 sample_package = naersk_lib.buildPackage {
@@ -230,7 +230,7 @@ sample_package = naersk_lib.buildPackage {
 };
 ```
 
-The `pname` becomes the name of the package, and the root is the directory in which `naersk` will invoke the `cargoBuild` command. `cargoBuild` is a function that takes in the default cargo build command (which we subsequently drop), and return a new cargo build command to be used. The only difference here is that `CARGO_BUILD_TARGET` cannot be our source directory. We need Cargo to build in the derivation's output directory, so we set it to `$out` (which points there).
+The `pname` is the "package name". `root` is the root is the directory in which `naersk` will invoke the `cargoBuild` command. `cargoBuild` is a function that takes in the default cargo build command (which we subsequently drop), and returns a new cargo build command to be used. The only difference here is that `CARGO_BUILD_TARGET` cannot be our source directory. We need Cargo to build in the derivation's output directory, so we set it to `$out` (which points there).
 
 We'd also like a script that runs this in qemu. We can create one:
 
@@ -255,7 +255,7 @@ apps.x86_64-linux.toy_kernel = {
 defaultApp.x86_64-linux = self.apps.x86_64-linux.toy_kernel;
 ```
 
-`nix run .` executes the `defaultApp`; we set this to our bash script. Furthermore, we can call this from any linux x8664 box by calling `nix run github:DieracDelta/NixKernelTutorial`. The same goes for `defaultPackage`. We may build the kernel by running `nix build .` or `nix build github:DieracDelta/NixKernelTutorial`.
+`nix run .` executes the `defaultApp`. We can call this from *any* linux x8664 box by calling `nix run github:DieracDelta/NixKernelTutorial`. The same goes for `defaultPackage`. We may build the kernel by running `nix build .` or `nix build github:DieracDelta/NixKernelTutorial`.
 
 ## Adding a linker script
 
