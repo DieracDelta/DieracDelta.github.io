@@ -334,7 +334,7 @@ The `_end_stack` extern C definition tells the rust compiler to look for this sy
 
 We're using OpenSBI as a SEE or Supervisor Execution Environment. It runs in M mode (equivalent to Ring 0 on x86) and ensures that the kernel (running in S-mode/Ring 1) doesn't have as much power. The kernel can make "syscalls" to the SEE in much the same way that a userspace application makes syscalls to the kernel.
 
-We would like to print "hello world" to one of the uarts. We could do this by implementing a UART driver, but it's easier to just let openSBI do it for us. Not to mention this post is getting rather long. According to the [SBI spec](https://github.com/riscv/riscv-sbi-doc/blob/master/riscv-sbi.adoc), if we do a syscall (ecall instruction) from S mode (which our kernel is running in) to SBI running in M mode with the SBI Extension ID (EID) of 1 stored in`a7`, and the address of the character we wish to print stored in `a0`, openSBI will print will print that character for us using its UART implementation. So we write a function to do this:
+We would like to print "hello world" to one of the UARTs. We could do this by implementing a UART driver, but it's easier to just let openSBI do it for us. Not to mention this post is getting rather long. According to the [SBI spec](https://github.com/riscv/riscv-sbi-doc/blob/master/riscv-sbi.adoc), if we do a syscall (ecall instruction) from S mode (which our kernel is running in) to SBI running in M mode with the SBI Extension ID (EID) of 1 stored in `a7`, and the address of the character we wish to print stored in `a0`, openSBI will print will print that character for us using its UART implementation. So we write a function to do this:
 
 ```rust
 unsafe fn write_char(ch: u8) {
