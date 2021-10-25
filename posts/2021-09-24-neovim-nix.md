@@ -1,8 +1,8 @@
 ---
 author:
   name: "Justin Restivo"
-date: 2021-05-30
-title: A Portable Text Editor: Nix <3 Neovim
+date: 2021-09-24
+title: "A Portable Text Editor: Nix <3 Neovim"
 ---
 
 # Motivation
