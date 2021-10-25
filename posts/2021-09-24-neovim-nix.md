@@ -11,15 +11,21 @@ This post was borne out of my frustrations of repeatedly switching between serve
 
 - Clone Neovim nightly (it consistently has really cool features!), install its deps, build it, and stick the result in `$HOME/usr/bin` and add `$HOME/usr/bin` to my `$PATH`.
 - Intall system dependencies
-- Install Vim Plug, wget a gist with my vimrc config in it, `:PlugInstall`.
+- Install Vim Plug, wget a gist with my vimrc config in it, and finally, `:PlugInstall`.
 - Install all the language servers I needed. This was the hard part, as that process differed for each language server. Some I grabbed off a github release, others I built manually from source as to get the most up-to-date version.
 
-This might take me 30 minutes overall, and is both frustrating and tedious to set up and maintain on a large scale. My "solution" using `nix` is fast and easy to 
+This might take me 30 minutes overall, and is both frustrating and tedious to set up and maintain on a large scale. My "solution" using `nix` turns this into 20 seconds/3 commands. Fast and easy:
+
+```bash
+git clone https://github.com/DieracDelta/vimconf_talk.git
+cd vimconf_talk && bash setup.sh
+source $HOME/.bashrc && nix run .
+```
 
 Please note that the work I'm describing here is not original. I'm (per usual) trying to make something that is reasonably complex understandable to a wider audience. Special thanks to:
 
 - [Zach Coyle's Neovitality Nix distribution](https://github.com/vi-tality/neovitality) was my inspiration for this post. I present a *very* simple version of what's possible with Nix. Neovitality reaches for the stars and shows just how much is possible.
-- [Shadow's](https://github.com/shadowninja55): neovim configuration was a great starting point to figure out "how" to configure with neovim.
+- [Shadow's](https://github.com/shadowninja55) neovim configuration was a great starting point to figure out "how" to configure neovim with Lua.
 - [Gytis](https://github.com/gytis-ivaskevicius) for providing feedback.
 
 # Expected Background
