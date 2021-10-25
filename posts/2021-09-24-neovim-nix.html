@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <!-- google analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-PMP32CMWHS"></script>
+        <script>
+         window.dataLayer = window.dataLayer || [];
+         function gtag(){dataLayer.push(arguments);}
+         gtag('js', new Date());
+
+         gtag('config', 'G-PMP32CMWHS');
+        </script>
+        <!-- nerdfonts -->
+        <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hack-font@3/build/web/hack.css">
+
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Justin Restivo - A Portable Text Editor: Nix <3 Neovim</title>
+        <link rel="stylesheet" href="../css/default.css" />
+    </head>
+    <body>
+        <header class="header">
+            <div class="logo">
+                <a href="../index.html">Justin Restivo</a>
+            </div>
+            <nav>
+                <a href="../index.html" class="topele">Home</a>
+                <span> | </span>
+                <a href="../about.html" class="topele">About</a>
+                <span> | </span>
+                <a href="../contact.html" class="topele">Contact</a>
+                <span> | </span>
+                <a href="https://www.linkedin.com/in/justinprestivo" class="topele">Linkedin</a>
+                <span> | </span>
+                <!--<a href="/justin_restivo_resume.pdf" class="topele">Resume</a>-->
+                <!--<span> | </span>-->
+                <a href="https://github.com/DieracDelta" class="topele">Github</a>
+            </nav>
+        </header>
+
+        <main role="main">
+            <h1>A Portable Text Editor: Nix <3 Neovim</h1>
+            <article>
+    <section class="header">
+        Posted on September 24, 2021
+        
+    </section>
+    <section>
+        <h1 id="motivation"><a href="#motivation"># Motivation</a></h1>
+<p>This post was borne out of my frustrations of repeatedly switching between servers with different versions of linux installed while not having root permissions and needing to develop. Setting up neovim with all the tools I’m used to was quite tedious. My workflow was as follows:</p>
+<ul>
+<li>Clone Neovim nightly (it consistently has really cool features!), install its deps, build it, and stick the result in <code>$HOME/usr/bin</code> and add <code>$HOME/usr/bin</code> to my <code>$PATH</code>.</li>
+<li>Intall system dependencies</li>
+<li>Install Vim Plug, wget a gist with my vimrc config in it, <code>:PlugInstall</code>.</li>
+<li>Install all the language servers I needed. This was the hard part, as that process differed for each language server. Some I grabbed off a github release, others I built manually from source as to get the most up-to-date version.</li>
+</ul>
+<p>This might take me 30 minutes overall, and is both frustrating and tedious to set up and maintain on a large scale. My “solution” using <code>nix</code> is fast and easy to</p>
+<p>Please note that the work I’m describing here is not original. I’m (per usual) trying to make something that is reasonably complex understandable to a wider audience. Special thanks to:</p>
+<ul>
+<li><a href="https://github.com/vi-tality/neovitality">Zach Coyle’s Neovitality Nix distribution</a> was my inspiration for this post. I present a <em>very</em> simple version of what’s possible with Nix. Neovitality reaches for the stars and shows just how much is possible.</li>
+<li><a href="https://github.com/shadowninja55">Shadow’s</a>: neovim configuration was a great starting point to figure out “how” to configure with neovim.</li>
+<li><a href="https://github.com/gytis-ivaskevicius">Gytis</a> for providing feedback.</li>
+</ul>
+<h1 id="expected-background"><a href="#expected-background"># Expected Background</a></h1>
+<p>This is meant to have a low barrier for entry. I intend the readers to be strangers to the Nix ecosystem (nix is not even be installed!) but are familiar with configuring Neovim with lua, neovim plugins, and linux.</p>
+<h1 id="getting-started-obtaining-nix"><a href="#getting-started-obtaining-nix"># Getting Started: obtaining Nix</a></h1>
+<p>One can either do an install of nix or use DavHau’s <code>nix-portable</code> project. I opt for the latter approach, since it’s easier to set up and less commitment overall (no nix users need to be made). I wrote some wrapper scripts to ease the workflow that I’ll explain here:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a><span class="co">#!/usr/bin/env bash</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a><span class="va">NIX_PORTABLE_LOC=</span><span class="st">&quot;</span><span class="va">$PWD</span><span class="st">&quot;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a><span class="fu">wget</span> https://github.com/DavHau/nix-portable/releases/download/v008/nix-portable</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a><span class="fu">chmod</span> +x nix-portable</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a><span class="va">NP_LOCATION=$NIX_PORTABLE_LOC</span> <span class="va">NP_RUNTIME=</span><span class="st">'bwrap'</span> <span class="va">$PWD</span><span class="ex">/nix-portable</span> nix</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true"></a><span class="bu">printf</span> <span class="st">&quot;\nsubstituters = https://cache.nixos.org https://jrestivo.cachix.org \ntrusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= jrestivo.cachix.org-1:+jSOsXAAOEjs+DLkybZGQEEIbPG7gsKW1hPwseu03OE=\n&quot;</span> <span class="op">&gt;&gt;</span> <span class="va">$NIX_PORTABLE_LOC</span>/.nix-portable/conf/nix.conf</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true"></a><span class="bu">printf</span> <span class="st">&quot;\nalias nix=</span><span class="dt">\&quot;</span><span class="st">NP_LOCATION=</span><span class="va">$NIX_PORTABLE_LOC</span><span class="st"> NP_RUNTIME='bwrap' </span><span class="va">$PWD</span><span class="st">/nix-portable nix</span><span class="dt">\&quot;</span><span class="st">\n&quot;</span> <span class="op">&gt;&gt;</span> <span class="va">$HOME</span>/.bashrc</span></code></pre></div>
+<p>Nix portable is an awesome project that spins up an unprivileged container with <code>nix</code> and <code>flakes</code> installed. We snag the executable (bash script) on line 6, then run it on line 5. We tell <code>nix-portable</code> to use <code>$PWD/.nix-portable</code> as its container root directory by setting <code>NP_LOCATION</code>, and to use bubblewrap by setting <code>NP_RUNTIME</code> to bubblewrap.</p>
+<p>Line 6 sets up the binary cache. The idea is to have Github CI (we’ll get to this later) build neovim from source with our configuration and all our language servers/plugins and push it to a binary cache (using Cachix). We’ll then pull down this “built” artifact from the binary cache on the server we wish to run on.</p>
+<p>We’ll be generating our vim configuration using <code>nix</code>. As a result, there’s an <code>edit.sh</code> script that will listen for changes and regenerate our configuration. We’ll set <code>autoload</code> in neovim to listen for the change to <code>flake.nix</code> and rebuilt our lua config. The script:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a><span class="co">#!/usr/bin/env bash</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true"></a><span class="co"># remember to set autoread in vim to autorefresh the file in vim</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true"></a><span class="va">NIX_PORTABLE_LOC=</span><span class="st">&quot;</span><span class="va">$PWD</span><span class="st">&quot;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true"></a><span class="fu">find</span> ./*.nix <span class="kw">|</span> <span class="ex">entr</span> -r bash -c <span class="st">&quot;NP_LOCATION=</span><span class="va">$NIX_PORTABLE_LOC</span><span class="st"> NP_RUNTIME='bwrap' </span><span class="va">$PWD</span><span class="st">/nix-portable nix build .#my_config -o init.nvim_store &amp;&amp; cp -f </span><span class="va">$NIX_PORTABLE_LOC</span><span class="st">/.nix-portable/store/</span><span class="dt">\$</span><span class="st">(basename </span><span class="dt">\$</span><span class="st">(readlink </span><span class="va">$PWD</span><span class="st">/init.nvim_store)) </span><span class="va">$PWD</span><span class="st">/init.nvim&quot;</span></span></code></pre></div>
+<p><code>entr</code> is used to listen for a change to nix files. <code>entr</code> may need to be installed (<code>apt-get install -y entr</code> on Debian based distros). Upon change, we use <code>nix-portable</code> to build the config (<code>.#my_config</code>) and stick it in <code>$PWD/init.nvim_store</code>. However, this is a broken symlink to the nix store, and needs to be replaced. Some bash wizardry is used to recreate the path to the nix store from its location in <code>$PWD/.nix-portable/store</code>.</p>
+<h1 id="starting-point"><a href="#starting-point"># Starting point</a></h1>
+<p>The repo I’ll be explaining is located <a href="https://github.com/DieracDelta/vimconf_talk/blob/0_initial_flake/flake.nix">here</a>. Check out the <code>0_initial_flake</code>, as this will be our starting point.</p>
+<p>The <code>flake</code> is written in Nix. Think a JSON like language with ML-ish syntax and lambda functions. Let’s analyze the code. The top level looks like:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a><span class="kw">{</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a>  <span class="ex">inputs</span> = { ... <span class="kw">}</span>;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a>  <span class="ex">outputs</span> = inputs@<span class="dt">{...}</span>: {</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a>  }</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a>}</span></code></pre></div>
+<p>This can be thought of as a “pure” function from math. We input a set of pinned source code, and then <code>nix</code> builds some set of output build artifacts that are always the same for the same set of inputs. For the inputs, I’ve added neovim nightly (which has its own nix flake!), some vim plugins that I want to run on master, my home-brewn “nix to lua” translator/helper functions, and <code>rnix-lsp</code>–a language server for nix written in Rust.</p>
+<p>Now, let’s consider the outputs. The outputs are a function of the inputs: <code>inputs</code> refers to the entire attribute set, and the <code>{neovim, ...}</code> will destructure that attribute set one level. For example <code>neovim</code> binds to <code>inputs.neovim</code>.</p>
+<p>Now I declare some variables:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a><span class="ex">my_config</span> = <span class="st">&quot;&quot;</span><span class="kw">;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true"></a><span class="ex">pkgs</span> = import nixpkgs {system = <span class="st">&quot;x86_64-linux&quot;</span><span class="kw">;</span>};</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true"></a><span class="ex">result_nvim</span> = DSL.neovimBuilderWithDeps.legacyWrapper (neovim.defaultPackage.x86_64-linux) <span class="kw">{</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true"></a>  <span class="ex">extraRuntimeDeps</span> = []<span class="kw">;</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true"></a>  <span class="ex">withNodeJs</span> = true<span class="kw">;</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true"></a>  <span class="ex">configure.customRC</span> = my_config<span class="kw">;</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true"></a>  <span class="ex">configure.packages.myVimPackage.start</span> = with pkgs.vimPlugins<span class="kw">;</span><span class="bu"> [ ]</span>;</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true"></a><span class="kw">}</span>;</span></code></pre></div>
+<p>Conceptually:</p>
+<ul>
+<li><code>my_config</code> is where any plaintext config that would normally end up in a <code>init.lua</code> file would be placed.</li>
+<li><code>pkgs</code> is a set of packages built for <code>x86_64-linux</code> (this is configurable!) built off of the master nixpkgs input. I won’t explain the syntax here (see my Rust/Riscv blog post).</li>
+<li><code>result_nvim</code> is the final product. I use my <code>DSL</code>’s legacyWrapper. Normally this would come from <code>nixpkgs</code>, but then it is difficult to pass in runtime dependencies. I’ve added the <code>extraRuntimeDeps</code> attribute to handle that in its own function exported from my DSL flake. <code>withNodeJs</code> builds the nodejs runtime into neovim, and <code>customRC</code> inserts <code>my_config</code> as our lua config file (albeit wrapped in a <code>init.nvim</code>). <code>configure.packages.myVimPackage.start</code> specifies a list of vim packages to make available when Neovim starts. <code>neovim.defaultPackage.x86_64-linux</code> builds our neovim off of the nightly <code>neovim</code> input.</li>
+</ul>
+<p>The syntax might be intimidating at this point, but don’t sweat too much. The idea isn’t to question this template, as it should “just workTM”. This initial layer of abstraction will allow us to create a powerful and portable vim build.</p>
+<p>Then we use these variables to create outputs:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a><span class="kw">{</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a>  <span class="ex">my_config</span> = pkgs.writeText <span class="st">&quot;config&quot;</span> my_config<span class="kw">;</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true"></a>  <span class="ex">defaultPackage.x86_64-linux</span> = result_nvim<span class="kw">;</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true"></a>  <span class="ex">defaultApp.x86_64-linux</span> = {</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true"></a>      <span class="bu">type</span> = <span class="st">&quot;app&quot;</span><span class="kw">;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true"></a>      <span class="ex">program</span> = <span class="st">&quot;</span><span class="va">${result_nvim}</span><span class="st">/bin/nvim&quot;</span><span class="kw">;</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true"></a>  <span class="kw">}</span>;</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true"></a>};</span></code></pre></div>
+<p>We can inspect these outputs.</p>
+<pre><code>$ nix flake show
+git+file:///home/jrestivo/Projects/vimtalk
+├───defaultApp
+│   └───x86_64-linux: app
+├───defaultPackage
+│   └───x86_64-linux: package 'neovim-master'
+└───my_config: unknown</code></pre>
+<p>There are a few things we may do with this. First:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true"></a><span class="fu">bash</span> edit.sh</span></code></pre></div>
+<p>This will build our lua config on change to our flake. We can then open <code>init.nvim</code> and have a look at the generated lua inside. The <code>defaultPackage.x86_64-linux</code> attribute will build our “customized” neovim and store it in <code>result</code>:</p>
+<p><code>nix build .</code></p>
+<p>Finally, the <code>app</code> attribute will let us run <code>neovim</code> without having the repo cloned. We may either</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true"></a><span class="ex">nix</span> run github:DieracDelta/vimconf_talk</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true"></a><span class="co"># OR</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true"></a><span class="ex">nix</span> run .</span></code></pre></div>
+<p>This CLI is very convenient to use from a user perspective. What I typically do on servers is (1) install nix-portable (run <code>./setup.sh</code>) and then (2) alias vim to <code>nix run github:DieracDelta/vimconf_talk</code>. Then I get all the vim goodness but setup is trivialized. This is the power of Nix.</p>
+<p>Now, all that remains is to fill out the rest of the config.</p>
+<h1 id="configuring-via-dsl"><a href="#configuring-via-dsl"># Configuring via DSL</a></h1>
+<p>Check out branch <code>1_dsl</code> to see the <code>DSL</code> in action. Keybinds are just lua calls. They have a natural representation in Nix as a JSON-like attribute set. For example:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true"></a><span class="kw">{</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true"></a>  <span class="ex">mode</span> = <span class="st">&quot;n&quot;</span><span class="kw">;</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true"></a>  <span class="ex">combo</span> = <span class="st">&quot;j&quot;</span><span class="kw">;</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true"></a>  <span class="bu">command</span> = <span class="st">&quot;gj&quot;</span><span class="kw">;</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true"></a>  <span class="ex">opts</span> = {<span class="st">&quot;noremap&quot;</span> = true<span class="kw">;</span> <span class="kw">}</span>;</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true"></a>}</span></code></pre></div>
+<p>This translates to: <code>vim.api.nvim_set_keymap('n','j','gj',{ noremap = true})</code>.</p>
+<p>Similarly <code>vim.o</code> and <code>vim.g</code> settings may be thought of the same way:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true"></a><span class="ex">vim.g</span> = {</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true"></a>  <span class="ex">mapleader</span> = <span class="st">&quot; &quot;</span><span class="kw">;</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true"></a>  <span class="ex">nofoldenable</span> = true<span class="kw">;</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true"></a>  <span class="ex">noshowmode</span> = true<span class="kw">;</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true"></a>  <span class="ex">completeopt</span> = <span class="st">&quot;menu,menuone,noselect&quot;</span><span class="kw">;</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true"></a>};</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true"></a><span class="ex">vim.o</span> = {</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true"></a>  <span class="ex">termguicolors</span> = true<span class="kw">;</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true"></a>  <span class="ex">...</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true"></a>}</span></code></pre></div>
+<p>Sometimes we may also need to call lua functions. There’s a somewhat natural representation as:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true"></a><span class="ex">rawLua</span> = [DSL.DSL.callFN <span class="st">&quot;vim.cmd&quot;</span> [<span class="st">&quot;syntax on&quot;</span>]]</span></code></pre></div>
+<p>which enables syntax. This, however, is a WIP since it still feels a bit clunky to me and nothing more than a proof of concept. Complex lua code should still remain as pasted in verbatim into <code>my_config</code> (we’ll do this later).</p>
+<p>We need to refactor slightly to fit this in. <code>DSL.DSL.neovimBuilder</code> takes in an attribute set of the form:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true"></a><span class="kw">{</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true"></a>  <span class="ex">extraConfig</span> = <span class="st">&quot;-- AT VERBATIM CONFIG GOES HERE&quot;</span><span class="kw">;</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true"></a>  <span class="ex">setOptions</span> = {</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true"></a>    <span class="ex">vim.g</span> = <span class="dt">{...}</span><span class="kw">;</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true"></a>    <span class="ex">vim.o</span> = <span class="dt">{...}</span><span class="kw">;</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true"></a>  <span class="kw">}</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true"></a>  <span class="ex">keyBinds</span> = [ ... ]<span class="kw">;</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true"></a>  <span class="ex">rawLua</span> = [ ... ]<span class="kw">;</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true"></a>  <span class="ex">pluginInit</span> = {}; # <span class="ex">WIP</span> not functional yet<span class="kw">;</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true"></a>}</span></code></pre></div>
+<p>and produces a lua config file that we then feed into <code>legacyWrapper</code> in the argument attribute set.</p>
+<h1 id="adding-plugins-in-nixpkgs"><a href="#adding-plugins-in-nixpkgs"># Adding plugins in nixpkgs</a></h1>
+<p>Check out branch <code>2_plugins</code>. Most plugins have been already packaged and live in <code>nixpkgs</code>. To see, we can run:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true"></a><span class="ex">nix</span> search nixpkgs <span class="va">$PLUGINNAME</span></span></code></pre></div>
+<p>Often times, the source is out of date. To tell, we can look at the revision:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true"></a><span class="ex">nix</span> edit nixpkgs#<span class="va">$PLUGINNAME</span></span></code></pre></div>
+<p>Now, I’ve gone through and done this for most of the plugins I use on a day-to-day basis. For the out of date ones, I add nix flake inputs and call <code>overrideAttrs</code>. <code>overrideAttrs</code> is a function that takes a function as an input of the form <code>(oldattrs: {...})</code>. This function takes in one argument, <code>oldattrs</code>, and returns an attribute set which is then merge with the old attribute set. It overwrites any attributes we specify. In this case, we just wish to override the source code (which we have done in multiple places):</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true"></a><span class="ex">configure.packages.myVimPackage.start</span> = with pkgs.vimPlugins<span class="kw">;</span><span class="bu"> [</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true"></a>  (telescope-nvim.overrideAttrs (oldattrs: { src = inputs.telescope-src; }))</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true"></a>  (cmp-buffer.overrideAttrs (oldattrs: { src = inputs.cmp-buffer; }))</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true"></a>  (nvim-cmp.overrideAttrs (oldattrs: { src = inputs.nvim-cmp; }))</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true"></a>  (cmp-nvim-lsp.overrideAttrs (oldattrs: { src = inputs.nvim-cmp-lsp; }))</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true"></a>  plenary-nvim</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true"></a>  nerdcommenter</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true"></a>  nvim-lspconfig</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true"></a>  lspkind-nvim</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true"></a>  (pkgs.vimPlugins.nvim-treesitter.withPlugins (</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true"></a>    plugins: with plugins; [tree-sitter-nix tree-sitter-python tree-sitter-c tree-sitter-rust]</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true"></a>  ))</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true"></a>  lsp_signature-nvim</span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true"></a>  popup-nvim</span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true"></a><span class="bu">]</span>;</span></code></pre></div>
+<p>Treesitter is an odd case. We do something similar except we add in many other plugins.</p>
+<h1 id="adding-plugins-outside-nixpkgs"><a href="#adding-plugins-outside-nixpkgs"># Adding plugins outside nixpkgs</a></h1>
+<p>Check out <code>3_custom_plugin</code>. Sometimes plugins may not be added into <code>nixpkgs</code>. One example is the theme I like, <code>darcula</code>. Luckily, <code>nix</code> makes it easy to build plugins:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true"></a><span class="kw">(</span><span class="ex">pkgs.vimUtils.buildVimPluginFrom2Nix</span> { pname = <span class="st">&quot;dracula-nvim&quot;</span><span class="kw">;</span> <span class="ex">version</span> = <span class="st">&quot;master&quot;</span><span class="kw">;</span> <span class="ex">src</span> = dracula-nvim<span class="kw">;</span> }<span class="kw">)</span></span></code></pre></div>
+<p>This uses a builtin <code>vim</code> plugin builder. We just need to name the plugin, specify its version and source (which is an input).</p>
+<h1 id="adding-lsp"><a href="#adding-lsp"># Adding LSP</a></h1>
+<p>Check out <code>4_lsp</code>. We’ve already added all the plugins we need. Now all we need to do is (1) add the LSPs (and other system dependencies) we might need and (2) include configuration as plaintext. The former is done by filling out the <code>extraRuntimeDeps</code> attribute:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true"></a><span class="ex">extraRuntimeDeps</span> = with pkgs<span class="kw">;</span> [<span class="ex">ripgrep</span> clang rust-analyzer inputs.rnix-lsp.defaultPackage.x86_64-linux]<span class="kw">;</span></span></code></pre></div>
+<p>Note that we need ripgrep for telescope, clang for tree-sitter, and we are building <code>rnix-lsp</code> from source. All with very little effort!</p>
+<p>I’ve just pasted what I would normally use to configure <code>neovim</code> into <code>my_config</code>. I won’t explain this part as it is out of scope (and each individual plugin explains how this works in its respective readme).</p>
+<h1 id="adding-ci"><a href="#adding-ci"># Adding CI</a></h1>
+<p>The last thing to do is enable a cache. The way to do this is to use a github action to build neovim and push it to github. It is trivial to copy <code>.github/workflows/nix.conf</code>. After copying, one must create their own <a href="https://www.cachix.org/"><code>cachix</code> account</a>, obtain a key to their cache, and set the <code>CACHIX_AUTH_TOKEN</code> github action secret to that key. Then, github actions will be able to push neovim binaries to this binary cache. Then client-side when we <code>nix run $NEOVIM_CONFIG</code>, <code>nix</code> will pull directly from this cache.</p>
+    </section>
+</article>
+
+        </main>
+
+    </body>
+</html>
