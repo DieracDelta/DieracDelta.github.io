@@ -14,7 +14,7 @@ This post was borne out of my frustrations of repeatedly switching between devel
 - Install Vim Plug, wget a gist with my vimrc config in it, and finally, `:PlugInstall`.
 - Install all the language servers I needed. This was the hard part, as that process differed for each language server. Some I grabbed off a github release, others I built manually from source as to get the most up-to-date version.
 
-This might take me 30 minutes overall, and is both frustrating and tedious to set up and maintain on a large scale. My "solution" using `nix` turns this into 20 seconds on any linux machine with 3 commands. Fast and easy:
+This might take me 1-2 hours overall, and is both frustrating and tedious to set up and maintain on a large scale. Each computer is slightly different. My "solution" using `nix` turns this into 20 seconds on any linux machine with 3 commands. Fast and easy:
 
 ```bash
 git clone https://github.com/DieracDelta/vimconf_talk.git
@@ -56,7 +56,7 @@ We'll be generating our vim configuration using `nix`. As a result, there's an `
 #!/usr/bin/env bash
 # remember to set autoread in vim to autorefresh the file in vim
 NIX_PORTABLE_LOC="$PWD"
-find ./*.nix | entr -r bash -c "NP_LOCATION=$NIX_PORTABLE_LOC NP_RUNTIME='bwrap' $PWD/nix-portable nix build .#my_config -o init.nvim_store && cp -f $NIX_PORTABLE_LOC/.nix-portable/store/\$(basename \$(readlink $PWD/init.nvim_store)) $PWD/init.nvim"
+find ./*.nix | entr -r bash -c "NP_LOCATION=$NIX_PORTABLE_LOC NP_RUNTIME='bwrap' $PWD/nix-portable nix build .#neovimConfig -o init.nvim_store && cp -f $NIX_PORTABLE_LOC/.nix-portable/store/\$(basename \$(readlink $PWD/init.nvim_store)) $PWD/init.nvim"
 ```
 
 `entr` is used to listen for a change to nix files. Note that `entr` may need to be installed (`apt-get install -y entr` on Debian based distros). Upon change, we use `nix-portable` to build the config (`.#my_config`) and stick it in `$PWD/init.nvim_store`. However, this is a broken symlink to the nix store (nix-portable specific problem), and needs to be replaced. Some bash wizardry is used to recreate the path to the nix store from its location in `$PWD/.nix-portable/store`.
@@ -81,9 +81,8 @@ Now, let's consider the outputs. The outputs are a function of the inputs: `inpu
 
 Now I declare some variables:
 ```nix
-my_config = "";
-pkgs = import nixpkgs {system = "x86_64-linux";};
-result_nvim = DSL.neovimBuilderWithDeps.legacyWrapper (neovim.defaultPackage.x86_64-linux) {
+neovimConfig = ...;
+customNeovim = DSL.neovimBuilderWithDeps.legacyWrapper neovim.defaultPackage.x86_64-linux {
   extraRuntimeDeps = [];
   withNodeJs = true;
   configure.customRC = my_config;
@@ -93,9 +92,8 @@ result_nvim = DSL.neovimBuilderWithDeps.legacyWrapper (neovim.defaultPackage.x86
 
 Conceptually:
 
-- `my_config` is where any plaintext config that would normally end up in a `init.lua` lives.
-- `pkgs` is a set of packages built for `x86_64-linux` (this is configurable and can target other archs!) built off of the master nixpkgs input. I won't explain the syntax here (see my Rust/Riscv blog post).
-- `result_nvim` is the final product. I use my `DSL`'s legacyWrapper. Normally this would come from `nixpkgs`, but then it is difficult to pass in runtime dependencies. I've added the `extraRuntimeDeps` attribute to handle that in its own function exported from my DSL flake. `withNodeJs` builds the nodejs runtime into neovim, and `customRC` inserts `my_config` as our lua config file (albeit wrapped in a `init.nvim`). `configure.packages.myVimPackage.start` specifies a list of vim packages to make available when Neovim starts. `neovim.defaultPackage.x86_64-linux` builds our neovim off of the nightly `neovim` input.
+- `neovimConfig` is where any plaintext config that would normally end up in a `init.lua` lives.
+- `customNeovim` is the final product. I use my `DSL`'s legacyWrapper. Normally this would come from `nixpkgs` (monorepo for all nix packages), but then it is difficult to pass in runtime dependencies. I've added the `extraRuntimeDeps` attribute to handle that in its own function exported from my DSL flake. `withNodeJs` builds the nodejs runtime into neovim, and `customRC` inserts `my_config` as our lua config file (albeit wrapped in a `init.nvim`). `configure.packages.myVimPackage.start` specifies a list of vim packages to make available when Neovim starts. `neovim.defaultPackage.x86_64-linux` builds our neovim off of the nightly `neovim` input.
 
 
 The syntax might be intimidating at this point, but don't sweat too much. The idea isn't to question this template, as it should "just workTM". This initial layer of abstraction will allow us to create a powerful and portable vim build.
@@ -104,13 +102,19 @@ We may use these variables we've defined to create outputs:
 
 ```nix
 {
-  my_config = pkgs.writeText "config" my_config;
-  defaultPackage.x86_64-linux = result_nvim;
-  defaultApp.x86_64-linux = {
-      type = "app";
-      program = "${result_nvim}/bin/nvim";
-  };
+        # The packages: our custom neovim and the config text file
+        packages = { inherit (pkgs) customNeovim neovimConfig; };
+
+        # The package built by `nix build .`
+        defaultPackage = pkgs.customNeovim;
+
+        # The app run by `nix run .`
+        defaultApp = {
+          type = "app";
+          program = "${pkgs.customNeovim}/bin/nvim";
+        };
 };
+
 ```
 
 Sidenote: experienced Nixers would expect defaultApp not to be required (`nix run` should automatically work and does quite well on normal Nix installs. This is a nix-portable quirk).
@@ -152,15 +156,10 @@ Now that we understand the set up, all that remains is to fill out the rest of t
 
 # Configuring via DSL
 
-Check out branch `1_dsl` to see the `DSL` in action. Keybinds are just lua calls. They have a natural representation in Nix as a JSON-like attribute set. For example:
+Check out branch `1_dsl` to see the `DSL` in action. Keybinds are just lua calls. They have a natural representation in Nix as a JSON-like attribute set. For this, we use Gytis' [nix2vim](https://github.com/gytis-ivaskevicius/nix2vim) For example:
 
 ```nix
-{
-  mode = "n";
-  combo = "j";
-  command = "gj";
-  opts = {"noremap" = true; };
-}
+  nnoremap.j = "gj";
 ```
 
 This translates to: `vim.api.nvim_set_keymap('n','j','gj',{ noremap = true})`.
@@ -180,30 +179,15 @@ vim.o = {
 }
 ```
 
-Sometimes we may also need to call lua functions. There's a somewhat natural representation as:
-
+Sometimes we may also need to call lua functions. There isn't an easy way to do this (yet) from nix. So, instead we call directly from the raw rc attribute.
 ```nix
-rawLua = [DSL.DSL.callFN "vim.cmd" ["syntax on"]]
+configure.customRC = ''
+colorscheme dracula
+luafile ${neovimConfig}
+'';
 
 ```
-which enables syntax highlighting in Neovim. This, however, is a WIP since it still feels a bit clunky to me and nothing more than a proof of concept. Complex lua code should still remain as pasted in verbatim into `my_config` (we'll do this later).
-
-We need to refactor slightly to fit this in. `DSL.DSL.neovimBuilder` takes in an attribute set of the form:
-
-```nix
-{
-  extraConfig = "-- AT VERBATIM CONFIG from init.lua GOES HERE";
-  setOptions = {
-    vim.g = {...};
-    vim.o = {...};
-  }
-  keyBinds = [ ... ];
-  rawLua = [ ... ];
-  pluginInit = {}; # WIP not functional yet;
-}
-```
-
-and produces a lua config file that we then feed into `legacyWrapper` in the argument attribute set.
+which enables syntax highlighting in Neovim then loads the config file.
 
 # Adding plugins in nixpkgs
 
@@ -219,31 +203,39 @@ Often times, the source is out of date. To tell, we can look at the revision:
 nix edit nixpkgs#$PLUGINNAME
 ```
 
-Now, I've gone through and done this for most of the plugins I use on a day-to-day basis. For the out of date ones, I add nix flake inputs and call `overrideAttrs`. `overrideAttrs` is a function that takes a function as an input of the form `(oldattrs: {...})`. This function takes in one argument, `oldattrs`, and returns an attribute set which is then merged with the old attribute set. It overwrites any attributes we specify. In this case, we just wish to override the source code (which we have done in multiple places):
+Now, I've gone through and done this for most of the plugins I use on a day-to-day basis. For the out of date ones, I add nix flake inputs and call `overrideAttrs`. `overrideAttrs` is a function that takes a function as an input of the form `(oldattrs: {...})`. This function takes in one argument, `oldattrs`, and returns an attribute set which is then merged with the old attribute set. It overwrites any attributes we specify. In this case, we just wish to override the source code (which we have done in multiple places). We write a wrapper around this called `withSrc`.
 
-```nix
-configure.packages.myVimPackage.start = with pkgs.vimPlugins; [
-  (telescope-nvim.overrideAttrs (oldattrs: { src = inputs.telescope-src; }))
-  (cmp-buffer.overrideAttrs (oldattrs: { src = inputs.cmp-buffer; }))
-  (nvim-cmp.overrideAttrs (oldattrs: { src = inputs.nvim-cmp; }))
-  (cmp-nvim-lsp.overrideAttrs (oldattrs: { src = inputs.nvim-cmp-lsp; }))
-  plenary-nvim
-  nerdcommenter
-  nvim-lspconfig
-  lspkind-nvim
-  (pkgs.vimPlugins.nvim-treesitter.withPlugins (
-    plugins: with plugins; [tree-sitter-nix tree-sitter-python tree-sitter-c tree-sitter-rust]
-  ))
-  lsp_signature-nvim
-  popup-nvim
-];
+```
+      withSrc = pkg: src: pkg.overrideAttrs (_: { inherit src; });
 ```
 
-Treesitter is an odd case. For those unfamiliar, tree-sitter provides syntax highlighting among a series of other convenient features. There is some useful documentation [here](https://github.com/NixOS/nixpkgs/blob/master/doc/languages-frameworks/vim.section.md#tree-sitter) that we can start with. The available grammar list lives [here](https://github.com/NixOS/nixpkgs/tree/master/pkgs/development/tools/parsing/tree-sitter/grammars). 
+
+Don't be thrown off by the `src`. That essentially reads as: `{src = src}`. Adding in our plugins with this extra wrapper function:
+
+```nix
+configure.packages.myVimPackage.start = with prev.vimPlugins; [ 
+# Overwriting plugin sources with different version
+ (withSrc telescope-nvim inputs.telescope-src)
+ (withSrc cmp-buffer inputs.cmp-buffer)
+ (withSrc nvim-cmp inputs.nvim-cmp)
+ (withSrc cmp-nvim-lsp inputs.cmp-nvim-lsp)
+# Plugins from nixpkgs
+ lsp_signature-nvim
+ lspkind-nvim
+ nerdcommenter
+ nvim-lspconfig
+ plenary-nvim
+ popup-nvim
+ # Compile syntaxes into treesitter
+ (prev.vimPlugins.nvim-treesitter.withPlugins (plugins: with plugins; [ tree-sitter-nix tree-sitter-rust ]))
+ ];
+```
+
+Treesitter is an odd case. For those unfamiliar, tree-sitter provides syntax highlighting among a series of other convenient features. There is some useful documentation [here](https://github.com/NixOS/nixpkgs/blob/master/doc/languages-frameworks/vim.section.md#tree-sitter) that we can start with. The available grammar list lives [here](https://github.com/NixOS/nixpkgs/tree/master/pkgs/development/tools/parsing/tree-sitter/grammars).
 
 ## Treesitter expression
 
-Let's walk through how one might figure out how this `nvim-treesitter` expresion works. The specific expression I'm thinking of is:
+Let's walk through how one might figure out how this `nvim-treesitter` expression works. The specific expression I'm thinking of is:
 
 ```nix
 (pkgs.vimPlugins.nvim-treesitter.withPlugins (
@@ -298,7 +290,7 @@ extraRuntimeDeps = with pkgs; [ripgrep clang rust-analyzer inputs.rnix-lsp.defau
 
 Note that we need ripgrep for telescope, clang for tree-sitter, and we are building `rnix-lsp` from source. All with very little effort!
 
-I've just pasted what I would normally use to configure `neovim` into `my_config`. I won't explain this part as it is out of scope. When in doubt, check out each plugin's readme on how to configure. This workflow does not change when using `nix`. Lua is still lua.
+I've just pasted what I would normally use to configure `neovim` into `neoVimConfig`. This lives in neoVimConfig, along with keybinds.
 
 Note: The `extraRuntimeDeps` is something I added. I ended up forking the underlying nixpkgs builder into my `DSL` repo because I could not figure out how to pass runtime dependencies onto the path. Ideally, one wants to modify the `PATH` variable to include the dependencies such as ripgrep. Sadly there does not seem to be an easy way to do this, so I added `extraRuntimeDeps` as an argument to do this. `extraRuntimeDeps` get passed to the [`wrapProgram` bash function](https://github.com/NixOS/nixpkgs/blob/master/pkgs/build-support/setup-hooks/make-wrapper.sh#L132), which allows an easy way for us to prepend (in this case, anyway) packages to our path.
 
