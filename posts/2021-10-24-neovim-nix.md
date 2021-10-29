@@ -26,7 +26,7 @@ Please note that the work I'm describing here is not original. I'm (per usual) t
 
 - [Zach Coyle's](https://github.com/zachcoyle) [Neovitality Nix distribution](https://github.com/vi-tality/neovitality) was my inspiration for this post. I present a *very* simple version of what's possible with Nix. Neovitality reaches for the stars and shows just how much is possible.
 - [Shadow's](https://github.com/shadowninja55) neovim configuration was a great starting point to figure out "how" to configure neovim with Lua.
-- [Gytis](https://github.com/gytis-ivaskevicius) for providing feedback.
+- [Gytis](https://github.com/gytis-ivaskevicius) for all the effort he poured into making the vim "nix" experience much better. I'm really enthused to see where his [vim2nix](https://github.com/gytis-ivaskevicius/nix2vim) project goes.
 
 # Expected Background
 
@@ -156,7 +156,7 @@ Now that we understand the set up, all that remains is to fill out the rest of t
 
 # Configuring via DSL
 
-Check out branch `1_dsl` to see the `DSL` in action. Keybinds are just lua calls. They have a natural representation in Nix as a JSON-like attribute set. For this, we use Gytis' [nix2vim](https://github.com/gytis-ivaskevicius/nix2vim) For example:
+Check out branch `1_dsl` to see the `DSL` in action. Keybinds are just lua calls. They have a natural representation in Nix as a JSON-like attribute set. For this, we use Gytis' [nix2vim](https://github.com/gytis-ivaskevicius/nix2vim). For example:
 
 ```nix
   nnoremap.j = "gj";
@@ -182,8 +182,8 @@ vim.o = {
 Sometimes we may also need to call lua functions. There isn't an easy way to do this (yet) from nix. So, instead we call directly from the raw rc attribute.
 ```nix
 configure.customRC = ''
-colorscheme dracula
-luafile ${neovimConfig}
+  colorscheme dracula
+  luafile ${neovimConfig}
 '';
 
 ```
@@ -213,22 +213,22 @@ Now, I've gone through and done this for most of the plugins I use on a day-to-d
 Don't be thrown off by the `src`. That essentially reads as: `{src = src}`. Adding in our plugins with this extra wrapper function:
 
 ```nix
-configure.packages.myVimPackage.start = with prev.vimPlugins; [ 
-# Overwriting plugin sources with different version
- (withSrc telescope-nvim inputs.telescope-src)
- (withSrc cmp-buffer inputs.cmp-buffer)
- (withSrc nvim-cmp inputs.nvim-cmp)
- (withSrc cmp-nvim-lsp inputs.cmp-nvim-lsp)
-# Plugins from nixpkgs
- lsp_signature-nvim
- lspkind-nvim
- nerdcommenter
- nvim-lspconfig
- plenary-nvim
- popup-nvim
- # Compile syntaxes into treesitter
- (prev.vimPlugins.nvim-treesitter.withPlugins (plugins: with plugins; [ tree-sitter-nix tree-sitter-rust ]))
- ];
+configure.packages.myVimPackage.start = with prev.vimPlugins; [
+    # Overwriting plugin sources with different version
+    (withSrc telescope-nvim inputs.telescope-src)
+    (withSrc cmp-buffer inputs.cmp-buffer)
+    (withSrc nvim-cmp inputs.nvim-cmp)
+    (withSrc cmp-nvim-lsp inputs.cmp-nvim-lsp)
+    # Plugins from nixpkgs
+    lsp_signature-nvim
+    lspkind-nvim
+    nerdcommenter
+    nvim-lspconfig
+    plenary-nvim
+    popup-nvim
+    # Compile syntaxes into treesitter
+    (prev.vimPlugins.nvim-treesitter.withPlugins (plugins: with plugins; [ tree-sitter-nix tree-sitter-rust ]))
+];
 ```
 
 Treesitter is an odd case. For those unfamiliar, tree-sitter provides syntax highlighting among a series of other convenient features. There is some useful documentation [here](https://github.com/NixOS/nixpkgs/blob/master/doc/languages-frameworks/vim.section.md#tree-sitter) that we can start with. The available grammar list lives [here](https://github.com/NixOS/nixpkgs/tree/master/pkgs/development/tools/parsing/tree-sitter/grammars).
