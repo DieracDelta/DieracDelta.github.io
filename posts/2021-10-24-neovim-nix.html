@@ -63,7 +63,7 @@
 <ul>
 <li><a href="https://github.com/zachcoyle">Zach Coyle’s</a> <a href="https://github.com/vi-tality/neovitality">Neovitality Nix distribution</a> was my inspiration for this post. I present a <em>very</em> simple version of what’s possible with Nix. Neovitality reaches for the stars and shows just how much is possible.</li>
 <li><a href="https://github.com/shadowninja55">Shadow’s</a> neovim configuration was a great starting point to figure out “how” to configure neovim with Lua.</li>
-<li><a href="https://github.com/gytis-ivaskevicius">Gytis</a> for providing feedback.</li>
+<li><a href="https://github.com/gytis-ivaskevicius">Gytis</a> for all the effort he poured into making the vim “nix” experience much better. I’m really enthused to see where his <a href="https://github.com/gytis-ivaskevicius/nix2vim">vim2nix</a> project goes.</li>
 </ul>
 <h1 id="expected-background"><a href="#expected-background"># Expected Background</a></h1>
 <p>This is meant to have a low barrier for entry. I intend the readers to be strangers to the Nix ecosystem (Nix may not even be installed!) but are familiar with configuring Neovim with lua, neovim plugins, and linux.</p>
@@ -143,7 +143,7 @@ git+file:///home/jrestivo/Projects/vimtalk
 <p>This CLI is very convenient to use from a user perspective. What I typically do on servers is (1) install nix-portable (run <code>./setup.sh</code>) and then (2) alias vim to <code>nix run github:DieracDelta/vimconf_talk</code>. Then I get all the NeoVim loveliness but setup is trivialized. <em>This</em> is the power of Nix.</p>
 <p>Now that we understand the set up, all that remains is to fill out the rest of the config to make it useful.</p>
 <h1 id="configuring-via-dsl"><a href="#configuring-via-dsl"># Configuring via DSL</a></h1>
-<p>Check out branch <code>1_dsl</code> to see the <code>DSL</code> in action. Keybinds are just lua calls. They have a natural representation in Nix as a JSON-like attribute set. For this, we use Gytis’ <a href="https://github.com/gytis-ivaskevicius/nix2vim">nix2vim</a> For example:</p>
+<p>Check out branch <code>1_dsl</code> to see the <code>DSL</code> in action. Keybinds are just lua calls. They have a natural representation in Nix as a JSON-like attribute set. For this, we use Gytis’ <a href="https://github.com/gytis-ivaskevicius/nix2vim">nix2vim</a>. For example:</p>
 <div class="sourceCode" id="cb10"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true"></a>  <span class="ex">nnoremap.j</span> = <span class="st">&quot;gj&quot;</span><span class="kw">;</span></span></code></pre></div>
 <p>This translates to: <code>vim.api.nvim_set_keymap('n','j','gj',{ noremap = true})</code>.</p>
 <p>Similarly <code>vim.o</code> and <code>vim.g</code> settings may be thought of the same way:</p>
@@ -159,8 +159,8 @@ git+file:///home/jrestivo/Projects/vimtalk
 <span id="cb11-10"><a href="#cb11-10" aria-hidden="true"></a>}</span></code></pre></div>
 <p>Sometimes we may also need to call lua functions. There isn’t an easy way to do this (yet) from nix. So, instead we call directly from the raw rc attribute.</p>
 <div class="sourceCode" id="cb12"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true"></a><span class="ex">configure.customRC</span> = <span class="st">''</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true"></a><span class="ex">colorscheme</span> dracula</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true"></a><span class="ex">luafile</span> <span class="va">${neovimConfig}</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true"></a>  <span class="ex">colorscheme</span> dracula</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true"></a>  <span class="ex">luafile</span> <span class="va">${neovimConfig}</span></span>
 <span id="cb12-4"><a href="#cb12-4" aria-hidden="true"></a><span class="st">''</span>;</span></code></pre></div>
 <p>which enables syntax highlighting in Neovim then loads the config file.</p>
 <h1 id="adding-plugins-in-nixpkgs"><a href="#adding-plugins-in-nixpkgs"># Adding plugins in nixpkgs</a></h1>
@@ -171,22 +171,22 @@ git+file:///home/jrestivo/Projects/vimtalk
 <p>Now, I’ve gone through and done this for most of the plugins I use on a day-to-day basis. For the out of date ones, I add nix flake inputs and call <code>overrideAttrs</code>. <code>overrideAttrs</code> is a function that takes a function as an input of the form <code>(oldattrs: {...})</code>. This function takes in one argument, <code>oldattrs</code>, and returns an attribute set which is then merged with the old attribute set. It overwrites any attributes we specify. In this case, we just wish to override the source code (which we have done in multiple places). We write a wrapper around this called <code>withSrc</code>.</p>
 <pre><code>      withSrc = pkg: src: pkg.overrideAttrs (_: { inherit src; });</code></pre>
 <p>Don’t be thrown off by the <code>src</code>. That essentially reads as: <code>{src = src}</code>. Adding in our plugins with this extra wrapper function:</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true"></a><span class="ex">configure.packages.myVimPackage.start</span> = with prev.vimPlugins<span class="kw">;</span><span class="bu"> [</span> </span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true"></a><span class="co"># Overwriting plugin sources with different version</span></span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true"></a> (withSrc telescope-nvim inputs.telescope-src)</span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true"></a> (withSrc cmp-buffer inputs.cmp-buffer)</span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true"></a> (withSrc nvim-cmp inputs.nvim-cmp)</span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true"></a> (withSrc cmp-nvim-lsp inputs.cmp-nvim-lsp)</span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true"></a><span class="co"># Plugins from nixpkgs</span></span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true"></a> lsp_signature-nvim</span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true"></a> lspkind-nvim</span>
-<span id="cb16-10"><a href="#cb16-10" aria-hidden="true"></a> nerdcommenter</span>
-<span id="cb16-11"><a href="#cb16-11" aria-hidden="true"></a> nvim-lspconfig</span>
-<span id="cb16-12"><a href="#cb16-12" aria-hidden="true"></a> plenary-nvim</span>
-<span id="cb16-13"><a href="#cb16-13" aria-hidden="true"></a> popup-nvim</span>
-<span id="cb16-14"><a href="#cb16-14" aria-hidden="true"></a> <span class="co"># Compile syntaxes into treesitter</span></span>
-<span id="cb16-15"><a href="#cb16-15" aria-hidden="true"></a> (prev.vimPlugins.nvim-treesitter.withPlugins (plugins: with plugins; [ tree-sitter-nix tree-sitter-rust ]))</span>
-<span id="cb16-16"><a href="#cb16-16" aria-hidden="true"></a><span class="bu"> ]</span>;</span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode nix"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true"></a><span class="ex">configure.packages.myVimPackage.start</span> = with prev.vimPlugins<span class="kw">;</span><span class="bu"> [</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true"></a>    <span class="co"># Overwriting plugin sources with different version</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true"></a>    (withSrc telescope-nvim inputs.telescope-src)</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true"></a>    (withSrc cmp-buffer inputs.cmp-buffer)</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true"></a>    (withSrc nvim-cmp inputs.nvim-cmp)</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true"></a>    (withSrc cmp-nvim-lsp inputs.cmp-nvim-lsp)</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true"></a>    <span class="co"># Plugins from nixpkgs</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true"></a>    lsp_signature-nvim</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true"></a>    lspkind-nvim</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true"></a>    nerdcommenter</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true"></a>    nvim-lspconfig</span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true"></a>    plenary-nvim</span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true"></a>    popup-nvim</span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true"></a>    <span class="co"># Compile syntaxes into treesitter</span></span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true"></a>    (prev.vimPlugins.nvim-treesitter.withPlugins (plugins: with plugins; [ tree-sitter-nix tree-sitter-rust ]))</span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true"></a><span class="bu">]</span>;</span></code></pre></div>
 <p>Treesitter is an odd case. For those unfamiliar, tree-sitter provides syntax highlighting among a series of other convenient features. There is some useful documentation <a href="https://github.com/NixOS/nixpkgs/blob/master/doc/languages-frameworks/vim.section.md#tree-sitter">here</a> that we can start with. The available grammar list lives <a href="https://github.com/NixOS/nixpkgs/tree/master/pkgs/development/tools/parsing/tree-sitter/grammars">here</a>.</p>
 <h2 id="treesitter-expression"><a href="#treesitter-expression">## Treesitter expression</a></h2>
 <p>Let’s walk through how one might figure out how this <code>nvim-treesitter</code> expression works. The specific expression I’m thinking of is:</p>
