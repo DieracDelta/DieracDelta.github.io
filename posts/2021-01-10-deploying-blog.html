@@ -48,77 +48,132 @@
     </section>
     <section>
         <h1 id="motivation"><a href="#motivation"># Motivation</a></h1>
-<p>My blog was originally running on hugo with nginx on a digitalocean server. But, it’s a static site! I shouldn’t need to pay to host it on a server when I could just be deploying to github pages for free.</p>
-<p>I recently tried to pick up <a href="https://github.com/DieracDelta/advent-of-code-2020">haskell</a>, and wanted to configure my blog in haskell. This can be done through <a href="https://jaspervdj.be/hakyll/">hakyll</a>. I get the same benefits that hugo provides (e.g. static site generation from markdown files, except with pandoc) ; the configuration part is a bit easier and more powerful since it’s in haskell instead of a yaml file.</p>
-<p>My vision was to have hakyll be able to convert my markdown, css/html templates, and haskell config file into a static website. <em>I</em> also didn’t want to do this every time I had a modification. The workflow I envisioned went like:</p>
+<p>My blog was originally running on hugo with nginx on a digitalocean server.
+But, it’s a static site! I shouldn’t need to pay to host it on a server
+when I could just be deploying to github pages for free.</p>
+<p>I recently tried to pick up
+<a href="https://github.com/DieracDelta/advent-of-code-2020">haskell</a>, and wanted to
+configure my blog in haskell. This can be done through
+<a href="https://jaspervdj.be/hakyll/">hakyll</a>. I get the same benefits that hugo
+provides (e.g. static site generation from markdown files, except with pandoc)
+; the configuration part is a bit easier and more powerful since it’s in haskell
+instead of a yaml file.</p>
+<p>My vision was to have hakyll be able to convert my markdown, css/html templates,
+and haskell config file into a static website. <em>I</em> also didn’t want to do this
+every time I had a modification. The workflow I envisioned went like:</p>
 <ul>
 <li>push modified markdown, css/html template, haskell config to github</li>
-<li>github would grab <code>nix</code> on a build server and use nix flakes to convert to a static website.</li>
-<li>that static website would be pushed to a separate branch of the repo that is deployed to github pages and link with my CNAME (justin.restivo.me)</li>
+<li>github would grab <code>nix</code> on a build server and use nix flakes to convert
+to a static website.</li>
+<li>that static website would be pushed to a separate branch of the repo that is
+deployed to github pages and link with my CNAME (justin.restivo.me)</li>
 </ul>
 <h1 id="building-as-a-flake"><a href="#building-as-a-flake"># Building as a flake</a></h1>
-<p>The first thing to do was figure out how to generate the blog using <code>nixFlake</code>. Luckily, <a href="https://github.com/zarybnicky/zarybnicky.com/blob/master/flake.nix">this guy</a> had already done this in a readable manner. However, he was hosting on a nginx instance, which I didn’t want, so I cut some of what he did. The barebones is just in my <a href="https://github.com/DieracDelta/DieracDelta.github.io/blob/master/flake.nix"><code>flake.nix</code></a> file.</p>
-<p>This flake builds hakyll, then the static site (<code>builder</code>) then copies the generated site (plus <code>CNAME</code>) to <code>$out</code>. I was then able to get <code>nix</code> to deploy using the process described <a href="https://mpickering.github.io/posts/2019-06-24-overkill-or-not.html">here</a> and <a href="https://github.com/rpearce/hakyll-nix-template">here</a>. Note that I didn’t realize this template existed until after I had put together this tooling. The template’s nix tooling is quite nice.</p>
+<p>The first thing to do was figure out how to generate the blog using <code>nixFlake</code>.
+Luckily, <a href="https://github.com/zarybnicky/zarybnicky.com/blob/master/flake.nix">this guy</a>
+had already done this in a readable manner. However, he was hosting on a nginx
+instance, which I didn’t want, so I cut some of what he did. The barebones
+is just in my <a href="https://github.com/DieracDelta/DieracDelta.github.io/blob/master/flake.nix"><code>flake.nix</code></a>
+file.</p>
+<p>This flake builds hakyll, then the static site (<code>builder</code>) then copies the
+generated site (plus <code>CNAME</code>) to <code>$out</code>. I was then able to get <code>nix</code> to deploy
+using the process described <a href="https://mpickering.github.io/posts/2019-06-24-overkill-or-not.html">here</a> and <a href="https://github.com/rpearce/hakyll-nix-template">here</a>. Note that I didn’t realize
+this template existed until after I had put together this tooling. The template’s
+nix tooling is quite nice.</p>
 <p>The CI steps are:</p>
 <ul>
 <li>Use the checkout action to clone the repo</li>
 <li>Use the <a href="https://github.com/cachix/install-nix-action"><code>cachix/install-nix-action</code></a> to install nix flakes.</li>
-<li>Run the <code>nix build . -o site</code> to build the flake and put the result in the <code>site</code> subdirectory.</li>
-<li>Use <a href="https://github.com/crazy-max/ghaction-github-pages">crazy-max</a> deploy to github pages action. This requires a <code>GITHUB_TOKEN</code> which is already autogenerated by github. It looks at the <code>build_dir</code> field to figure out what to deploy, then pushes that folder to the <code>target_branch</code> field (<code>gh-pages</code>). This is then read in by github pages and deployed to the website in <code>site/CNAME</code> (which was generated with the <code>flake.nix</code>).</li>
+<li>Run the <code>nix build . -o site</code> to build the flake and put the result in
+the <code>site</code> subdirectory.</li>
+<li>Use <a href="https://github.com/crazy-max/ghaction-github-pages">crazy-max</a>
+deploy to github pages action. This requires a <code>GITHUB_TOKEN</code> which is
+already autogenerated by github. It looks at the <code>build_dir</code> field to figure
+out what to deploy, then pushes that folder to the <code>target_branch</code> field (<code>gh-pages</code>).
+This is then read in by github pages and deployed to the website in <code>site/CNAME</code>
+(which was generated with the <code>flake.nix</code>).</li>
 </ul>
 <h1 id="configuration"><a href="#configuration"># Configuration</a></h1>
-<p>Generating the blog content is done by first <code>nix develop</code>-ing, then running <code>hakyll-init</code> in the root directory; this generates the template to modify. Then building is as easy as:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a><span class="ex">nix</span> build .</span></code></pre></div>
-<p>The website workflow is easy to control from the <code>Main.hs</code> file, and the template’s css and html is easy enough to modify as well.</p>
-<p>As with all static website generators, live refresh upon modification of css is a must for rapid prototyping. Hakyll allows this via:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a><span class="ex">nix</span> develop</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true"></a><span class="ex">site</span> --watch</span></code></pre></div>
+<p>Generating the blog content is done by first <code>nix develop</code>-ing, then running
+<code>hakyll-init</code> in the root directory; this generates the template to modify.
+Then building is as easy as:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">nix</span> build .</span></code></pre></div>
+<p>The website workflow is easy to control from the <code>Main.hs</code> file, and the
+template’s css and html is easy enough to modify as well.</p>
+<p>As with all static website generators, live refresh upon modification of
+css is a must for rapid prototyping. Hakyll allows this via:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">nix</span> develop</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">site</span> <span class="at">--watch</span></span></code></pre></div>
 <h1 id="google-analytics"><a href="#google-analytics"># Google Analytics</a></h1>
-<p>I’m also interested in data, and one way to get data is to hook the site into google analytics. Google gives your site a script to put in the <code>HEAD</code> of each page, and it will provide you with analytics based on the requests to the page. I’ve done this and it’s pretty nifty (though I’m the only user). Hakyll makes this easy, since all I need do is modify the template used to include the analytics script and boom it’s on all webpages.</p>
+<p>I’m also interested in data, and one way to get data is to hook
+the site into google analytics. Google gives your site a script to put in the
+<code>HEAD</code> of each page, and it will provide you with analytics based on the
+requests to the page. I’ve done this and it’s pretty nifty
+(though I’m the only user). Hakyll makes this easy, since all I need do is
+modify the template used to include the analytics script and boom it’s
+on all webpages.</p>
 <h1 id="adding-style"><a href="#adding-style"># Adding style</a></h1>
-<p>To make the site look a little less outdated, I’m using <code>nerdfonts</code>. This was as easy as including a line in the <code>HEAD</code> section and a little bit of <code>css</code> per nerdfont README.</p>
+<p>To make the site look a little less outdated, I’m using <code>nerdfonts</code>. This was
+as easy as including a line in the <code>HEAD</code> section and a little bit of <code>css</code>
+per nerdfont README.</p>
 <h1 id="adding-the-resume"><a href="#adding-the-resume"># Adding the Resume</a></h1>
-<p>So, my resume is built with latex. I would open source (and perhaps will) the repo I’m using for it. However, there’s personally identifying information like my mail address and phone number in the git history, and I’m too lazy to scrub that.</p>
-<p>In any case: my resume is in latex and built with xelatex and latexmk. I recently turned it into a flake by modifying the default template to look like:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode elixir"><code class="sourceCode elixir"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a>{</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a>  description <span class="op">=</span> <span class="st">&quot;Justin Restivo Resume&quot;</span>;</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a>  inputs<span class="op">.</span>nixpkgs<span class="op">.</span>url <span class="op">=</span> <span class="st">&quot;github:NixOS/nixpkgs/nixos-20.09&quot;</span>;</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true"></a>  outputs <span class="op">=</span> { self, nixpkgs }: {</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true"></a></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true"></a>    defaultPackage<span class="op">.</span>x86_64<span class="op">-</span>linux <span class="op">=</span></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true"></a>      with <span class="im">import</span> nixpkgs { system <span class="op">=</span> <span class="st">&quot;x86_64-linux&quot;</span>; };</span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true"></a>      stdenv<span class="op">.</span>mkDerivation {</span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true"></a>        name <span class="op">=</span> <span class="st">&quot;justinrestivo_resume&quot;</span>;</span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true"></a>        src <span class="op">=</span> self;</span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true"></a>        buildPhase <span class="op">=</span> <span class="st">&quot;latexmk -pdf&quot;</span>;</span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true"></a>        buildInputs <span class="op">=</span> with nixpkgs;</span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true"></a>          [</span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true"></a>            (texlive<span class="op">.</span>combine {</span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true"></a>              inherit (texlive) scheme<span class="op">-</span>medium lipsum fmtcount datetime;</span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true"></a>            })</span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true"></a>          ];</span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true"></a>        installPhase <span class="op">=</span> <span class="st">&quot;mkdir -p $out/; mv *.pdf $out/&quot;</span>;</span>
-<span id="cb3-21"><a href="#cb3-21" aria-hidden="true"></a>      };</span>
-<span id="cb3-22"><a href="#cb3-22" aria-hidden="true"></a>  };</span>
-<span id="cb3-23"><a href="#cb3-23" aria-hidden="true"></a>}</span></code></pre></div>
-<p>This is a very simple flake that basically defines the latex dependencies and latexmk build command.</p>
-<p>Now, if I want to build this into my website flake, I can list the resume repo as an input to the flake:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode elixir"><code class="sourceCode elixir"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true"></a></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true"></a>  inputs<span class="op">.</span>justinrestivo_resume <span class="op">=</span> {</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true"></a>    url <span class="op">=</span> <span class="st">&quot;git+ssh://git@github.com/DieracDelta/resume&quot;</span>;</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true"></a>    flake <span class="op">=</span> <span class="cn">true</span>;</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true"></a>  };</span></code></pre></div>
-<p>Then, in the build phase of <code>justinrestivo-me</code>, I can just copy the pdf output of my blog’s flake into the output site directory and have it be accessible (and linked to by the blog):</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true"></a></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true"></a><span class="fu">cp</span> <span class="va">${justinrestivo_resume}</span>/justin_restivo_resume.pdf <span class="va">$out</span></span></code></pre></div>
-<p>In theory this is great, but I still needed it to play nicely with CI. This all built fine locally, but did not with github actions. It couldn’t grab the flake since github CI didn’t have permissions to clone the private repo that contained my resume flake. To get around this, I had to add in another github action that started ssh-agent with a custom private ssh key. The relevant piece of the yaml is:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true"></a><span class="at">         </span><span class="kw">-</span><span class="at"> </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> webfactory/ssh-agent@v0.4.1</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true"></a><span class="at">           </span><span class="fu">with</span><span class="kw">:</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true"></a><span class="at">              </span><span class="fu">ssh-private-key</span><span class="kw">:</span><span class="at"> ${{ secrets.SSH_PRIVATE_KEY }}</span></span></code></pre></div>
-<p>So first I had to generate a private ssh key, add it to my githubs, and then as a repo secret with the label <code>secrets.SSH_PRIVATE_KEY</code>.</p>
-<p>Still, after I had ssh-agent start like that, everything worked smoothly. Now, nix builds my resume as a dependency, then builds my website with the resulting resume pdf included.</p>
+<p>So, my resume is built with latex. I would open source (and perhaps will)
+the repo I’m using for it. However, there’s personally identifying information
+like my mail address and phone number in the git history, and I’m too lazy
+to scrub that.</p>
+<p>In any case: my resume is in latex and built with xelatex and latexmk. I recently
+turned it into a flake by modifying the default template to look like:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode elixir"><code class="sourceCode elixir"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  description <span class="op">=</span> <span class="st">&quot;Justin Restivo Resume&quot;</span>;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  inputs<span class="op">.</span>nixpkgs<span class="op">.</span>url <span class="op">=</span> <span class="st">&quot;github:NixOS/nixpkgs/nixos-20.09&quot;</span>;</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  outputs <span class="op">=</span> { self, nixpkgs }: {</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    defaultPackage<span class="op">.</span>x86_64<span class="op">-</span>linux <span class="op">=</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>      with <span class="im">import</span> nixpkgs { system <span class="op">=</span> <span class="st">&quot;x86_64-linux&quot;</span>; };</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>      stdenv<span class="op">.</span>mkDerivation {</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>        name <span class="op">=</span> <span class="st">&quot;justinrestivo_resume&quot;</span>;</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>        src <span class="op">=</span> self;</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>        buildPhase <span class="op">=</span> <span class="st">&quot;latexmk -pdf&quot;</span>;</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>        buildInputs <span class="op">=</span> with nixpkgs;</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>          [</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>            (texlive<span class="op">.</span>combine {</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>              inherit (texlive) scheme<span class="op">-</span>medium lipsum fmtcount datetime;</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>            })</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>          ];</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>        installPhase <span class="op">=</span> <span class="st">&quot;mkdir -p $out/; mv *.pdf $out/&quot;</span>;</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>      };</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>  };</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>This is a very simple flake that basically defines the latex dependencies
+and latexmk build command.</p>
+<p>Now, if I want to build this into my website flake, I can list the resume
+repo as an input to the flake:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode elixir"><code class="sourceCode elixir"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  inputs<span class="op">.</span>justinrestivo_resume <span class="op">=</span> {</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    url <span class="op">=</span> <span class="st">&quot;git+ssh://git@github.com/DieracDelta/resume&quot;</span>;</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    flake <span class="op">=</span> <span class="cn">true</span>;</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  };</span></code></pre></div>
+<p>Then, in the build phase of <code>justinrestivo-me</code>,
+I can just copy the pdf output of my blog’s flake into the output site
+directory and have it be accessible (and linked to by the blog):</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> <span class="va">${justinrestivo_resume}</span>/justin_restivo_resume.pdf <span class="va">$out</span></span></code></pre></div>
+<p>In theory this is great, but I still needed it to play nicely with CI.
+This all built fine locally, but did not with github actions. It
+couldn’t grab the flake since github CI didn’t have permissions to
+clone the private repo that contained my resume flake. To get around this,
+I had to add in another github action that started ssh-agent with a custom
+private ssh key. The relevant piece of the yaml is:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="at">         </span><span class="kw">-</span><span class="at"> </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> webfactory/ssh-agent@v0.4.1</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="at">           </span><span class="fu">with</span><span class="kw">:</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="at">              </span><span class="fu">ssh-private-key</span><span class="kw">:</span><span class="at"> ${{ secrets.SSH_PRIVATE_KEY }}</span></span></code></pre></div>
+<p>So first I had to generate a private ssh key, add it to my githubs, and
+then as a repo secret with the label <code>secrets.SSH_PRIVATE_KEY</code>.</p>
+<p>Still, after I had ssh-agent start like that, everything worked smoothly.
+Now, nix builds my resume as a dependency, then builds my website with
+the resulting resume pdf included.</p>
     </section>
 </article>
 

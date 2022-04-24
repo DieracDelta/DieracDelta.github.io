@@ -48,32 +48,66 @@
     </section>
     <section>
         <h1 id="motivation"><a href="#motivation"># Motivation</a></h1>
-<p>I switched to nix flakes over christmas vacation. It could do with some better mechanics, but in general it’s pretty great and I feel much more comfortable with the stability and flexibility of my system than I did before.</p>
-<p>Nix the package manager has rolling release on all it’s packages. It uses a channel system and a release system. This means that for each release, there’s a <code>stable</code> and <code>unstable</code> channel. The <code>stable</code> channel is probably not broken, but has older packages. This generally works quite well if you live on stable. You can also mix and match <code>stable</code> and <code>unstable</code> packages. However, this is poor for long term stability and reproducibility. Given that this is the entire point of using Nix as a package manager, this seem bad.</p>
-<p>Flakes is the solution to this problem. In a similar fashion to npm, flakes will generate a lock file. Building your system with the lock file will guarantee the <em>same</em> system down to the commit hash. This is essentially the main motivating factor for me.</p>
+<p>I switched to nix flakes over christmas vacation. It could do with some better
+mechanics, but in general it’s pretty great and I feel much more comfortable
+with the stability and flexibility of my system than I did before.</p>
+<p>Nix the package manager has rolling release on all it’s packages. It uses a
+channel system and a release system. This means that for each release,
+there’s a <code>stable</code> and <code>unstable</code> channel. The <code>stable</code> channel is probably
+not broken, but has older packages. This generally works quite well if you
+live on stable. You can also mix and match <code>stable</code> and <code>unstable</code> packages.
+However, this is poor for long term stability and reproducibility. Given that
+this is the entire point of using Nix as a package manager, this seem bad.</p>
+<p>Flakes is the solution to this problem. In a similar fashion to npm, flakes
+will generate a lock file. Building your system with the lock file will
+guarantee the <em>same</em> system down to the commit hash. This is essentially the
+main motivating factor for me.</p>
 <h1 id="mechanics"><a href="#mechanics"># Mechanics</a></h1>
 <h2 id="getting-nix-flakes"><a href="#getting-nix-flakes">## Getting nix flakes</a></h2>
-<p>Switching flakes was nearly trivial, even if you’re using home-manager. The first step is to install flakes on your system. This is done by including the following in your <code>configuration.nix</code>:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode elixir"><code class="sourceCode elixir"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a>  nix <span class="op">=</span> {</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a>      package <span class="op">=</span> pkgs<span class="op">.</span>nixUnstable;</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a>      extraOptions <span class="op">=</span> <span class="vs">''</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a>        experimental<span class="op">-</span>features <span class="op">=</span> nix<span class="op">-</span>command flakes</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a>      <span class="vs">''</span>;</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true"></a>     };</span></code></pre></div>
-<p>This moves the <code>nix</code> package manager to unstable. Then, add <code>nixFlakes</code> to the list of packages to install flakes.</p>
+<p>Switching flakes was nearly trivial, even if you’re using home-manager. The
+first step is to install flakes on your system. This is done by including
+the following in your <code>configuration.nix</code>:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode elixir"><code class="sourceCode elixir"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>  nix <span class="op">=</span> {</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>      package <span class="op">=</span> pkgs<span class="op">.</span>nixUnstable;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>      extraOptions <span class="op">=</span> <span class="vs">''</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>        experimental<span class="op">-</span>features <span class="op">=</span> nix<span class="op">-</span>command flakes</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>      <span class="vs">''</span>;</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>     };</span></code></pre></div>
+<p>This moves the <code>nix</code> package manager to unstable. Then, add <code>nixFlakes</code> to the
+list of packages to install flakes.</p>
 <h2 id="enabling-flakes"><a href="#enabling-flakes">## Enabling flakes</a></h2>
-<p>This part is simple enough; it’s outlined on the <a href="https://nixos.wiki/wiki/Flakes">wiki</a>. The input list will probably include the stable, unstable, and home-manager channels, and the output list can contain only your <code>configuration.nix</code> and <code>home.nix</code> (for home-manager) nixos modules, as outlined <a href="https://github.com/nix-community/home-manager#nix-flakes">on the home-manager readme</a>.</p>
-<p>Before building your system, flakes requires that the directory you’re building from be a git repo, and that all files being used in the build be staged.</p>
+<p>This part is simple enough; it’s outlined on the
+<a href="https://nixos.wiki/wiki/Flakes">wiki</a>. The input list will probably include
+the stable, unstable, and home-manager channels, and the output list can
+contain only your <code>configuration.nix</code> and <code>home.nix</code> (for home-manager)
+nixos modules, as outlined <a href="https://github.com/nix-community/home-manager#nix-flakes">on the home-manager readme</a>.</p>
+<p>Before building your system, flakes requires that the directory you’re building
+from be a git repo, and that all files being used in the build be staged.</p>
 <p>Then you can build your system by running (in the repo root directory):</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true"></a><span class="fu">sudo</span> nixos-rebuild switch --flake <span class="va">$HOST_NAME</span></span></code></pre></div>
-<p>Note that since we’re using flakes, flakes will create a <code>flake.lock</code> file that will allow us to build the repo on any machine <em>down to the commit used</em>.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> nixos-rebuild switch <span class="at">--flake</span> <span class="va">$HOST_NAME</span></span></code></pre></div>
+<p>Note that since we’re using flakes, flakes will create a <code>flake.lock</code> file
+that will allow us to build the repo on any machine <em>down to the commit used</em>.</p>
 <p>Note what we’re already getting with very little expended effort:</p>
 <ul>
-<li>a monolithic repo for both our <em>user</em> and <em>system</em> configuration. I was already doing this pre-flakes, but I had to run two separate build commands. The fact that I can manage them both without having to deal explicitly with mutliple channels is neat.</li>
-<li>identical builds proccesses. Of course, compiler non-determinism cannot be avoided and service management is sometimes sketchy, but in general everything up to that is the same. Specifically, the commit hash of the repos used <em>and</em> the way the repos are built <em>will not change</em>. This is a long winded way of saying <em>if it built and ran on one machine targeting amd64, it will also build on all other machines targeting amd64</em>.</li>
+<li>a monolithic repo for both our <em>user</em> and <em>system</em> configuration. I was
+already doing this pre-flakes, but I had to run two separate build commands.
+The fact that I can manage them both without having to deal explicitly
+with mutliple channels is neat.</li>
+<li>identical builds proccesses. Of course, compiler non-determinism cannot be
+avoided and service management is sometimes sketchy,
+but in general everything up to that is the same. Specifically, the
+commit hash of the repos used <em>and</em> the way the repos are built
+<em>will not change</em>. This is a long winded way of saying
+<em>if it built and ran on one machine targeting amd64,
+it will also build on all other machines targeting amd64</em>.</li>
 </ul>
 <h2 id="nixflk"><a href="#nixflk">## nixflk</a></h2>
-<p>The initial flakes are pretty cool, but there are some nifty abstractions that one can add on top. I ended up using <a href="https://github.com/nrdxp/nixflk">nixflks</a> and my friend’s <a href="https://github.com/gytis-ivaskevicius/nixfiles">fork</a> of nixflks as my starting ground. I’ll talk more to the fork, since those are the abstractions I’ve been using. My dotfiles are <a href="https://github.com/DieracDelta/flakes">here</a>.</p>
+<p>The initial flakes are pretty cool, but there are some nifty abstractions that
+one can add on top. I ended up using <a href="https://github.com/nrdxp/nixflk">nixflks</a>
+and my friend’s <a href="https://github.com/gytis-ivaskevicius/nixfiles">fork</a> of
+nixflks as my starting ground. I’ll talk more to the fork, since those are the
+abstractions I’ve been using. My dotfiles are
+<a href="https://github.com/DieracDelta/flakes">here</a>.</p>
 <p>The basic structure I settled with looks like this:</p>
 <pre><code>├── flake.nix
 ├── hosts
@@ -101,17 +135,36 @@
 <li>same applications installed</li>
 <li>same overlays</li>
 </ul>
-<p>As a result, the <code>hosts/default.nix</code> chooses a host based on hostname (e.g. either laptop or desktop). This includes <code>$HOSTNAME.nix</code> file, which gets the relevant hardware and includes the entirety of the <code>shared</code> directory.</p>
-<p>This means that I’m able to keep different <code>hw</code> and other small differences separate, while avoiding code duplication with the <code>shared</code> directory. The <code>shared</code> directory includes my dotfiles, common services (like zerotier), my dev tools, etc. This generally feels super clean and gives me a flexible way to manage both my machines.</p>
+<p>As a result, the <code>hosts/default.nix</code> chooses a host based on hostname
+(e.g. either laptop or desktop). This includes <code>$HOSTNAME.nix</code> file, which
+gets the relevant hardware and includes the entirety of the <code>shared</code> directory.</p>
+<p>This means that I’m able to keep different <code>hw</code> and other small differences
+separate, while avoiding code duplication with the <code>shared</code> directory. The
+<code>shared</code> directory includes my dotfiles, common services (like zerotier),
+my dev tools, etc. This generally feels super clean and gives me a flexible
+way to manage both my machines.</p>
 <h2 id="gotchas"><a href="#gotchas">## gotchas</a></h2>
-<p>One of the slight gotchas for doing this is the inclusion of a <code>hardware-configuration.nix</code> file. I copied over most of it to the <code>hw</code> directory. However, you’ll need to go onto <code>nixpkgs</code>, grab the <a href="https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/installer/scan/not-detected.nix"><code>not-detected.nix</code></a>, and cut and paste that into the common hardware file.</p>
-<p>The whole having to stage the files you use is really annoying. Whenever I added a new file, I’d build, scratch my head, then realize that I had forgot to stage it.</p>
+<p>One of the slight gotchas for doing this is the inclusion of a
+<code>hardware-configuration.nix</code> file. I copied over most of it to the <code>hw</code>
+directory. However, you’ll need to go onto <code>nixpkgs</code>, grab the <a href="https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/installer/scan/not-detected.nix"><code>not-detected.nix</code></a>,
+and cut and paste that into the common hardware file.</p>
+<p>The whole having to stage the files you use is really annoying. Whenever I added
+a new file, I’d build, scratch my head, then realize that I had forgot to stage
+it.</p>
 <p>Error messages could definitely be a bit more forgiving…</p>
-<p>Sometimes the cache gets into an inconsistent state and fails immediately when trying to build. The remedy is to make a trivial change (perhaps add a newline) to the <code>flake.nix</code> and rebuild. This was also pretty annoying.</p>
+<p>Sometimes the cache gets into an inconsistent state and fails immediately
+when trying to build. The remedy is to make a trivial change
+(perhaps add a newline) to the <code>flake.nix</code> and rebuild. This was also pretty
+annoying.</p>
 <h2 id="cachix"><a href="#cachix">## cachix</a></h2>
-<p>The caching for unstable doesn’t work very well. As a result, I’m sometimes stuck compiling on my laptop. This is not ideal since my laptop is old and not powerful. To solve this, I can compile programs on my desktop, push the results very easily to cachix, and then pull them down on my laptop (using the same lock file). This is pretty nice.</p>
+<p>The caching for unstable doesn’t work very well. As a result, I’m sometimes
+stuck compiling on my laptop. This is not ideal since my laptop is old and
+not powerful. To solve this, I can compile programs on my desktop, push the
+results very easily to cachix, and then pull them down on my laptop
+(using the same lock file). This is pretty nice.</p>
 <h2 id="other-perks"><a href="#other-perks">## other perks</a></h2>
-<p>Another perk of using flakes is that you can effortlessly import and use others flakes by listing them as inputs.</p>
+<p>Another perk of using flakes is that you can effortlessly import and use
+others flakes by listing them as inputs.</p>
     </section>
 </article>
 

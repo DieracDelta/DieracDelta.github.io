@@ -50,23 +50,23 @@
         <p>I’ll give a brief overview on how to get a decent vim workflow going. I started out with reading <a href="https://castel.dev/post/lecture-notes-1/">this blog</a>, and I strongly recommend you also do this. However, some of the things he suggested I could not get to work. That being said I’ll just give an overview of things I enabled, as they are somewhat different than what he’s done.</p>
 <h1 id="coc.nvim"><a href="#coc.nvim"># coc.nvim</a></h1>
 <p>The first thing I did was grab integration with coc.nvim. This entailed installing the <a href="https://github.com/latex-lsp/texlab">texlabs language server</a> (see previous blog post), enabling it in the CocConfig file, and installing <code>lervag/vimtex</code>. You’ll want to add <code>"coc.source.vimtex": true,</code> to your config file, and under language servers, add:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true"></a><span class="er">&quot;latex&quot;:</span> <span class="fu">{</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true"></a>        <span class="dt">&quot;command&quot;</span><span class="fu">:</span> <span class="st">&quot;java&quot;</span><span class="fu">,</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true"></a>        <span class="dt">&quot;args&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true"></a>                <span class="st">&quot;-jar&quot;</span><span class="ot">,</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true"></a>                <span class="st">&quot;$PATHTOCOMPILERTEXLAB/texlab.jar&quot;</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true"></a>        <span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true"></a>        <span class="er">//</span> <span class="er">not</span> <span class="er">start</span> <span class="er">server</span> <span class="er">at</span> <span class="er">home</span> <span class="er">directory</span><span class="fu">,</span> <span class="er">since</span> <span class="er">it</span> <span class="er">won't</span> <span class="er">work.</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true"></a>        <span class="dt">&quot;ignoredRootPaths&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true"></a>                <span class="st">&quot;~&quot;</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true"></a>        <span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true"></a>        <span class="dt">&quot;filetypes&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true"></a>                <span class="st">&quot;tex&quot;</span><span class="ot">,</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true"></a>                <span class="st">&quot;bib&quot;</span><span class="ot">,</span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true"></a>                <span class="st">&quot;plaintex&quot;</span><span class="ot">,</span></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true"></a>                <span class="st">&quot;context&quot;</span></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true"></a>        <span class="ot">]</span></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true"></a><span class="fu">}</span><span class="er">,</span></span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="er">&quot;latex&quot;:</span> <span class="fu">{</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;command&quot;</span><span class="fu">:</span> <span class="st">&quot;java&quot;</span><span class="fu">,</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;args&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>                <span class="st">&quot;-jar&quot;</span><span class="ot">,</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>                <span class="st">&quot;$PATHTOCOMPILERTEXLAB/texlab.jar&quot;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>        <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>        <span class="er">//</span> <span class="er">not</span> <span class="er">start</span> <span class="er">server</span> <span class="er">at</span> <span class="er">home</span> <span class="er">directory</span><span class="fu">,</span> <span class="er">since</span> <span class="er">it</span> <span class="er">won't</span> <span class="er">work.</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;ignoredRootPaths&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>                <span class="st">&quot;~&quot;</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>        <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;filetypes&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>                <span class="st">&quot;tex&quot;</span><span class="ot">,</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>                <span class="st">&quot;bib&quot;</span><span class="ot">,</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>                <span class="st">&quot;plaintex&quot;</span><span class="ot">,</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>                <span class="st">&quot;context&quot;</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>        <span class="ot">]</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span><span class="er">,</span></span></code></pre></div>
 <p>And finally get vimtex integration with coc.nvim with <code>:CocInstall coc-vimtex</code>. This will provide syntax checking and auto complete both for functions and references from your bibliography.</p>
 <h1 id="vimtex"><a href="#vimtex"># vimtex</a></h1>
 <p>Next, to configure vimtex:</p>
@@ -111,20 +111,20 @@ autocmd FileType tex setlocal ts=2 sw=2 sts=0 expandtab spell</code></pre>
 </ol>
 <h1 id="snippets"><a href="#snippets"># snippets</a></h1>
 <p>I almost completely defer to castel’s blog here. He did some great stuff with this. The initial configuration is a bit tricky. Snippets basically are programmable pieces of code that you can add in. Great for boilerplate stuff. To be clear, use <code>SirVer/ultisnips</code> for the snippet <em>engine</em>, and <code>honza/vim-snippets</code> for the actual snippets. Additionally, you can include your own in <code>$HOME/.config/snippets/UltiSnips/$FILETYPE.snippets</code>. $FILETYPE is the type of file you want–in this case tex, although it may be others. I added a few custom ones. They’re fairly straightforward but very useful. For example:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode latex"><code class="sourceCode latex"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true"></a>snippet bg &quot;<span class="fu">\textbf</span>{}&quot; A</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true"></a><span class="fu">\textbf</span>{<span class="ss">$1}</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true"></a><span class="ss">endsnippet</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true"></a></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true"></a><span class="ss">snippet rust</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true"></a><span class="kw">\begin</span>{<span class="ex">figure</span>}<span class="ss">[ht]</span></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true"></a><span class="ss">  </span><span class="kw">\begin</span>{<span class="ex">minted</span>}<span class="ss">[autogobble]{rust}</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true"></a><span class="ss">  $</span>1</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true"></a>  <span class="kw">\end</span>{<span class="ex">minted</span>}</span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true"></a>  <span class="fu">\caption</span>{<span class="ss">$2}</span></span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true"></a><span class="ss">  </span><span class="sc">\label</span><span class="ss">{fig:$</span>3}</span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true"></a><span class="kw">\end</span>{<span class="ex">figure</span>}</span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true"></a>endsnippet</span></code></pre></div>
-<p>The former saves you from having to type  you’re in normal mode and want a boldface snippet. Same goes for rust. The $1, $2, $3 specify arguments.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode latex"><code class="sourceCode latex"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>snippet bg &quot;<span class="fu">\textbf</span>{}&quot; A</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">\textbf</span>{<span class="ss">$1}</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="ss">endsnippet</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="ss">snippet rust</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="kw">\begin</span>{<span class="ex">figure</span>}<span class="ss">[ht]</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="ss">  </span><span class="kw">\begin</span>{<span class="ex">minted</span>}<span class="ss">[autogobble]{rust}</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="ss">  $</span>1</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">\end</span>{<span class="ex">minted</span>}</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">\caption</span>{<span class="ss">$2}</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="ss">  </span><span class="sc">\label</span><span class="ss">{fig:$</span>3}</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="kw">\end</span>{<span class="ex">figure</span>}</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>endsnippet</span></code></pre></div>
+<p>The former saves you from having to type henever you’re in normal mode and want a boldface snippet. Same goes for rust. The $1, $2, $3 specify arguments.</p>
 <p>To configure triggering the snippets:</p>
 <pre class="vimscript"><code>let g:UltiSnipsExpandTrigger='&lt;c-h&gt;'
 let g:UltiSnipsJumpForwardTrigger='&lt;c-h&gt;'
