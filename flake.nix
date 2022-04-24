@@ -14,8 +14,6 @@
   outputs = { self, nixpkgs, hakyll, flake-utils }:
     flake-utils.lib.eachDefaultSystem (system:
       let
-        inherit (builtins) filterSource;
-        inherit (nixpkgs.lib) flip;
         inherit (pkgs.nix-gitignore) gitignoreSourcePure;
 
         envVars = 
@@ -72,7 +70,9 @@
           #   packages = p: [ p.justinrestivo-me-builder ];
           # };
           pkgs.mkShell {
-            nativeBuildInputs = with pkgs; [ pkgs.haskellPackages.hakyll pandoc ];
+            # note sure why build requires anything.
+            # to start the `watch`, run `site watch`
+            nativeBuildInputs = with pkgs; [ pkgs.haskellPackages.hakyll pandoc haskellPackages.builder ];
           };
       }
 
