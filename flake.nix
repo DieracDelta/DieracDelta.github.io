@@ -18,13 +18,17 @@
         inherit (nixpkgs.lib) flip;
         inherit (pkgs.nix-gitignore) gitignoreSourcePure;
 
+        envVars = 
+            (pkgs.lib.optionals pkgs.stdenv.isLinux ''export LOCALE_ARCHIVE="${pkgs.glibcLocales}/lib/locale/locale-archive";'') +
+            ''export LANG=en_US.UTF-8;'';
+
         src = gitignoreSourcePure [ ./.gitignore ] ./.;
         overlay = final: prev: {
           haskell = prev.haskell // {
             packageOverrides = prev.lib.composeExtensions
               (prev.haskell.packageOverrides or (_: _: { }))
               (hself: hsuper: {
-                hakyll = 
+                hakyll =
                 prev.haskell.lib.dontCheck 
                   (hself.callCabal2nix "hakyll" hakyll { });
                 builder = prev.haskell.lib.justStaticExecutables
@@ -38,8 +42,9 @@
             src = src;
             phases = "unpackPhase buildPhase";
             buildInputs = [ final.justinrestivo-me-builder ];
-            buildPhase = ''
-              export LANG=en_US.UTF-8
+            buildPhase = 
+            envVars +
+            ''
               site build
               mkdir -p $out
               echo "justin.restivo.me" >> $out/CNAME
@@ -55,6 +60,10 @@
       in
       {
         defaultPackage = pkgs.justinrestivo-me;
+        defaultApp = flake-utils.lib.mkApp {
+          drv = pkgs.justinrestivo-me;
+          exePath = "/bin/hakyll-site";
+        };
         packages = {
           inherit (pkgs) justinrestivo-me-builder justinrestivo-me;
         };
@@ -63,7 +72,7 @@
           #   packages = p: [ p.justinrestivo-me-builder ];
           # };
           pkgs.mkShell {
-            nativeBuildInputs = [ pkgs.justinrestivo-me-builder pkgs.pandoc ];
+            nativeBuildInputs = with pkgs; [ pkgs.haskellPackages.hakyll pandoc ];
           };
       }
 
