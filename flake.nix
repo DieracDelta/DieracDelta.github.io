@@ -4,6 +4,7 @@
     flake = false;
   };
   inputs.flake-utils.url = "github:numtide/flake-utils";
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/master";
 
   #inputs.justinrestivo_resume = {
   #url = "git+ssh://git@github.com/DieracDelta/resume";

@@ -11,7 +11,7 @@ weight: 10
 series:
 - Justin's Life
 aliases:
-- /blog/writing\_a\_thesis
+- /blog/writing_a_thesis
 ---
 
 I intend this blog entry to summarize how I went about writing my masters thesis using latex. My goal is to showcase things that did and did not help me in this endeavor.
@@ -120,4 +120,4 @@ I needed to include multidimensional tables. The way I went about this was with 
 
 # Bibliography #
 
-The bibliography is fairly standard. I was able to generate bibtex citations off <https://scholar.google.com>. I then copy and pasted them into my ref.bib file and at the end of my document included a \bibliography{ref} call. I also needed to specify a style (before the bibliography tag). I used `\bibliographystyle{unsrturl}`, which looked fine.
+The bibliography is fairly standard. I was able to generate bibtex citations off <https://scholar.google.com>. I then copy and pasted them into my ref.bib file and at the end of my document included a `\bibliography{ref}` call. I also needed to specify a style (before the bibliography tag). I used `\bibliographystyle{unsrturl}`, which looked fine.
