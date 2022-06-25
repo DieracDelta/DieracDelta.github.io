@@ -105,4 +105,4 @@ struct Variance<'a, T, U: 'a> {
 }
 ```
 
-This is defining a product category: $C_{lifetime} \times C_{type} \times C_{type} $. The subtyping rules from above apply to the innards of the struct and therefore the struct itself. We simply have morphisms on the output category when both functors map.
+This is defining a product category: $C_{lifetime} \times C_{type} \times C_{type}$. The subtyping rules from above apply to the innards of the struct and therefore the struct itself. We simply have morphisms on the output category when both functors map.
