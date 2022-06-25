@@ -162,7 +162,7 @@
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>                            <span class="co">// make it covariant in U, but U is used later</span></span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    y<span class="op">:</span> <span class="op">*</span><span class="kw">const</span> T<span class="op">,</span>            <span class="co">// Covariant in T</span></span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<p>This is defining a product category: $C_{lifetime} C_{type} C_{type} $. The subtyping rules from above apply to the innards of the struct and therefore the struct itself. We simply have morphisms on the output category when both functors map.</p>
+<p>This is defining a product category: <span class="math inline">\(C_{lifetime} \times C_{type} \times C_{type}\)</span>. The subtyping rules from above apply to the innards of the struct and therefore the struct itself. We simply have morphisms on the output category when both functors map.</p>
     </section>
 </article>
 
