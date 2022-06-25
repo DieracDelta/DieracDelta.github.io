@@ -6,6 +6,21 @@ import Text.Pandoc.Definition
   ( Pandoc(..), Block(Header, Plain), Inline(Link, Space, Str), nullAttr )
 import Text.Pandoc.Walk (walk)
 
+import qualified Data.Set as S
+import           Text.Pandoc.Options
+
+extensions              = [ Ext_latex_macros, Ext_literate_haskell ]
+mathExtensions          = [ Ext_tex_math_dollars, Ext_tex_math_double_backslash
+                          , Ext_latex_macros ]
+newWriterExtensions     = Prelude.foldr enableExtension writerDefaultExtensions (extensions ++ mathExtensions)
+writerDefaultExtensions = writerExtensions defaultHakyllWriterOptions
+
+latexWriterOptions = defaultHakyllWriterOptions {
+                  writerExtensions     = newWriterExtensions
+                , writerHTMLMathMethod = MathJax "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
+                }
+
+
 addSectionLinks :: Pandoc -> Pandoc
 addSectionLinks = walk f where
   f (Header n attr@(idAttr, _, _) inlines) | n >= 1 =
@@ -35,7 +50,7 @@ main = hakyll $ do
   match "posts/*" $ do
     route $ setExtension "html"
     compile
-      $ pandocCompilerWithTransform defaultHakyllReaderOptions defaultHakyllWriterOptions addSectionLinks
+      $ pandocCompilerWithTransform defaultHakyllReaderOptions latexWriterOptions addSectionLinks
       >>= loadAndApplyTemplate "templates/post.html"    postCtx
       >>= loadAndApplyTemplate "templates/default.html" postCtx
       >>= relativizeUrls

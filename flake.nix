@@ -6,19 +6,14 @@
   inputs.flake-utils.url = "github:numtide/flake-utils";
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/master";
 
-  #inputs.justinrestivo_resume = {
-  #url = "git+ssh://git@github.com/DieracDelta/resume";
-  #flake = true;
-  #};
-
   outputs = { self, nixpkgs, hakyll, flake-utils }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         inherit (pkgs.nix-gitignore) gitignoreSourcePure;
 
-        envVars = 
-            (pkgs.lib.optionals pkgs.stdenv.isLinux ''export LOCALE_ARCHIVE="${pkgs.glibcLocales}/lib/locale/locale-archive";'') +
-            ''export LANG=en_US.UTF-8;'';
+        envVars =
+            pkgs.lib.concatStrings [(if pkgs.stdenv.isLinux then ''export LOCALE_ARCHIVE="${pkgs.glibcLocales}/lib/locale/locale-archive";'' else "")
+            ''export LANG=en_US.UTF-8;''];
 
         src = gitignoreSourcePure [ ./.gitignore ] ./.;
         overlay = final: prev: {
@@ -27,7 +22,7 @@
               (prev.haskell.packageOverrides or (_: _: { }))
               (hself: hsuper: {
                 hakyll =
-                prev.haskell.lib.dontCheck 
+                prev.haskell.lib.dontCheck
                   (hself.callCabal2nix "hakyll" hakyll { });
                 builder = prev.haskell.lib.justStaticExecutables
                   (hself.callCabal2nix "builder" src { });
@@ -40,7 +35,7 @@
             src = src;
             phases = "unpackPhase buildPhase";
             buildInputs = [ final.justinrestivo-me-builder ];
-            buildPhase = 
+            buildPhase =
             envVars +
             ''
               site build
