@@ -20,7 +20,7 @@ The first step is to understand a category. Hand-waving formalism, a category ca
 - A set of objects.
 - A set of arrows between objects, called morphisms. For a morphism from object $a$ to object $b$ we define a morphism as $a \rightarrow b$.
 
-At this point, this should feel very similar to a DAG. We also want to be able to traverse with morphisms. This introduces a binary operator, $\cdot$, to compose morphisms such that morphisms in a way that preserves identity and associativity. There are laws for identity and associativity. The identity law states that every object $a$ has an arrow pointing to itself. We call this $a$'s identity morphism and denote it $ a \rightarrow a$.
+At this point, this should feel very similar to a DAG. We also want to be able to traverse with morphisms. This introduces a binary operator, $\cdot$, to compose morphisms such that morphisms in a way that preserves identity and associativity. There are laws for identity and associativity. The identity law states that every object $a$ has an arrow pointing to itself. We call this $a$'s identity morphism and denote it $a \rightarrow a$.
 
 ## Functors
 
