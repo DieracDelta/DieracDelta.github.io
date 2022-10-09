@@ -20,7 +20,19 @@ The first step is to understand a category. Hand-waving formalism, a category ca
 - A set of objects.
 - A set of arrows between objects, called morphisms. For a morphism from object $a$ to object $b$ we define a morphism as $a \rightarrow b$.
 
-At this point, this should feel very similar to a DAG. We also want to be able to traverse with morphisms. This introduces a binary operator, $\cdot$, to compose morphisms such that morphisms in a way that preserves identity and associativity. There are laws for identity and associativity. The identity law states that every object $a$ has an arrow pointing to itself. We call this $a$'s identity morphism and denote it $a \rightarrow a$.
+At this point, this should feel very similar to a DAG. We also want to be able to traverse with morphisms. This introduces a binary operator, $\cdot$, to compose morphisms such that morphisms in a way that allows for both identity and associativity. The identity law states that every object $a$ has an arrow pointing to itself. We call this $a$'s identity morphism and denote it $a \rightarrow a$. Associativity means that morphisms associate together.
+
+More formally (using $\circ$ for composition), and assuming:
+
+- $x, a, b, c$ are objects in a category, C
+- $f \triangleq (a \rightarrow b)$
+- $g \triangleq (b \rightarrow c)$
+- $h \triangleq (c \rightarrow d)$
+
+Our laws on composition become:
+
+- if $f, g, h$ exist, then the morphisms $f \circ (g \circ h)$ and $(f \circ g) \circ h$ exist and are the same morphism.
+- For every object $x$ in $C$, there exists an identity morphism `id_x` defined as `x -> x` such that composing this identity morphism with any morphism either into or out of $x$ is that morphism. That is, for some object $a$ if morphism $a \rightarrow x$ exists then $(a \rightarrow x) \circ id_x$ is $a \rightarrow x$. And, for some object $b$, if morphism $x \rightarrow b$ exists, then $id_x \circ (x \rightarrow b)$ is $x \rightarrow b$.
 
 ## Functors
 
@@ -30,7 +42,7 @@ At a high level, a functor is a mapping between two categories (for example cate
 
 With covariant functors, the morphism mappings must preserve identity and composition. Suppose we have two objects $a$ and $b$ in category $A$ that we map to objects $f a$ and $f b$ in category $B$. The identity preservation is done by forcing the $a \rightarrow a$ morphism in category $A$ to map to $f a \rightarrow f a$ in category $B$.
 
-The composition property simply means that composition of morphisms done in category $A$ must be preserved in category $B$. E.g. if I start on object $a$, go through object $b$ to object $c$ all in category $A$, then I should be able to follow the mapped morphisms to go from $f a$ through $f b$ to $f c$ in category $B$.
+The composition property means that composition of morphisms done in category $A$ must be preserved in category $B$. E.g. if I start on object $a$, go through object $b$ to object $c$ all in category $A$, then I should be able to follow the mapped morphisms to go from $f a$ through $f b$ to $f c$ in category $B$.
 
 Covariant functors preserve the direction of morphisms. Then suppose in category $A$ we have a morphism $a \rightarrow b$. This means the morphism in category $B$ will be $f a \rightarrow f b$ due to the composition preservation (compose $a \rightarrow b$ with identity on either $a$ or $b$).
 
@@ -44,11 +56,50 @@ A product category $P$ is defined to be a sort of "product" of categories $A$ an
 
 ## Bifunctors
 
-Bifunctors are just functors defined over a product category.
+Bifunctors are functors defined over a product category.
 
 # Subtyping
 
-Rust lifetimes define a subtyping relationship `<:`. Intuitively, `'a <: 'b` means `'a` can be used everywhere `'b` is used. The examples in the [rust docs](https://doc.rust-lang.org/nomicon/subtyping.html) give the example of animals. A dog is an animal because one may use a dog wherever one uses an animal. In Rust, subtyping is done in two ways. First, with rust lifetimes (a subset of Rust types), a similar parallel may be made to the `Cat` and `Dog` example. If `'a <: 'b`, then we may use the variable with lifetime `'a` everywhere `'b` may be used. The intuition is: since `'a` lives longer than `'b`, then we may use variables that live `'a` long everywhere variables with `'b` are used without worrying about them being freed.
+Across programming languages, one may encounter a subtyping operator `<:`. This binary operator when used on two "things" `a, b` as `a <: b` means `a` is a subtype of `b`. More intuitively, `'a <: 'b` means `'a` can be used everywhere `'b` is used. The examples in the [rust docs](https://doc.rust-lang.org/nomicon/subtyping.html) give the example of animals. A dog is an animal because one may use a dog wherever one uses an animal.
+
+What does "things" mean? That is, what are `a` and `b`? Typically in programming languages, subtyping is defined on the programming language's base kind. In Haskell, this is `Type`. But, Rust has two base kinds: `Type` and `Lifetime`. So, Rust may have `Type`s subtyping other `Type`s, and lifetimes subtyping other lifetimes.
+
+## Rust Subtyping
+
+With Rust types, the intuition (as made in the rustnomicon) is that of the `Cat` and `Dog` example. If type `Cat` subtypes type `Animal`, then `Animal` is more general than `Cat`, and we may use `Cat` wherever we use `Animal` since `Cat` *is* an animal. But, in Rust, there is no `Cat` or `Dog`. Instead, Rust only does subtyping on the same type constructor (though this may be generic).
+
+Rust lifetimes have a similar idea to the `Cat` and `Animal` example. If `'long <: 'short` (where `'long` and `'short` are lifetimes), then we may use the variable with lifetime `'long` everywhere `'short` may be used. The intuition is since `'a` lives longer than `'b`, then we may use variables that live `'a` long everywhere variables with `'b` are used without worrying about them being freed.
+
+A graphic diagram should explain this intuition:
+
+```
+'long 'short | time (increasing)
+ |           |
+ -------->   | start 'long
+ |           |
+ |           |
+ |           |
+ |     -->   | start 'short
+ |     |     |
+ |     |     |
+ |     |     |
+ |     -->   | end 'short
+ |           |
+ |           |
+ |           |
+ |           |
+ |           |
+ -------->   | end 'long
+             |
+
+
+```
+
+Practically, `'static` subtypes *every* lifetime since it is defined to be the longest living lifetime (it lives for the entire program).
+
+## Rust Subtyping Inference
+
+Rust's subtyping inference rules begin with lifetimes. Rust infers the lifetime length and then lifetime subtyping relations. Then, Rust infers subtyping relations on Types.
 
 The second way Rust is able to subtype is by using several specific rules over types based on their input lifetime parameters. For example, if `'static <: 'a`, then `&'static str <: &'a str`. Note this is just an example, and we haven't discussed *why* this is true. Now, consider the following chart:
 
@@ -68,7 +119,7 @@ The second way Rust is able to subtype is by using several specific rules over t
 
 # Covariant example
 
-Let's build up intuition via a few examples, starting with `&'a T`. `&` is a type constructor that takes in two arguments: a lifetime and a type. This may be thought of as a bifunctor. The category the bifunctor maps from is a product category. The two categories used to create this product category are essentially:
+Let's build up intuition for these inference rules via a few examples, starting with `&'a T`. `&` is a type constructor that takes in two arguments: a lifetime and a type. This may be thought of as a bifunctor. The category the bifunctor maps from is a product category. The two categories used to create this product category are essentially:
 
 $C_{lifetimes} \triangleq \text{rust lifetimes as objects with morphisms defined as subtypes}$
 
@@ -90,7 +141,7 @@ I'm simplifying this but, the intuition for this subtyping relation can be thoug
 
 # Invariant
 
-Invariant in this case simply means with any sort of functor we define (covariant or contravariant), there is no morphism mapping that makes sense.
+Invariant in this case simply means with any sort of functor we define (covariant or contravariant), there is no morphism mapping that makes sense. These are like `Cat` and `Dog` -- a subtyping relationship does not make sense.
 
 # Struct Type Example
 
