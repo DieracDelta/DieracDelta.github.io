@@ -59,21 +59,61 @@
 <li>A set of objects.</li>
 <li>A set of arrows between objects, called morphisms. For a morphism from object <span class="math inline">\(a\)</span> to object <span class="math inline">\(b\)</span> we define a morphism as <span class="math inline">\(a \rightarrow b\)</span>.</li>
 </ul>
-<p>At this point, this should feel very similar to a DAG. We also want to be able to traverse with morphisms. This introduces a binary operator, <span class="math inline">\(\cdot\)</span>, to compose morphisms such that morphisms in a way that preserves identity and associativity. There are laws for identity and associativity. The identity law states that every object <span class="math inline">\(a\)</span> has an arrow pointing to itself. We call this <span class="math inline">\(a\)</span>’s identity morphism and denote it <span class="math inline">\(a \rightarrow a\)</span>.</p>
+<p>At this point, this should feel very similar to a DAG. We also want to be able to traverse with morphisms. This introduces a binary operator, <span class="math inline">\(\cdot\)</span>, to compose morphisms such that morphisms in a way that allows for both identity and associativity. The identity law states that every object <span class="math inline">\(a\)</span> has an arrow pointing to itself. We call this <span class="math inline">\(a\)</span>’s identity morphism and denote it <span class="math inline">\(a \rightarrow a\)</span>. Associativity means that morphisms associate together.</p>
+<p>More formally (using <span class="math inline">\(\circ\)</span> for composition), and assuming:</p>
+<ul>
+<li><span class="math inline">\(x, a, b, c\)</span> are objects in a category, C</li>
+<li><span class="math inline">\(f \triangleq (a \rightarrow b)\)</span></li>
+<li><span class="math inline">\(g \triangleq (b \rightarrow c)\)</span></li>
+<li><span class="math inline">\(h \triangleq (c \rightarrow d)\)</span></li>
+</ul>
+<p>Our laws on composition become:</p>
+<ul>
+<li>if <span class="math inline">\(f, g, h\)</span> exist, then the morphisms <span class="math inline">\(f \circ (g \circ h)\)</span> and <span class="math inline">\((f \circ g) \circ h\)</span> exist and are the same morphism.</li>
+<li>For every object <span class="math inline">\(x\)</span> in <span class="math inline">\(C\)</span>, there exists an identity morphism <code>id_x</code> defined as <code>x -&gt; x</code> such that composing this identity morphism with any morphism either into or out of <span class="math inline">\(x\)</span> is that morphism. That is, for some object <span class="math inline">\(a\)</span> if morphism <span class="math inline">\(a \rightarrow x\)</span> exists then <span class="math inline">\((a \rightarrow x) \circ id_x\)</span> is <span class="math inline">\(a \rightarrow x\)</span>. And, for some object <span class="math inline">\(b\)</span>, if morphism <span class="math inline">\(x \rightarrow b\)</span> exists, then <span class="math inline">\(id_x \circ (x \rightarrow b)\)</span> is <span class="math inline">\(x \rightarrow b\)</span>.</li>
+</ul>
 <h2 id="functors"><a href="#functors">## Functors</a></h2>
 <p>At a high level, a functor is a mapping between two categories (for example categories <span class="math inline">\(A\)</span> and <span class="math inline">\(B\)</span>). This means two surjective mappings: one from objects in category <span class="math inline">\(A\)</span> to objects in category <span class="math inline">\(B\)</span>, and another mapping for morphisms in category <span class="math inline">\(A\)</span> to morphisms in category <span class="math inline">\(B\)</span>. Note that surjective here means all objects and morphisms in <span class="math inline">\(A\)</span> are mapped.</p>
 <h2 id="covariant-functors"><a href="#covariant-functors">## Covariant functors</a></h2>
 <p>With covariant functors, the morphism mappings must preserve identity and composition. Suppose we have two objects <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span> in category <span class="math inline">\(A\)</span> that we map to objects <span class="math inline">\(f a\)</span> and <span class="math inline">\(f b\)</span> in category <span class="math inline">\(B\)</span>. The identity preservation is done by forcing the <span class="math inline">\(a \rightarrow a\)</span> morphism in category <span class="math inline">\(A\)</span> to map to <span class="math inline">\(f a \rightarrow f a\)</span> in category <span class="math inline">\(B\)</span>.</p>
-<p>The composition property simply means that composition of morphisms done in category <span class="math inline">\(A\)</span> must be preserved in category <span class="math inline">\(B\)</span>. E.g. if I start on object <span class="math inline">\(a\)</span>, go through object <span class="math inline">\(b\)</span> to object <span class="math inline">\(c\)</span> all in category <span class="math inline">\(A\)</span>, then I should be able to follow the mapped morphisms to go from <span class="math inline">\(f a\)</span> through <span class="math inline">\(f b\)</span> to <span class="math inline">\(f c\)</span> in category <span class="math inline">\(B\)</span>.</p>
+<p>The composition property means that composition of morphisms done in category <span class="math inline">\(A\)</span> must be preserved in category <span class="math inline">\(B\)</span>. E.g. if I start on object <span class="math inline">\(a\)</span>, go through object <span class="math inline">\(b\)</span> to object <span class="math inline">\(c\)</span> all in category <span class="math inline">\(A\)</span>, then I should be able to follow the mapped morphisms to go from <span class="math inline">\(f a\)</span> through <span class="math inline">\(f b\)</span> to <span class="math inline">\(f c\)</span> in category <span class="math inline">\(B\)</span>.</p>
 <p>Covariant functors preserve the direction of morphisms. Then suppose in category <span class="math inline">\(A\)</span> we have a morphism <span class="math inline">\(a \rightarrow b\)</span>. This means the morphism in category <span class="math inline">\(B\)</span> will be <span class="math inline">\(f a \rightarrow f b\)</span> due to the composition preservation (compose <span class="math inline">\(a \rightarrow b\)</span> with identity on either <span class="math inline">\(a\)</span> or <span class="math inline">\(b\)</span>).</p>
 <h2 id="contravariant-functors"><a href="#contravariant-functors">## Contravariant functors</a></h2>
 <p>Contravariant functors are also a mapping, but they flip the requirements: identity is preserved but composition is reversed in the target category. So <span class="math inline">\(a \rightarrow b\)</span> is mapped to <span class="math inline">\(f b \rightarrow f a\)</span>.</p>
 <h2 id="product-category"><a href="#product-category">## Product category</a></h2>
 <p>A product category <span class="math inline">\(P\)</span> is defined to be a sort of “product” of categories <span class="math inline">\(A\)</span> and <span class="math inline">\(B\)</span>. Specifically, an object in <span class="math inline">\(P\)</span> is defined for every two objects in <span class="math inline">\(A\)</span> and <span class="math inline">\(B\)</span>. So, if <span class="math inline">\(a'\)</span> is defined in <span class="math inline">\(A\)</span> and <span class="math inline">\(b'\)</span> is defined in <span class="math inline">\(B\)</span>, then <span class="math inline">\((a', b')\)</span> must be an object in <span class="math inline">\(P\)</span>. Morphisms in <span class="math inline">\(P\)</span> only exist if their respective morphisms exist in <span class="math inline">\(A\)</span> and <span class="math inline">\(B\)</span>.</p>
 <h2 id="bifunctors"><a href="#bifunctors">## Bifunctors</a></h2>
-<p>Bifunctors are just functors defined over a product category.</p>
+<p>Bifunctors are functors defined over a product category.</p>
 <h1 id="subtyping"><a href="#subtyping"># Subtyping</a></h1>
-<p>Rust lifetimes define a subtyping relationship <code>&lt;:</code>. Intuitively, <code>'a &lt;: 'b</code> means <code>'a</code> can be used everywhere <code>'b</code> is used. The examples in the <a href="https://doc.rust-lang.org/nomicon/subtyping.html">rust docs</a> give the example of animals. A dog is an animal because one may use a dog wherever one uses an animal. In Rust, subtyping is done in two ways. First, with rust lifetimes (a subset of Rust types), a similar parallel may be made to the <code>Cat</code> and <code>Dog</code> example. If <code>'a &lt;: 'b</code>, then we may use the variable with lifetime <code>'a</code> everywhere <code>'b</code> may be used. The intuition is: since <code>'a</code> lives longer than <code>'b</code>, then we may use variables that live <code>'a</code> long everywhere variables with <code>'b</code> are used without worrying about them being freed.</p>
+<p>Across programming languages, one may encounter a subtyping operator <code>&lt;:</code>. This binary operator when used on two “things” <code>a, b</code> as <code>a &lt;: b</code> means <code>a</code> is a subtype of <code>b</code>. More intuitively, <code>'a &lt;: 'b</code> means <code>'a</code> can be used everywhere <code>'b</code> is used. The examples in the <a href="https://doc.rust-lang.org/nomicon/subtyping.html">rust docs</a> give the example of animals. A dog is an animal because one may use a dog wherever one uses an animal.</p>
+<p>What does “things” mean? That is, what are <code>a</code> and <code>b</code>? Typically in programming languages, subtyping is defined on the programming language’s base kind. In Haskell, this is <code>Type</code>. But, Rust has two base kinds: <code>Type</code> and <code>Lifetime</code>. So, Rust may have <code>Type</code>s subtyping other <code>Type</code>s, and lifetimes subtyping other lifetimes.</p>
+<h2 id="rust-subtyping"><a href="#rust-subtyping">## Rust Subtyping</a></h2>
+<p>With Rust types, the intuition (as made in the rustnomicon) is that of the <code>Cat</code> and <code>Dog</code> example. If type <code>Cat</code> subtypes type <code>Animal</code>, then <code>Animal</code> is more general than <code>Cat</code>, and we may use <code>Cat</code> wherever we use <code>Animal</code> since <code>Cat</code> <em>is</em> an animal. But, in Rust, there is no <code>Cat</code> or <code>Dog</code>. Instead, Rust only does subtyping on the same type constructor (though this may be generic).</p>
+<p>Rust lifetimes have a similar idea to the <code>Cat</code> and <code>Animal</code> example. If <code>'long &lt;: 'short</code> (where <code>'long</code> and <code>'short</code> are lifetimes), then we may use the variable with lifetime <code>'long</code> everywhere <code>'short</code> may be used. The intuition is since <code>'a</code> lives longer than <code>'b</code>, then we may use variables that live <code>'a</code> long everywhere variables with <code>'b</code> are used without worrying about them being freed.</p>
+<p>A graphic diagram should explain this intuition:</p>
+<pre><code>'long 'short | time (increasing)
+ |           |
+ --------&gt;   | start 'long
+ |           |
+ |           |
+ |           |
+ |     --&gt;   | start 'short
+ |     |     |
+ |     |     |
+ |     |     |
+ |     --&gt;   | end 'short
+ |           |
+ |           |
+ |           |
+ |           |
+ |           |
+ --------&gt;   | end 'long
+             |
+
+</code></pre>
+<p>Practically, <code>'static</code> subtypes <em>every</em> lifetime since it is defined to be the longest living lifetime (it lives for the entire program).</p>
+<h2 id="rust-subtyping-inference"><a href="#rust-subtyping-inference">## Rust Subtyping Inference</a></h2>
+<p>Rust’s subtyping inference rules begin with lifetimes. Rust infers the lifetime length and then lifetime subtyping relations. Then, Rust infers subtyping relations on Types.</p>
 <p>The second way Rust is able to subtype is by using several specific rules over types based on their input lifetime parameters. For example, if <code>'static &lt;: 'a</code>, then <code>&amp;'static str &lt;: &amp;'a str</code>. Note this is just an example, and we haven’t discussed <em>why</em> this is true. Now, consider the following chart:</p>
 <table>
 <thead>
@@ -142,7 +182,7 @@
 </tbody>
 </table>
 <h1 id="covariant-example"><a href="#covariant-example"># Covariant example</a></h1>
-<p>Let’s build up intuition via a few examples, starting with <code>&amp;'a T</code>. <code>&amp;</code> is a type constructor that takes in two arguments: a lifetime and a type. This may be thought of as a bifunctor. The category the bifunctor maps from is a product category. The two categories used to create this product category are essentially:</p>
+<p>Let’s build up intuition for these inference rules via a few examples, starting with <code>&amp;'a T</code>. <code>&amp;</code> is a type constructor that takes in two arguments: a lifetime and a type. This may be thought of as a bifunctor. The category the bifunctor maps from is a product category. The two categories used to create this product category are essentially:</p>
 <p><span class="math inline">\(C_{lifetimes} \triangleq \text{rust lifetimes as objects with morphisms defined as subtypes}\)</span></p>
 <p><span class="math inline">\(C_{types} \triangleq \text{rust types as objects with morphisms defined as subtypes}\)</span></p>
 <p>Then, the product category we’re mapping from is then <span class="math inline">\(C_{lifetimes} \times C_{types}\)</span>, and the category we map to is <span class="math inline">\(C_{types}\)</span>. The implication is: <code>'a &lt;: ' b, T &lt;: U</code> <span class="math inline">\(\implies\)</span> <code>&amp;'a T &lt;: &amp;'b U</code> exactly because <code>('a, T)</code> and <code>('b, U)</code> are objects in the input category <span class="math inline">\(C_{lifetimes} \times C_{types}\)</span>. Since <span class="math inline">\('a \rightarrow 'b\)</span> and <span class="math inline">\(T \rightarrow U\)</span> in the indiviual categories, <code>('a, T)</code> <span class="math inline">\(\rightarrow\)</span> <code>('b, U)</code> must be a morphism in the product category by definition. And this maps to <code>&amp; 'a T</code> <span class="math inline">\(\rightarrow\)</span> <code>&amp;'b U</code> in the output <span class="math inline">\(C_{types}\)</span>. The map is a subtyping relationship.</p>
@@ -153,15 +193,15 @@
 <p>For simplicity, denote <span class="math inline">\(f \triangleq fn(T) \rightarrow U\)</span>, <span class="math inline">\(g \triangleq fn(S) \rightarrow V\)</span>. Then <code>f &lt;: g</code>.</p>
 <p>I’m simplifying this but, the intuition for this subtyping relation can be thought of as enforcing lifetimes. If we want to be able to use <code>f</code> everywhere that we can use <code>g</code>, then the arguments to <code>f</code> cannot be used as long as long as the arguments to <code>g</code>. And the returned type must live longer than that of <code>g</code> so we can use it as we might use <code>g</code>’s output. All this is doing is enforcing that with lifetimes.</p>
 <h1 id="invariant"><a href="#invariant"># Invariant</a></h1>
-<p>Invariant in this case simply means with any sort of functor we define (covariant or contravariant), there is no morphism mapping that makes sense.</p>
+<p>Invariant in this case simply means with any sort of functor we define (covariant or contravariant), there is no morphism mapping that makes sense. These are like <code>Cat</code> and <code>Dog</code> – a subtyping relationship does not make sense.</p>
 <h1 id="struct-type-example"><a href="#struct-type-example"># Struct Type Example</a></h1>
 <p>Let’s also consider a simplified example from <a href="https://doc.rust-lang.org/reference/subtyping.html">the rust reference</a></p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">std::cell::</span>UnsafeCell<span class="op">;</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Variance<span class="op">&lt;</span><span class="ot">'a</span><span class="op">,</span> T<span class="op">,</span> U<span class="op">:</span> <span class="ot">'a</span><span class="op">&gt;</span> <span class="op">{</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    x<span class="op">:</span> <span class="op">&amp;</span><span class="ot">'a</span> U<span class="op">,</span>               <span class="co">// This makes `Variance` covariant in 'a, and would</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>                            <span class="co">// make it covariant in U, but U is used later</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    y<span class="op">:</span> <span class="op">*</span><span class="kw">const</span> T<span class="op">,</span>            <span class="co">// Covariant in T</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">std::cell::</span>UnsafeCell<span class="op">;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Variance<span class="op">&lt;</span><span class="ot">'a</span><span class="op">,</span> T<span class="op">,</span> U<span class="op">:</span> <span class="ot">'a</span><span class="op">&gt;</span> <span class="op">{</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    x<span class="op">:</span> <span class="op">&amp;</span><span class="ot">'a</span> U<span class="op">,</span>               <span class="co">// This makes `Variance` covariant in 'a, and would</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>                            <span class="co">// make it covariant in U, but U is used later</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    y<span class="op">:</span> <span class="op">*</span><span class="kw">const</span> T<span class="op">,</span>            <span class="co">// Covariant in T</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>This is defining a product category: <span class="math inline">\(C_{lifetime} \times C_{type} \times C_{type}\)</span>. The subtyping rules from above apply to the innards of the struct and therefore the struct itself. We simply have morphisms on the output category when both functors map.</p>
     </section>
 </article>

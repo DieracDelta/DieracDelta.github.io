@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <!-- for latex rendering -->
+        <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <!-- google analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-PMP32CMWHS"></script>
+        <script>
+         window.dataLayer = window.dataLayer || [];
+         function gtag(){dataLayer.push(arguments);}
+         gtag('js', new Date());
+
+         gtag('config', 'G-PMP32CMWHS');
+        </script>
+        <!-- nerdfonts -->
+        <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hack-font@3/build/web/hack.css">
+
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Justin Restivo - Programming Paradigms and Polymorphism (under construction)</title>
+        <link rel="stylesheet" href="../css/default.css" />
+    </head>
+    <body>
+        <header class="header">
+            <div class="logo">
+                <a href="../index.html">Justin Restivo</a>
+            </div>
+            <nav>
+                <a href="../index.html" class="topele">Home</a>
+                <span> | </span>
+                <a href="../about.html" class="topele">About</a>
+                <span> | </span>
+                <a href="../contact.html" class="topele">Contact</a>
+                <span> | </span>
+                <a href="https://www.linkedin.com/in/justinprestivo" class="topele">Linkedin</a>
+                <span> | </span>
+                <!--<a href="/justin_restivo_resume.pdf" class="topele">Resume</a>-->
+                <!--<span> | </span>-->
+                <a href="https://github.com/DieracDelta" class="topele">Github</a>
+            </nav>
+        </header>
+
+        <main role="main">
+            <h1>Programming Paradigms and Polymorphism (under construction)</h1>
+            <article>
+    <section class="header">
+        Posted on October  9, 2022
+        
+    </section>
+    <section>
+        <h1 id="section"><a href="#section"># </a></h1>
+<h1 id="polymorphism"><a href="#polymorphism"># Polymorphism</a></h1>
+<h2 id="section-1"><a href="#section-1">## </a></h2>
+<h1 id="higher-kinded-types"><a href="#higher-kinded-types"># Higher Kinded Types</a></h1>
+<h1 id="higher-ranked-polymorphism"><a href="#higher-ranked-polymorphism"># Higher Ranked Polymorphism</a></h1>
+<p>All types are implicitly qualified. A good explanation for this lives <a href="https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/rank_polymorphism.html">here</a>. In haskell syntax:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- this is implicitly adding a universal qualifier</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ot">f ::</span> a <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> b</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co">-- the qualifier:</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="ot">f ::</span> <span class="kw">forall</span> a b<span class="op">.</span> a <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> b</span></code></pre></div>
+<p>Higher ranked polymorphism is simply allowing us to accept arguments and return polymorphic functions. For example, rank 2 polymorphism allows us to return functions containing a forall.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ot">f ::</span> (<span class="kw">forall</span> a<span class="op">.</span> a) <span class="ot">-&gt;</span> (<span class="kw">forall</span> b<span class="op">.</span> b)</span></code></pre></div>
+<p>The level of nested qualification determines the “ranked”-ness of the polymorphism. For example, the following function would be of rank 3:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ot">f ::</span> (<span class="dt">Int</span> <span class="ot">-&gt;</span> (<span class="kw">forall</span> a<span class="op">.</span> a)) <span class="ot">-&gt;</span> <span class="dt">Int</span></span></code></pre></div>
+<p>TODO transformers/why this is useful</p>
+<h1 id="systemf"><a href="#systemf"># SystemF</a></h1>
+    </section>
+</article>
+
+        </main>
+
+    </body>
+</html>
