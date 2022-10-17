@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <!-- for latex rendering -->
+        <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <!-- google analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-PMP32CMWHS"></script>
+        <script>
+         window.dataLayer = window.dataLayer || [];
+         function gtag(){dataLayer.push(arguments);}
+         gtag('js', new Date());
+
+         gtag('config', 'G-PMP32CMWHS');
+        </script>
+        <!-- nerdfonts -->
+        <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hack-font@3/build/web/hack.css">
+
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Justin Restivo - Faking subtyping in Rust</title>
+        <link rel="stylesheet" href="../css/default.css" />
+    </head>
+    <body>
+        <header class="header">
+            <div class="logo">
+                <a href="../index.html">Justin Restivo</a>
+            </div>
+            <nav>
+                <a href="../index.html" class="topele">Home</a>
+                <span> | </span>
+                <a href="../about.html" class="topele">About</a>
+                <span> | </span>
+                <a href="../contact.html" class="topele">Contact</a>
+                <span> | </span>
+                <a href="https://www.linkedin.com/in/justinprestivo" class="topele">Linkedin</a>
+                <span> | </span>
+                <!--<a href="/justin_restivo_resume.pdf" class="topele">Resume</a>-->
+                <!--<span> | </span>-->
+                <a href="https://github.com/DieracDelta" class="topele">Github</a>
+            </nav>
+        </header>
+
+        <main role="main">
+            <h1>Faking subtyping in Rust</h1>
+            <article>
+    <section class="header">
+        Posted on October  9, 2022
+        
+    </section>
+    <section>
+        <h1 id="motivating-the-problem"><a href="#motivating-the-problem"># Motivating the Problem</a></h1>
+<p>In short, we have no trait subtyping relationship. It would be great if this were possible. But alas, Rust doesn’t allow for this (yet!). This post is aimed at working around this.</p>
+<p>In Rust, suppose we have a lot of generics, with arbitrary constraints. For example, suppose we wish to build many types of animals. Each animal has <code>Ears</code>, <code>Mouth</code>, <code>Legs</code>, and <code>Lungs</code>. Each of these implement some traits. The normal ones like <code>Clone</code>, as well as <code>Send + Sync</code> to send between threads.</p>
+<p>The first pass stab at this might look like:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">trait</span> Fluffy <span class="op">{};</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">trait</span> Taste <span class="op">{};</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">trait</span> Legs <span class="op">{};</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">trait</span> Lungs <span class="op">{};</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">trait</span> Animal<span class="op">&lt;</span>Ears<span class="op">,</span> Mouth<span class="op">,</span> Legs<span class="op">,</span> Lungs<span class="op">&gt;</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="kw">where</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  Ears<span class="op">:</span> <span class="bu">Clone</span> <span class="op">+</span> <span class="bu">Send</span> <span class="op">+</span> <span class="bu">Sync</span> <span class="op">+</span> Fluffy<span class="op">,</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  Mouth<span class="op">:</span> <span class="bu">Clone</span> <span class="op">+</span> <span class="bu">Send</span> <span class="op">+</span> <span class="bu">Sync</span> <span class="op">+</span> Taste<span class="op">,</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  Legs<span class="op">:</span> <span class="bu">Clone</span> <span class="op">+</span> <span class="bu">Send</span> <span class="op">+</span> <span class="bu">Sync</span> <span class="op">+</span> Fast<span class="op">,</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  Lungs<span class="op">:</span> <span class="bu">Clone</span> <span class="op">+</span> <span class="bu">Send</span> <span class="op">+</span> <span class="bu">Sync</span> <span class="op">+</span> Breathe<span class="op">,</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="op">{}</span></span></code></pre></div>
+<p>Suppose we wish to implement this and type constrain it. Any impl block is going require this awkward set of type constraints.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">impl</span><span class="op">&lt;</span>ANIMAL<span class="op">,</span> EARS<span class="op">,</span> MOUTH<span class="op">,</span> LEGS<span class="op">,</span> LUNGS<span class="op">&gt;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">where</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  EARS<span class="op">:</span> <span class="bu">Clone</span> <span class="op">+</span> <span class="bu">Send</span> <span class="op">+</span> <span class="bu">Sync</span> <span class="op">+</span> Fluffy<span class="op">,</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  MOUTH<span class="op">:</span> <span class="bu">Clone</span> <span class="op">+</span> <span class="bu">Send</span> <span class="op">+</span> <span class="bu">Sync</span> <span class="op">+</span> Taste<span class="op">,</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  LEGS<span class="op">:</span> <span class="bu">Clone</span> <span class="op">+</span> <span class="bu">Send</span> <span class="op">+</span> <span class="bu">Sync</span> <span class="op">+</span> Fast<span class="op">,</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  LUNGS<span class="op">:</span> <span class="bu">Clone</span> <span class="op">+</span> <span class="bu">Send</span> <span class="op">+</span> <span class="bu">Sync</span> <span class="op">+</span> Breathe<span class="op">,</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  ANIMAL<span class="op">:</span> Animal<span class="op">&lt;</span>Ears<span class="op">,</span> Mouth<span class="op">,</span> Legs<span class="op">,</span> Lungs<span class="op">&gt;</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>This is gross. It doesn’t scale. It’s very easy to mis-order the generics. Luckily, Rust has a way around this: associated types. We instead have something like:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">trait</span> Animal <span class="op">:</span> <span class="bu">Clone</span> <span class="op">+</span> <span class="bu">Send</span> <span class="op">+</span> <span class="bu">Sync</span> <span class="op">{</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Ears: Clone + Send + Sync + Fluffy<span class="op">;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Mouth: Clone + Send + Sync + Taste<span class="op">;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Legs: Clone + Send + Sync + Fast<span class="op">;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Lungs: Clone + Send + Sync + Breathe<span class="op">;</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Then, our impl block looks like:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">impl</span><span class="op">&lt;</span>ANIMAL<span class="op">:</span> Animal<span class="op">&gt;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>And, we can have an implementation for an arbitrary struct:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">struct</span> AnimalImpl<span class="op">&lt;</span>Ears<span class="op">,</span> Mouth<span class="op">,</span> Legs<span class="op">,</span> Lungs<span class="op">&gt;{</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  _pd_0<span class="op">:</span> PhantomData<span class="op">&lt;</span>Ears<span class="op">&gt;,</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  _pd_1<span class="op">:</span> PhantomData<span class="op">&lt;</span>Mouth<span class="op">&gt;,</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  _pd_2<span class="op">:</span> PhantomData<span class="op">&lt;</span>Legs<span class="op">&gt;,</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  _pd_3<span class="op">:</span> PhantomData<span class="op">&lt;</span>Lungs<span class="op">&gt;,</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="kw">impl</span><span class="op">&lt;</span>EARS<span class="op">,</span> MOUTH<span class="op">,</span> LEGS<span class="op">,</span> LUNGS<span class="op">&gt;</span> Animal <span class="cf">for</span> AnimalImpl<span class="op">&lt;</span>EARS<span class="op">,</span> MOUTH<span class="op">,</span> LEGS<span class="op">,</span> LUNGS<span class="op">&gt;</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="kw">where</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  EARS<span class="op">:</span> <span class="bu">Clone</span> <span class="op">+</span> <span class="bu">Send</span> <span class="op">+</span> <span class="bu">Sync</span> <span class="op">+</span> Fluffy<span class="op">,</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  MOUTH<span class="op">:</span> <span class="bu">Clone</span> <span class="op">+</span> <span class="bu">Send</span> <span class="op">+</span> <span class="bu">Sync</span> <span class="op">+</span> Taste<span class="op">,</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>  LEGS<span class="op">:</span> <span class="bu">Clone</span> <span class="op">+</span> <span class="bu">Send</span> <span class="op">+</span> <span class="bu">Sync</span> <span class="op">+</span> Fast<span class="op">,</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  LUNGS<span class="op">:</span> <span class="bu">Clone</span> <span class="op">+</span> <span class="bu">Send</span> <span class="op">+</span> <span class="bu">Sync</span> <span class="op">+</span> Breathe<span class="op">,</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Ears <span class="op">=</span> EARS<span class="op">;</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Mouth <span class="op">=</span> MOUTH<span class="op">;</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Legs <span class="op">=</span> LEGS<span class="op">;</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Lungs <span class="op">=</span> LUNGS<span class="op">;</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Unfortunately we have to awkwardly copy type constraints. But still, this is much cleaner, since our impl blocks will only be generic over <code>Animal</code>. It scales with the number of generics quite nicely.</p>
+<h1 id="the-problem"><a href="#the-problem"># The Problem</a></h1>
+<p>This is all great until we want to build off this <code>Animal</code> trait while avoding having to copy around type constraints. Our very explicit goal is to keep all type constraints in the same place and repeated as few times as possible.</p>
+<p>Suppose we wish to express types associated with a <code>Dinosaur</code>. Our <code>Dinosaur</code> is an animal, but we have additional requirements on its associated types. Its associated types must all must implement <code>Prehistoric</code>. A first attempt at this using associated types might look like:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">trait</span> Prehistoric <span class="op">{}</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">trait</span> Dinosaur <span class="op">:</span> <span class="bu">Clone</span> <span class="op">+</span> <span class="bu">Send</span> <span class="op">+</span> <span class="bu">Sync</span> <span class="op">{</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Ears: Clone + Send + Sync + Fluffy + Prehistoric<span class="op">;</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Mouth: Clone + Send + Sync + Taste + Prehistoric<span class="op">;</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Legs: Clone + Send + Sync + Fast + Prehistoric<span class="op">;</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Lungs: Clone + Send + Sync + Breathe + Prehistoric<span class="op">;</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>This works great! Except…we are now copying over all the type constraints from <code>Animal</code> into our <code>Dinosaur</code> trait. We can refactor out traits a bit:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">trait</span> AnimalPart<span class="op">:</span> <span class="bu">Clone</span> <span class="op">+</span> <span class="bu">Send</span> <span class="op">+</span> <span class="bu">Sync</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">trait</span> AnimalEars<span class="op">:</span> AnimalPart <span class="op">+</span> Fluffy<span class="op">;</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">trait</span> AnimalMouth<span class="op">:</span> AnimalPart <span class="op">+</span> Taste<span class="op">;</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">trait</span> AnimalLegs<span class="op">:</span> AnimalPart <span class="op">+</span> Fast<span class="op">;</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">trait</span> AnimalLungs<span class="op">:</span> AnimalPart <span class="op">+</span> Breathe<span class="op">;</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">trait</span> Animal</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Ears: AnimalEars<span class="op">;</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Mouth: AnimalMouth<span class="op">;</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Legs: AnimalLegs<span class="op">;</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Lungs: AnimalLungs<span class="op">;</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">trait</span> Dinosaur <span class="op">{</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Ears: AnimalEars + Prehistoric<span class="op">;</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Mouth: AnimalMouth + Prehistoric<span class="op">;</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Legs: AnimalLegs + Prehistoric<span class="op">;</span></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Lungs: AnimalLungs + Prehistoric<span class="op">;</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>This is almost what we want. Except, we really would like <code>Dinosaur</code> to implement <code>Animal</code>. Suppose <code>Animal</code> has an associated function <code>pub fn do_animal_things()</code> that we would like to call. Then we could have <code>Dinosaur</code> implement <code>Animal</code>:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">trait</span> Animal</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Ears: AnimalEars<span class="op">;</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Mouth: AnimalMouth<span class="op">;</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Legs: AnimalLegs<span class="op">;</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Lungs: AnimalLungs<span class="op">;</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">pub</span> <span class="kw">fn</span> do_animal_things()<span class="op">;</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">trait</span> Dinosaur <span class="op">{</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Ears: AnimalEars + Prehistoric<span class="op">;</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Mouth: AnimalMouth + Prehistoric<span class="op">;</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Legs: AnimalLegs + Prehistoric<span class="op">;</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Lungs: AnimalLungs + Prehistoric<span class="op">;</span></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>But how do we force the associated types on <code>Animal</code> to match those on <code>Dinosaur</code>? What if <code>Animal</code> has requirements not expressed in <code>Dinosaur</code>? We really want to force <code>Dinosaur</code> to implement <code>Animal</code>. A naive attempt to do this:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">trait</span> Dinosaur <span class="op">:</span> Animal<span class="op">&lt;</span>Ears <span class="op">=</span> <span class="dt">Self</span><span class="pp">::</span>Ears<span class="op">,</span> Mouth <span class="op">=</span> <span class="dt">Self</span><span class="pp">::</span>Mouth<span class="op">,</span> Legs <span class="op">=</span> <span class="dt">Self</span><span class="pp">::</span>Legs<span class="op">,</span> Lungs <span class="op">=</span> <span class="dt">Self</span><span class="pp">::</span>Lungs<span class="op">&gt;{</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Ears: AnimalEars + Prehistoric<span class="op">;</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Mouth: AnimalMouth + Prehistoric<span class="op">;</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Legs: AnimalLegs + Prehistoric<span class="op">;</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Lungs: AnimalLungs + Prehistoric<span class="op">;</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>But alas! We end up with an error:</p>
+<pre><code>cycle detected when computing the super traits of `Dinosaur` with associated type name `Ears`</code></pre>
+<p>Now what?</p>
+<h1 id="the-solution"><a href="#the-solution"># The Solution</a></h1>
+<p>The best way I could come up to do this is to add another associated type:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">trait</span> Dinosaur <span class="op">{</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Ears: AnimalEars + Prehistoric<span class="op">;</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Mouth: AnimalMouth + Prehistoric<span class="op">;</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Legs: AnimalLegs + Prehistoric<span class="op">;</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Lungs: AnimalLungs + Prehistoric<span class="op">;</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Animal: Animal<span class="op">&lt;</span>Ears <span class="op">=</span> <span class="dt">Self</span><span class="pp">::</span>Ears<span class="op">,</span> Mouth <span class="op">=</span> <span class="dt">Self</span><span class="pp">::</span>Mouth<span class="op">,</span> Legs <span class="op">=</span> <span class="dt">Self</span><span class="pp">::</span>Legs<span class="op">,</span> Lungs <span class="op">=</span> <span class="dt">Self</span><span class="pp">::</span>Lungs<span class="op">&gt;</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>This is annoying because another associated type has been added. But then, initialization is easy:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">impl</span><span class="op">&lt;</span>EARS<span class="op">,</span> MOUTH<span class="op">,</span> LEGS<span class="op">,</span> LUNGS<span class="op">&gt;</span> Animal <span class="cf">for</span> AnimalImpl<span class="op">&lt;</span>EARS<span class="op">,</span> MOUTH<span class="op">,</span> LEGS<span class="op">,</span> LUNGS<span class="op">&gt;</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="kw">where</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  EARS<span class="op">:</span> AnimalEars<span class="op">,</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  MOUTH<span class="op">:</span> AnimalMouth<span class="op">,</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  LEGS<span class="op">:</span> AnimalLegs<span class="op">,</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  LUNGS<span class="op">:</span> AnimalLungs<span class="op">,</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Ears <span class="op">=</span> EARS<span class="op">;</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Mouth <span class="op">=</span> MOUTH<span class="op">;</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Legs <span class="op">=</span> LEGS<span class="op">;</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Lungs <span class="op">=</span> LUNGS<span class="op">;</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>  <span class="kw">pub</span> <span class="kw">fn</span> do_animal_things()<span class="op">;</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a><span class="kw">impl</span><span class="op">&lt;</span>EARS<span class="op">,</span> MOUTH<span class="op">,</span> LEGS<span class="op">,</span> LUNGS<span class="op">&gt;</span> Dinosaur <span class="cf">for</span> AnimalImpl<span class="op">&lt;</span>EARS<span class="op">,</span> MOUTH<span class="op">,</span> LEGS<span class="op">,</span> LUNGS<span class="op">&gt;</span></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a><span class="kw">where</span></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>  EARS<span class="op">:</span> AnimalEars <span class="op">+</span> Prehistoric<span class="op">,</span></span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>  MOUTH<span class="op">:</span> AnimalMouth <span class="op">+</span> Prehistoric<span class="op">,</span></span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>  LEGS<span class="op">:</span> AnimalLegs <span class="op">+</span> Prehistoric<span class="op">,</span></span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>  LUNGS<span class="op">:</span> AnimalLungs <span class="op">+</span> Prehistoric<span class="op">,</span></span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Ears <span class="op">=</span> EARS<span class="op">;</span></span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Mouth <span class="op">=</span> MOUTH<span class="op">;</span></span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Legs <span class="op">=</span> LEGS<span class="op">;</span></span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Lungs <span class="op">=</span> LUNGS<span class="op">;</span></span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> Animal <span class="op">=</span> <span class="dt">Self</span><span class="op">;</span></span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>I don’t see a cleaner way to do this (if you do, let me know!). But, this surely is cleaner than restating type constraints everywhere as one might do if <code>Dinosaur</code> did not implement <code>Animal</code>. Or if we were using generics instead of associated types for both <code>Dinosaur</code> and <code>Animal</code>.</p>
+    </section>
+</article>
+
+        </main>
+
+    </body>
+</html>
