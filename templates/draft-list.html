@@ -1,16 +1,4 @@
 <table>
-    $for(posts)$
-        <tr>
-            <th class="bloglisttitle">*
-                <a href="$url$"> $title$ </a>
-                </th>
-            <th class="bloglistdate"> $date$ </th>
-
-        </tr>
-    $endfor$
-</table>
-<table>
-    <h1>Drafts</h1>
     $for(drafts)$
         <tr>
             <th class="bloglisttitle">*
@@ -20,9 +8,6 @@
 
         </tr>
     $endfor$
-</table>
-<table>
-    <h1>Archived</h1>
     $for(archived)$
         <tr>
             <th class="bloglisttitle">*

@@ -2,12 +2,12 @@
 author:
   name: "Justin Restivo"
 date: 2022-10-09
-title: "Faking subtyping in Rust"
+title: "Subtyping with associated types on traits in Rust"
 ---
 
 # Motivating the Problem
 
-In short, we have no trait subtyping relationship. It would be great if this were possible. But alas, Rust doesn't allow for this (yet!). This post is aimed at working around this.
+In short, we have no trait subtyping relationship that preserves associated types. It would be great if this were possible. But alas, Rust doesn't allow for this (yet!). This post is aimed at working around this.
 
 In Rust, suppose we have a lot of generics, with arbitrary constraints. For example, suppose we wish to build many types of animals. Each animal has `Ears`, `Mouth`, `Legs`, and `Lungs`. Each of these implement some traits. The normal ones like `Clone`, as well as `Send + Sync` to send between threads.
 

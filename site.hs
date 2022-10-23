@@ -55,27 +55,48 @@ main = hakyll $ do
       >>= loadAndApplyTemplate "templates/default.html" postCtx
       >>= relativizeUrls
 
-  create ["archive.html"] $ do
-    route idRoute
-    compile $ do
-      posts <- recentFirst =<< loadAll "posts/*"
-      let archiveCtx =
-            listField "posts" postCtx (return posts)
-              `mappend` constField "title" "Archives"
-              `mappend` defaultContext
+  match "drafts/*" $ do
+    route $ setExtension "html"
+    compile
+      $ pandocCompilerWithTransform defaultHakyllReaderOptions latexWriterOptions addSectionLinks
+      >>= loadAndApplyTemplate "templates/post.html"    postCtx
+      >>= loadAndApplyTemplate "templates/default.html" postCtx
+      >>= relativizeUrls
 
-      makeItem ""
-        >>= loadAndApplyTemplate "templates/archive.html" archiveCtx
-        >>= loadAndApplyTemplate "templates/default.html" archiveCtx
-        >>= relativizeUrls
+  match "archived/*" $ do
+    route $ setExtension "html"
+    compile
+      $ pandocCompilerWithTransform defaultHakyllReaderOptions latexWriterOptions addSectionLinks
+      >>= loadAndApplyTemplate "templates/post.html"    postCtx
+      >>= loadAndApplyTemplate "templates/default.html" postCtx
+      >>= relativizeUrls
+
+  -- create ["archive.html"] $ do
+  --   route idRoute
+  --   compile $ do
+  --     posts <- recentFirst =<< loadAll "posts/*"
+  --     let archiveCtx =
+  --           listField "posts" postCtx (return posts)
+  --             `mappend` constField "title" "Archives"
+  --             `mappend` defaultContext
+  --
+  --     makeItem ""
+  --       >>= loadAndApplyTemplate "templates/archive.html" archiveCtx
+  --       >>= loadAndApplyTemplate "templates/default.html" archiveCtx
+  --       >>= relativizeUrls
 
 
   match "index.html" $ do
     route idRoute
     compile $ do
       posts <- recentFirst =<< loadAll "posts/*"
+      drafts <- recentFirst =<< loadAll "drafts/*"
+      archived <- recentFirst =<< loadAll "archived/*"
       let indexCtx =
-            listField "posts" postCtx (return posts) `mappend` defaultContext
+            (listField "posts" postCtx (return posts)) `mappend`
+            (listField "drafts" postCtx (return drafts)) `mappend`
+            (listField "archived" postCtx (return archived)) `mappend`
+            defaultContext
 
       getResourceBody
         >>= applyAsTemplate indexCtx

@@ -2,7 +2,7 @@
 author:
   name: "Justin Restivo"
 date: 2022-10-09
-title: "Programming Paradigms and Polymorphism (under construction)"
+title: "Programming Paradigms and Polymorphism"
 ---
 
 #
