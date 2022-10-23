@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <!-- for latex rendering -->
+        <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <!-- google analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-PMP32CMWHS"></script>
+        <script>
+         window.dataLayer = window.dataLayer || [];
+         function gtag(){dataLayer.push(arguments);}
+         gtag('js', new Date());
+
+         gtag('config', 'G-PMP32CMWHS');
+        </script>
+        <!-- nerdfonts -->
+        <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hack-font@3/build/web/hack.css">
+
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Justin Restivo - Custom Keybinds on Gentoo</title>
+        <link rel="stylesheet" href="../css/default.css" />
+    </head>
+    <body>
+        <header class="header">
+            <div class="logo">
+                <a href="../index.html">Justin Restivo</a>
+            </div>
+            <nav>
+                <a href="../index.html" class="topele">Home</a>
+                <span> | </span>
+                <a href="../about.html" class="topele">About</a>
+                <span> | </span>
+                <a href="../contact.html" class="topele">Contact</a>
+                <span> | </span>
+                <a href="https://www.linkedin.com/in/justinprestivo" class="topele">Linkedin</a>
+                <span> | </span>
+                <!--<a href="/justin_restivo_resume.pdf" class="topele">Resume</a>-->
+                <!--<span> | </span>-->
+                <a href="https://github.com/DieracDelta" class="topele">Github</a>
+            </nav>
+        </header>
+
+        <main role="main">
+            <h1>Custom Keybinds on Gentoo</h1>
+            <article>
+    <section class="header">
+        Posted on November  4, 2019
+        
+    </section>
+    <section>
+        <h1 id="how-to-bind-custom-usb-keyboard-keys-using-eudev-on-gentoo"><a href="#how-to-bind-custom-usb-keyboard-keys-using-eudev-on-gentoo"># how to bind custom usb keyboard keys using eudev on gentoo</a></h1>
+<p>This is mostly for my own sanity if I ever want to edit this again. Basically if you have a custom usb device and want to bind the keys, follow these instructions on gentoo running eudev (process is similar for systemd):</p>
+<ul>
+<li>make a /etc/udev/hwdb directory (for systemd; ignore otherwise)</li>
+<li>look in /lib/udev/hwdb for instructions (for gentoo)</li>
+</ul>
+<p>There is a mapping between scancodes and keycodes. Scancodes are what the device (usbkeyboard) generate and they’re mapped by udev to keycodes.</p>
+<p>To view usb devices and the scancodes they generate, run evtest. The “value” is the scancode in hex. Find the keyboard (in my case, by searching “Alienware”) in the 60-keyboards.hwdb file. Then append rules in there. The syntax is <code>KEYBOARD_KEY_$HEX_SYM=$CODE</code>. A concrete example I use is <code>KEYBOARD_KEY_92=p</code>. Then, to reload, run <code>udevadm hwdb --update</code> and then <code>udevadm trigger --verbose --sysname-match="event*"</code>. Only works on gentoo.</p>
+    </section>
+</article>
+
+        </main>
+
+    </body>
+</html>

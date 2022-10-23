@@ -18,7 +18,7 @@
         <meta charset="utf-8">
         <meta http-equiv="x-ua-compatible" content="ie=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Justin Restivo - Faking subtyping in Rust</title>
+        <title>Justin Restivo - Subtyping with associated types on traits in Rust</title>
         <link rel="stylesheet" href="../css/default.css" />
     </head>
     <body>
@@ -42,7 +42,7 @@
         </header>
 
         <main role="main">
-            <h1>Faking subtyping in Rust</h1>
+            <h1>Subtyping with associated types on traits in Rust</h1>
             <article>
     <section class="header">
         Posted on October  9, 2022
@@ -50,7 +50,7 @@
     </section>
     <section>
         <h1 id="motivating-the-problem"><a href="#motivating-the-problem"># Motivating the Problem</a></h1>
-<p>In short, we have no trait subtyping relationship. It would be great if this were possible. But alas, Rust doesn’t allow for this (yet!). This post is aimed at working around this.</p>
+<p>In short, we have no trait subtyping relationship that preserves associated types. It would be great if this were possible. But alas, Rust doesn’t allow for this (yet!). This post is aimed at working around this.</p>
 <p>In Rust, suppose we have a lot of generics, with arbitrary constraints. For example, suppose we wish to build many types of animals. Each animal has <code>Ears</code>, <code>Mouth</code>, <code>Legs</code>, and <code>Lungs</code>. Each of these implement some traits. The normal ones like <code>Clone</code>, as well as <code>Send + Sync</code> to send between threads.</p>
 <p>The first pass stab at this might look like:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a></span>
