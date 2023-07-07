@@ -112,12 +112,9 @@ use futures::FutureExt;
 
 // millis + secs
 #[derive(Clone)]
-// arc is a bit more ergonomic for async code
+// arc is a bit more ergonomic for async code than Box is
 pub struct GenTimer(Arc<dyn Fn(u64, u32) -> BoxFuture<'static, ()>>);
 
-// trickiness to make `add_one` callable by
-// getting the compiler to automatically dereference
-// the type
 impl Deref for GenTimer {
     type Target = dyn Fn(u64, u32) -> BoxFuture<'static, ()>;
 
@@ -146,8 +143,65 @@ Cool, this works!
 
 # Motivating the Spamming of Sync
 
-TODO...
+Suppose we want to send our timer generating function to a different task. Something like:
+
+```rust
+#[tokio::main]
+async fn main() {
+    let gen_timer =
+        GenTimer(Arc::new(|secs, millis| {
+            async move {
+                tokio::time::sleep(Duration::new(secs, millis)).await
+            }
+            .boxed() // NOTE using `boxed` from `futures::FutureExt` to box and pin up the future.
+        }));
+
+    tokio::task::spawn(
+        async move {
+            gen_timer(1, 1).await;
+            println!("completed the timer!");
+        }
+    );
+}
+
+```
+
+We get the error:
+```
+error: future cannot be sent between threads safely
+   --> src/main.rs:30:9
+    |
+30  | /         async move {
+31  | |             gen_timer(1, 1).await;
+32  | |         }
+    | |_________^ future created by async block is not `Send`
+    |
+    = help: the trait `Sync` is not implemented for `(dyn Fn(u64, u32) -> Pin<Box<(dyn futures::Future<Output = ()> + std::marker::Send + 'static)>> + 'static)`
+note: captured value is not `Send`
+   --> src/main.rs:31:13
+    |
+31  |             gen_timer(1, 1).await;
+    |             ^^^^^^^^^ has type `GenTimer` which is not `Send`
+note: required by a bound in `tokio::spawn`
+   --> /playground/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-1.29.0/src/task/spawn.rs:166:21
+    |
+166 |         T: Future + Send + 'static,
+    |                     ^^^^ required by this bound in `spawn`
+
+error: future cannot be sent between threads safely
+   --> src/main.rs:30:9
+    |
+30  | /         async move {
+31  | |             gen_timer(1, 1).await;
+32  | |         }
+    | |_________^ future created by async block is not `Send`
+
+```
+
+We need the function contained in `GenTimer` to be guaranteed to implement `Sync` so that we can pass around the pointer to the function (that is, the `Arc<dyn...>`. To do this, the future returned by the function must also be `Sync`.
 
 # `async-trait` betrays us
+
+Consider the following example, but inside our future we also call an async function defined in a trait.
 
 
