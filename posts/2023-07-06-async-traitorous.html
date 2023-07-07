@@ -118,38 +118,83 @@
 <span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co">// millis + secs</span></span>
 <span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="at">#[</span>derive<span class="at">(</span><span class="bu">Clone</span><span class="at">)]</span></span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="co">// arc is a bit more ergonomic for async code</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="co">// arc is a bit more ergonomic for async code than Box is</span></span>
 <span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">struct</span> GenTimer(Arc<span class="op">&lt;</span><span class="kw">dyn</span> <span class="bu">Fn</span>(<span class="dt">u64</span><span class="op">,</span> <span class="dt">u32</span>) <span class="op">-&gt;</span> BoxFuture<span class="op">&lt;</span><span class="ot">'static</span><span class="op">,</span> ()<span class="op">&gt;&gt;</span>)<span class="op">;</span></span>
 <span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="co">// trickiness to make `add_one` callable by</span></span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="co">// getting the compiler to automatically dereference</span></span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="co">// the type</span></span>
-<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a><span class="kw">impl</span> <span class="bu">Deref</span> <span class="cf">for</span> GenTimer <span class="op">{</span></span>
-<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>    <span class="kw">type</span> Target <span class="op">=</span> <span class="kw">dyn</span> <span class="bu">Fn</span>(<span class="dt">u64</span><span class="op">,</span> <span class="dt">u32</span>) <span class="op">-&gt;</span> BoxFuture<span class="op">&lt;</span><span class="ot">'static</span><span class="op">,</span> ()<span class="op">&gt;;</span></span>
-<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>    <span class="kw">fn</span> deref(<span class="op">&amp;</span><span class="kw">self</span>) <span class="op">-&gt;</span> <span class="op">&amp;</span><span class="dt">Self</span><span class="pp">::</span>Target <span class="op">{</span></span>
-<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>        <span class="op">&amp;*</span><span class="kw">self</span><span class="op">.</span><span class="dv">0</span></span>
-<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a><span class="at">#[</span><span class="pp">tokio::</span>main<span class="at">]</span></span>
-<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">fn</span> main() <span class="op">{</span></span>
-<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> gen_timer <span class="op">=</span></span>
-<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>        GenTimer(<span class="pp">Arc::</span>new(<span class="op">|</span>secs<span class="op">,</span> millis<span class="op">|</span> <span class="op">{</span></span>
-<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>            <span class="kw">async</span> <span class="kw">move</span> <span class="op">{</span></span>
-<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>                <span class="pp">tokio::time::</span>sleep(<span class="pp">Duration::</span>new(secs<span class="op">,</span> millis))<span class="op">.</span><span class="kw">await</span></span>
-<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>            <span class="op">}</span></span>
-<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>            <span class="op">.</span>boxed() <span class="co">// </span><span class="al">NOTE</span><span class="co"> using `boxed` from `futures::FutureExt` to box and pin up the future.</span></span>
-<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span>))<span class="op">;</span></span>
-<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>    gen_timer(<span class="dv">1</span><span class="op">,</span> <span class="dv">1</span>)<span class="op">.</span><span class="kw">await</span><span class="op">;</span></span>
-<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>    <span class="pp">println!</span>(<span class="st">&quot;completed the timer!&quot;</span>)<span class="op">;</span></span>
-<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="kw">impl</span> <span class="bu">Deref</span> <span class="cf">for</span> GenTimer <span class="op">{</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>    <span class="kw">type</span> Target <span class="op">=</span> <span class="kw">dyn</span> <span class="bu">Fn</span>(<span class="dt">u64</span><span class="op">,</span> <span class="dt">u32</span>) <span class="op">-&gt;</span> BoxFuture<span class="op">&lt;</span><span class="ot">'static</span><span class="op">,</span> ()<span class="op">&gt;;</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>    <span class="kw">fn</span> deref(<span class="op">&amp;</span><span class="kw">self</span>) <span class="op">-&gt;</span> <span class="op">&amp;</span><span class="dt">Self</span><span class="pp">::</span>Target <span class="op">{</span></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>        <span class="op">&amp;*</span><span class="kw">self</span><span class="op">.</span><span class="dv">0</span></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a><span class="at">#[</span><span class="pp">tokio::</span>main<span class="at">]</span></span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">fn</span> main() <span class="op">{</span></span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> gen_timer <span class="op">=</span></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>        GenTimer(<span class="pp">Arc::</span>new(<span class="op">|</span>secs<span class="op">,</span> millis<span class="op">|</span> <span class="op">{</span></span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>            <span class="kw">async</span> <span class="kw">move</span> <span class="op">{</span></span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>                <span class="pp">tokio::time::</span>sleep(<span class="pp">Duration::</span>new(secs<span class="op">,</span> millis))<span class="op">.</span><span class="kw">await</span></span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>            <span class="op">}</span></span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>            <span class="op">.</span>boxed() <span class="co">// </span><span class="al">NOTE</span><span class="co"> using `boxed` from `futures::FutureExt` to box and pin up the future.</span></span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span>))<span class="op">;</span></span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>    gen_timer(<span class="dv">1</span><span class="op">,</span> <span class="dv">1</span>)<span class="op">.</span><span class="kw">await</span><span class="op">;</span></span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>    <span class="pp">println!</span>(<span class="st">&quot;completed the timer!&quot;</span>)<span class="op">;</span></span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>Cool, this works!</p>
 <h1 id="motivating-the-spamming-of-sync"><a href="#motivating-the-spamming-of-sync"># Motivating the Spamming of Sync</a></h1>
-<p>TODO…</p>
+<p>Suppose we want to send our timer generating function to a different task. Something like:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="at">#[</span><span class="pp">tokio::</span>main<span class="at">]</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">fn</span> main() <span class="op">{</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> gen_timer <span class="op">=</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>        GenTimer(<span class="pp">Arc::</span>new(<span class="op">|</span>secs<span class="op">,</span> millis<span class="op">|</span> <span class="op">{</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>            <span class="kw">async</span> <span class="kw">move</span> <span class="op">{</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>                <span class="pp">tokio::time::</span>sleep(<span class="pp">Duration::</span>new(secs<span class="op">,</span> millis))<span class="op">.</span><span class="kw">await</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>            <span class="op">}</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>            <span class="op">.</span>boxed() <span class="co">// </span><span class="al">NOTE</span><span class="co"> using `boxed` from `futures::FutureExt` to box and pin up the future.</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span>))<span class="op">;</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    <span class="pp">tokio::task::</span>spawn(</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>        <span class="kw">async</span> <span class="kw">move</span> <span class="op">{</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>            gen_timer(<span class="dv">1</span><span class="op">,</span> <span class="dv">1</span>)<span class="op">.</span><span class="kw">await</span><span class="op">;</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>            <span class="pp">println!</span>(<span class="st">&quot;completed the timer!&quot;</span>)<span class="op">;</span></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>    )<span class="op">;</span></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>We get the error:</p>
+<pre><code>error: future cannot be sent between threads safely
+   --&gt; src/main.rs:30:9
+    |
+30  | /         async move {
+31  | |             gen_timer(1, 1).await;
+32  | |         }
+    | |_________^ future created by async block is not `Send`
+    |
+    = help: the trait `Sync` is not implemented for `(dyn Fn(u64, u32) -&gt; Pin&lt;Box&lt;(dyn futures::Future&lt;Output = ()&gt; + std::marker::Send + 'static)&gt;&gt; + 'static)`
+note: captured value is not `Send`
+   --&gt; src/main.rs:31:13
+    |
+31  |             gen_timer(1, 1).await;
+    |             ^^^^^^^^^ has type `GenTimer` which is not `Send`
+note: required by a bound in `tokio::spawn`
+   --&gt; /playground/.cargo/registry/src/index.crates.io-6f17d22bba15001f/tokio-1.29.0/src/task/spawn.rs:166:21
+    |
+166 |         T: Future + Send + 'static,
+    |                     ^^^^ required by this bound in `spawn`
+
+error: future cannot be sent between threads safely
+   --&gt; src/main.rs:30:9
+    |
+30  | /         async move {
+31  | |             gen_timer(1, 1).await;
+32  | |         }
+    | |_________^ future created by async block is not `Send`
+</code></pre>
+<p>We need the function contained in <code>GenTimer</code> to be guaranteed to implement <code>Sync</code> so that we can pass around the pointer to the function (that is, the <code>Arc&lt;dyn...&gt;</code>. To do this, the future returned by the function must also be <code>Sync</code>.</p>
 <h1 id="async-trait-betrays-us"><a href="#async-trait-betrays-us"># <code>async-trait</code> betrays us</a></h1>
+<p>Consider the following example, but inside our future we also call an async function defined in a trait.</p>
     </section>
 </article>
 
