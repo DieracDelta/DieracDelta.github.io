@@ -1,0 +1,143 @@
+---
+author:
+  name: "Justin Restivo"
+date: 2023-07-06
+title: "Async Trait-orous and the Case for BoxSyncFuture"
+---
+
+# A Tale of Poor Ergonomics
+
+Our story begins with poor ergonomics. We don't have currying in Rust. This can often times be frustrating, but hey, at least it's possible! For example, in Haskell I can do:
+
+```haskell
+ghci> let addOne = (+ 1)
+ghci> addOne 5
+6
+```
+
+This is a function application. We apply `+` to 1 and get back a function that adds 1.
+
+If we wish to do this in Rust, we can try first with a closure:
+
+```rust
+let add_one = |x| {
+    x + 1
+}
+```
+
+This is great! ...Until we need to store a function in a struct. We can't! The closure type is unique, and we can't represent it in Rust code. What's the work around? Trait objects! `Fn|FnMut|FnOnce` are traits that closures implement. So, how do we use this to represent functions at compile time? Sadly, we can't yet. The proposal use `impl` in types is still a WIP (TODO link). Ah, but instead we may use traits at runtime to solve our problem. We can cast our closure into a boxed trait object and pass that around!
+
+
+```rust
+use std::ops::{Add, Deref};
+
+pub struct AddSomething<T: Add>(Box<dyn Fn(T) -> T>);
+
+// trickiness to make `add_one` callable by
+// getting the compiler to automatically dereference
+// the type
+impl<T: Add> Deref for AddSomething<T> {
+    type Target = dyn Fn(T) -> T;
+
+    fn deref(&self) -> &Self::Target {
+        &*self.0
+    }
+}
+
+pub fn main() {
+    let add_one = AddSomething(Box::new(|i| { i + 1}));
+
+    println!("add 1 to 5 is {}", add_one(5));
+}
+```
+
+Alas, this is…not particularly great. It's hard to read, verbose to write, and generally annoying to maneuver.
+
+# The Woes of Async
+
+Let's increase the complexity! What if we want to have our function be async? Let's say we're returning a future that sleeps for a period of time. How do we do this? Well, first we need to pull in an async executor. Let's pull in tokio. A straw man attempt might be as follows:
+
+```rust
+#[tokio::main]
+async fn main() {
+
+    let f = async |x| {
+        tokio::time::sleep(x).await;
+    }
+}
+
+```
+
+Sadly, we get an error:
+
+```
+error[E0658]: async closures are unstable
+```
+
+So, now what? Is there a way around this? Well, we can take inspiration from the `async-trait` crate and manually make our function async. Consider the following two functions:
+
+```rust
+async fn example_1() {}
+
+use std::pin::Pin;
+use std::future::Future;
+fn example_2() -> Pin<Box<dyn Future<Output = ()> + Send + Sync>>{
+    Box::pin(async { () })
+
+}
+```
+
+These functions are the same in signature to the rust compiler (or, at least I think they are...). Note the trait bounds. The output will be `Send` and `Sync` iff it is possible (e.g., if the future itself is `Sync` and `Send`, `Pin<Box<...>>` will be `Send` and `Sync`). This is useful s.t. that the future and references to that future can be passed between threads.
+
+Note: `example_2`'s type signature is particularly bad. The `future`'s crate has two type aliases to make this easier:
+
+```rust
+type BoxFuture<'a, T> =  Pin<Box<dyn Future<Output = T> + Send + 'a>>
+type BoxLocalFuture<'a, T> = Pin<Box<dyn Future<Output = T> + 'a>>
+
+```
+
+Note that in the `BoxLocalFuture` case, the `Send` bound is missing, so the future cannot be sent between threads. Both types don't add `Sync`. This makes sense, as some futures are not `Sync`, but this will definitely bite us later on.
+
+To make our function async, we need to use a `BoxFuture`:
+
+```rust
+use futures::future::BoxFuture;
+use std::sync::Arc;
+use std::ops::Deref;
+use std::time::Duration;
+use futures::FutureExt;
+
+// millis + secs
+#[derive(Clone)]
+// arc is a bit more ergonomic for async code
+pub struct GenTimer(Arc<dyn Fn(u64, u32) -> BoxFuture<'static, ()>>);
+
+// trickiness to make `add_one` callable by
+// getting the compiler to automatically dereference
+// the type
+impl Deref for GenTimer {
+    type Target = dyn Fn(u64, u32) -> BoxFuture<'static, ()>;
+
+    fn deref(&self) -> &Self::Target {
+        &*self.0
+    }
+}
+
+#[tokio::main]
+async fn main() {
+    let gen_timer =
+        GenTimer(Arc::new(|secs, millis| {
+            async move {
+                tokio::time::sleep(Duration::new(secs, millis)).await
+            }
+            .boxed() // NOTE using `boxed` from `futures::FutureExt` to box and pin up the future.
+        }));
+
+    gen_timer(1, 1).await;
+
+    println!("completed the timer!");
+}
+```
+
+Cool, this works!
