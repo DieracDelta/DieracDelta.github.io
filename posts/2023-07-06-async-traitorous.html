@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <!-- for latex rendering -->
+        <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <!-- google analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-PMP32CMWHS"></script>
+        <script>
+         window.dataLayer = window.dataLayer || [];
+         function gtag(){dataLayer.push(arguments);}
+         gtag('js', new Date());
+
+         gtag('config', 'G-PMP32CMWHS');
+        </script>
+        <!-- nerdfonts -->
+        <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hack-font@3/build/web/hack.css">
+
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Justin Restivo - Async Trait-orous and the Case for BoxSyncFuture</title>
+        <link rel="stylesheet" href="../css/default.css" />
+    </head>
+    <body>
+        <header class="header">
+            <div class="logo">
+                <a href="../index.html">Justin Restivo</a>
+            </div>
+            <nav>
+                <a href="../index.html" class="topele">Home</a>
+                <span> | </span>
+                <a href="../about.html" class="topele">About</a>
+                <span> | </span>
+                <a href="../contact.html" class="topele">Contact</a>
+                <span> | </span>
+                <a href="../projects.html" class="topele">Projects</a>
+                <span> | </span>
+                <a href="https://www.linkedin.com/in/justinprestivo" class="topele">Linkedin</a>
+                <span> | </span>
+                <!--<a href="/justin_restivo_resume.pdf" class="topele">Resume</a>-->
+                <!--<span> | </span>-->
+                <a href="https://github.com/DieracDelta" class="topele">Github</a>
+            </nav>
+        </header>
+
+        <main role="main">
+            <!-- <h1>Async Trait-orous and the Case for BoxSyncFuture</h1> -->
+            <article>
+    <section class="header">
+        Posted on July  6, 2023
+        
+    </section>
+    <section>
+        <h1 id="a-tale-of-poor-ergonomics"><a href="#a-tale-of-poor-ergonomics"># A Tale of Poor Ergonomics</a></h1>
+<p>Our story begins with poor ergonomics. We don’t have currying in Rust. This can often times be frustrating, but hey, at least it’s possible! For example, in Haskell I can do:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="kw">let</span> addOne <span class="ot">=</span> (<span class="op">+</span> <span class="dv">1</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> addOne <span class="dv">5</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="dv">6</span></span></code></pre></div>
+<p>This is a function application. We apply <code>+</code> to 1 and get back a function that adds 1.</p>
+<p>If we wish to do this in Rust, we can try first with a closure:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> add_one <span class="op">=</span> <span class="op">|</span>x<span class="op">|</span> <span class="op">{</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    x <span class="op">+</span> <span class="dv">1</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>This is great! …Until we need to store a function in a struct. We can’t! The closure type is unique, and we can’t represent it in Rust code. What’s the work around? Trait objects! <code>Fn|FnMut|FnOnce</code> are traits that closures implement. So, how do we use this to represent functions at compile time? Sadly, we can’t yet. The proposal use <code>impl</code> in types is still a WIP (TODO link). Ah, but instead we may use traits at runtime to solve our problem. We can cast our closure into a boxed trait object and pass that around!</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">std::ops::</span><span class="op">{</span><span class="bu">Add</span><span class="op">,</span> <span class="bu">Deref</span><span class="op">};</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">struct</span> AddSomething<span class="op">&lt;</span>T<span class="op">:</span> <span class="bu">Add</span><span class="op">&gt;</span>(<span class="dt">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="bu">Fn</span>(T) <span class="op">-&gt;</span> T<span class="op">&gt;</span>)<span class="op">;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co">// trickiness to make `add_one` callable by</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="co">// getting the compiler to automatically dereference</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co">// the type</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="kw">impl</span><span class="op">&lt;</span>T<span class="op">:</span> <span class="bu">Add</span><span class="op">&gt;</span> <span class="bu">Deref</span> <span class="cf">for</span> AddSomething<span class="op">&lt;</span>T<span class="op">&gt;</span> <span class="op">{</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    <span class="kw">type</span> Target <span class="op">=</span> <span class="kw">dyn</span> <span class="bu">Fn</span>(T) <span class="op">-&gt;</span> T<span class="op">;</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    <span class="kw">fn</span> deref(<span class="op">&amp;</span><span class="kw">self</span>) <span class="op">-&gt;</span> <span class="op">&amp;</span><span class="dt">Self</span><span class="pp">::</span>Target <span class="op">{</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>        <span class="op">&amp;*</span><span class="kw">self</span><span class="op">.</span><span class="dv">0</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">fn</span> main() <span class="op">{</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> add_one <span class="op">=</span> AddSomething(<span class="dt">Box</span><span class="pp">::</span>new(<span class="op">|</span>i<span class="op">|</span> <span class="op">{</span> i <span class="op">+</span> <span class="dv">1</span><span class="op">}</span>))<span class="op">;</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>    <span class="pp">println!</span>(<span class="st">&quot;add 1 to 5 is {}&quot;</span><span class="op">,</span> add_one(<span class="dv">5</span>))<span class="op">;</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Alas, this is…not particularly great. It’s hard to read, verbose to write, and generally annoying to maneuver.</p>
+<h1 id="the-woes-of-async"><a href="#the-woes-of-async"># The Woes of Async</a></h1>
+<p>Let’s increase the complexity! What if we want to have our function be async? Let’s say we’re returning a future that sleeps for a period of time. How do we do this? Well, first we need to pull in an async executor. Let’s pull in tokio. A straw man attempt might be as follows:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="at">#[</span><span class="pp">tokio::</span>main<span class="at">]</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">fn</span> main() <span class="op">{</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> f <span class="op">=</span> <span class="kw">async</span> <span class="op">|</span>x<span class="op">|</span> <span class="op">{</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>        <span class="pp">tokio::time::</span>sleep(x)<span class="op">.</span><span class="kw">await</span><span class="op">;</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Sadly, we get an error:</p>
+<pre><code>error[E0658]: async closures are unstable</code></pre>
+<p>So, now what? Is there a way around this? Well, we can take inspiration from the <code>async-trait</code> crate and manually make our function async. Consider the following two functions:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">fn</span> example_1() <span class="op">{}</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">std::pin::</span>Pin<span class="op">;</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">std::future::</span><span class="bu">Future</span><span class="op">;</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="kw">fn</span> example_2() <span class="op">-&gt;</span> Pin<span class="op">&lt;</span><span class="dt">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="bu">Future</span><span class="op">&lt;</span>Output <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <span class="bu">Send</span> <span class="op">+</span> <span class="bu">Sync</span><span class="op">&gt;&gt;{</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Box</span><span class="pp">::</span>pin(<span class="kw">async</span> <span class="op">{</span> () <span class="op">}</span>)</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>These functions are the same in signature to the rust compiler (or, at least I think they are…). Note the trait bounds. The output will be <code>Send</code> and <code>Sync</code> iff it is possible (e.g., if the future itself is <code>Sync</code> and <code>Send</code>, <code>Pin&lt;Box&lt;...&gt;&gt;</code> will be <code>Send</code> and <code>Sync</code>). This is useful s.t. that the future and references to that future can be passed between threads.</p>
+<p>Note: <code>example_2</code>’s type signature is particularly bad. The <code>future</code>’s crate has two type aliases to make this easier:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> BoxFuture<span class="op">&lt;</span><span class="ot">'a</span><span class="op">,</span> T<span class="op">&gt;</span> <span class="op">=</span>  Pin<span class="op">&lt;</span><span class="dt">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="bu">Future</span><span class="op">&lt;</span>Output <span class="op">=</span> T<span class="op">&gt;</span> <span class="op">+</span> <span class="bu">Send</span> <span class="op">+</span> <span class="ot">'a</span><span class="op">&gt;&gt;</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> BoxLocalFuture<span class="op">&lt;</span><span class="ot">'a</span><span class="op">,</span> T<span class="op">&gt;</span> <span class="op">=</span> Pin<span class="op">&lt;</span><span class="dt">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="bu">Future</span><span class="op">&lt;</span>Output <span class="op">=</span> T<span class="op">&gt;</span> <span class="op">+</span> <span class="ot">'a</span><span class="op">&gt;&gt;</span></span></code></pre></div>
+<p>Note that in the <code>BoxLocalFuture</code> case, the <code>Send</code> bound is missing, so the future cannot be sent between threads. Both types don’t add <code>Sync</code>. This makes sense, as some futures are not <code>Sync</code>, but this will definitely bite us later on.</p>
+<p>To make our function async, we need to use a <code>BoxFuture</code>:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">futures::future::</span>BoxFuture<span class="op">;</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">std::sync::</span>Arc<span class="op">;</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">std::ops::</span><span class="bu">Deref</span><span class="op">;</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">std::time::</span>Duration<span class="op">;</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">futures::</span>FutureExt<span class="op">;</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co">// millis + secs</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="at">#[</span>derive<span class="at">(</span><span class="bu">Clone</span><span class="at">)]</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="co">// arc is a bit more ergonomic for async code</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">struct</span> GenTimer(Arc<span class="op">&lt;</span><span class="kw">dyn</span> <span class="bu">Fn</span>(<span class="dt">u64</span><span class="op">,</span> <span class="dt">u32</span>) <span class="op">-&gt;</span> BoxFuture<span class="op">&lt;</span><span class="ot">'static</span><span class="op">,</span> ()<span class="op">&gt;&gt;</span>)<span class="op">;</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="co">// trickiness to make `add_one` callable by</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="co">// getting the compiler to automatically dereference</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="co">// the type</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a><span class="kw">impl</span> <span class="bu">Deref</span> <span class="cf">for</span> GenTimer <span class="op">{</span></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>    <span class="kw">type</span> Target <span class="op">=</span> <span class="kw">dyn</span> <span class="bu">Fn</span>(<span class="dt">u64</span><span class="op">,</span> <span class="dt">u32</span>) <span class="op">-&gt;</span> BoxFuture<span class="op">&lt;</span><span class="ot">'static</span><span class="op">,</span> ()<span class="op">&gt;;</span></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>    <span class="kw">fn</span> deref(<span class="op">&amp;</span><span class="kw">self</span>) <span class="op">-&gt;</span> <span class="op">&amp;</span><span class="dt">Self</span><span class="pp">::</span>Target <span class="op">{</span></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>        <span class="op">&amp;*</span><span class="kw">self</span><span class="op">.</span><span class="dv">0</span></span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a><span class="at">#[</span><span class="pp">tokio::</span>main<span class="at">]</span></span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">fn</span> main() <span class="op">{</span></span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> gen_timer <span class="op">=</span></span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>        GenTimer(<span class="pp">Arc::</span>new(<span class="op">|</span>secs<span class="op">,</span> millis<span class="op">|</span> <span class="op">{</span></span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>            <span class="kw">async</span> <span class="kw">move</span> <span class="op">{</span></span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>                <span class="pp">tokio::time::</span>sleep(<span class="pp">Duration::</span>new(secs<span class="op">,</span> millis))<span class="op">.</span><span class="kw">await</span></span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>            <span class="op">}</span></span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>            <span class="op">.</span>boxed() <span class="co">// </span><span class="al">NOTE</span><span class="co"> using `boxed` from `futures::FutureExt` to box and pin up the future.</span></span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span>))<span class="op">;</span></span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>    gen_timer(<span class="dv">1</span><span class="op">,</span> <span class="dv">1</span>)<span class="op">.</span><span class="kw">await</span><span class="op">;</span></span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>    <span class="pp">println!</span>(<span class="st">&quot;completed the timer!&quot;</span>)<span class="op">;</span></span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Cool, this works!</p>
+    </section>
+</article>
+
+        </main>
+
+    </body>
+</html>

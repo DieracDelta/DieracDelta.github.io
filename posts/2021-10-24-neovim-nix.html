@@ -91,21 +91,21 @@
 <h1 id="starting-point"><a href="#starting-point"># Starting point</a></h1>
 <p>The repo I’ll be explaining is located <a href="https://github.com/DieracDelta/vimconf_talk/blob/0_initial_flake/flake.nix">here</a>. Check out the <code>0_initial_flake</code>, as this will be our starting point. The idea is to (hopefully) follow along as I explain how to configure neovim in a portable manner. The hope is that by the end of this, the reader will be able to fork my repo as a template and use it to configure their own portable vim “distro”.</p>
 <p>The <code>flake.nix</code> is written in the Nix language and defines our vim configuration. Think a JSON like language with ML-style (MetaLanguage not machine learning) syntax and lambda functions. Let’s analyze the code. The top level looks like:</p>
-<pre class="nix"><code>{
-  inputs = { ... };
-  outputs = inputs@{...}: {
-  }
-}</code></pre>
+<div class="sourceCode" id="cb4"><pre class="sourceCode nix"><code class="sourceCode nix"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="va">inputs</span> <span class="op">=</span> <span class="op">{</span> <span class="op">...</span> <span class="op">};</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="va">outputs</span> <span class="op">=</span> inputs@<span class="op">{...}</span>: <span class="op">{</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="er">}</span></span></code></pre></div>
 <p>This can be thought of as a “pure” function in a similar sense to other functional languages like Haskell. We input a set of pinned source code, and then the <code>nix</code> compiler builds some set of output build artifacts. The <em>key</em> subtlety is that these outputs are <em>always</em> the same for the same set of inputs (this is a lie, but a useful one for abstraction purposes). For the inputs, I’ve added neovim nightly (which has its own nix flake!), some vim plugins that I want to run on master, my home-brewn “nix to lua” translator/helper functions, and <code>rnix-lsp</code>–a language server for Nix written in Rust.</p>
 <p>Now, let’s consider the outputs. The outputs are a function of the inputs: <code>inputs</code> refers to the entire attribute set (analagous to JSON), and the <code>{neovim, ...}</code> will destructure that attribute set one level. For example <code>neovim</code> binds to <code>inputs.neovim</code>.</p>
 <p>Now I declare some variables:</p>
-<pre class="nix"><code>neovimConfig = ...;
-customNeovim = DSL.neovimBuilderWithDeps.legacyWrapper neovim.defaultPackage.x86_64-linux {
-  extraRuntimeDeps = [];
-  withNodeJs = true;
-  configure.customRC = my_config;
-  configure.packages.myVimPackage.start = with pkgs.vimPlugins; [ ];
-};</code></pre>
+<div class="sourceCode" id="cb5"><pre class="sourceCode nix"><code class="sourceCode nix"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>neovimConfig = ...;</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>customNeovim = DSL.neovimBuilderWithDeps.legacyWrapper neovim.defaultPackage.x86_64<span class="op">-</span>linux <span class="op">{</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="va">extraRuntimeDeps</span> <span class="op">=</span> <span class="op">[];</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="va">withNodeJs</span> <span class="op">=</span> <span class="cn">true</span><span class="op">;</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="va">configure</span>.<span class="va">customRC</span> <span class="op">=</span> my_config<span class="op">;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="va">configure</span>.<span class="va">packages</span>.<span class="va">myVimPackage</span>.<span class="va">start</span> <span class="op">=</span> <span class="kw">with</span> pkgs.vimPlugins<span class="op">;</span> <span class="op">[</span> <span class="op">];</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
 <p>Conceptually:</p>
 <ul>
 <li><code>neovimConfig</code> is where any plaintext config that would normally end up in a <code>init.lua</code> lives.</li>
@@ -113,20 +113,19 @@ customNeovim = DSL.neovimBuilderWithDeps.legacyWrapper neovim.defaultPackage.x86
 </ul>
 <p>The syntax might be intimidating at this point, but don’t sweat too much. The idea isn’t to question this template, as it should “just workTM”. This initial layer of abstraction will allow us to create a powerful and portable vim build.</p>
 <p>We may use these variables we’ve defined to create outputs:</p>
-<pre class="nix"><code>{
-        # The packages: our custom neovim and the config text file
-        packages = { inherit (pkgs) customNeovim neovimConfig; };
-
-        # The package built by `nix build .`
-        defaultPackage = pkgs.customNeovim;
-
-        # The app run by `nix run .`
-        defaultApp = {
-          type = &quot;app&quot;;
-          program = &quot;${pkgs.customNeovim}/bin/nvim&quot;;
-        };
-};
-</code></pre>
+<div class="sourceCode" id="cb6"><pre class="sourceCode nix"><code class="sourceCode nix"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>        <span class="co"># The packages: our custom neovim and the config text file</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>        <span class="va">packages</span> <span class="op">=</span> <span class="op">{</span> <span class="kw">inherit</span> <span class="op">(</span>pkgs<span class="op">)</span> customNeovim neovimConfig<span class="op">;</span> <span class="op">};</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>        <span class="co"># The package built by `nix build .`</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>        <span class="va">defaultPackage</span> <span class="op">=</span> pkgs.customNeovim<span class="op">;</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>        <span class="co"># The app run by `nix run .`</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>        <span class="va">defaultApp</span> <span class="op">=</span> <span class="op">{</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>          <span class="va">type</span> <span class="op">=</span> <span class="st">&quot;app&quot;</span><span class="op">;</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>          <span class="va">program</span> <span class="op">=</span> <span class="st">&quot;</span><span class="sc">${</span>pkgs.customNeovim<span class="sc">}</span><span class="st">/bin/nvim&quot;</span><span class="op">;</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>        <span class="op">};</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span></code></pre></div>
 <p>Sidenote: experienced Nixers would expect defaultApp not to be required (<code>nix run</code> should automatically work and does quite well on normal Nix installs. This is a nix-portable quirk).</p>
 <p>We can inspect these outputs.</p>
 <pre><code>$ nix flake show
@@ -137,7 +136,7 @@ git+file:///home/jrestivo/Projects/vimtalk
 │   └───x86_64-linux: package 'neovim-master'
 └───my_config: unknown</code></pre>
 <p>There are a few things we may do with this. First:</p>
-<pre class="nix"><code>bash edit.sh</code></pre>
+<div class="sourceCode" id="cb8"><pre class="sourceCode nix"><code class="sourceCode nix"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>bash edit.sh</span></code></pre></div>
 <p>This will build our lua config on change to our flake. We can then open <code>init.nvim</code> and have a look at the generated lua inside. To do this manually, we may run <code>nix build .#my_config</code>.</p>
 <p>Next, the <code>defaultPackage.x86_64-linux</code> attribute will build our “customized” neovim and store the resulting build artifacts in a <code>result</code> directory:</p>
 <p><code>nix build .</code></p>
@@ -149,83 +148,82 @@ git+file:///home/jrestivo/Projects/vimtalk
 <p>Now that we understand the set up, all that remains is to fill out the rest of the config to make it useful.</p>
 <h1 id="configuring-via-dsl"><a href="#configuring-via-dsl"># Configuring via DSL</a></h1>
 <p>Check out branch <code>1_dsl</code> to see the <code>DSL</code> in action. Keybinds are just lua calls. They have a natural representation in Nix as a JSON-like attribute set. For this, we use Gytis’ <a href="https://github.com/gytis-ivaskevicius/nix2vim">nix2vim</a>. For example:</p>
-<pre class="nix"><code>  nnoremap.j = &quot;gj&quot;;</code></pre>
+<div class="sourceCode" id="cb10"><pre class="sourceCode nix"><code class="sourceCode nix"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>  nnoremap.j = <span class="st">&quot;gj&quot;</span>;</span></code></pre></div>
 <p>This translates to: <code>vim.api.nvim_set_keymap('n','j','gj',{ noremap = true})</code>.</p>
 <p>Similarly <code>vim.o</code> and <code>vim.g</code> settings may be thought of the same way:</p>
-<pre class="nix"><code>vim.g = {
-  mapleader = &quot; &quot;;
-  nofoldenable = true;
-  noshowmode = true;
-  completeopt = &quot;menu,menuone,noselect&quot;;
-};
-vim.o = {
-  termguicolors = true;
-  ...
-}</code></pre>
+<div class="sourceCode" id="cb11"><pre class="sourceCode nix"><code class="sourceCode nix"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>vim.g = <span class="op">{</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="va">mapleader</span> <span class="op">=</span> <span class="st">&quot; &quot;</span><span class="op">;</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="va">nofoldenable</span> <span class="op">=</span> <span class="cn">true</span><span class="op">;</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="va">noshowmode</span> <span class="op">=</span> <span class="cn">true</span><span class="op">;</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="va">completeopt</span> <span class="op">=</span> <span class="st">&quot;menu,menuone,noselect&quot;</span><span class="op">;</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span>;</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>vim.o = <span class="op">{</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  <span class="va">termguicolors</span> <span class="op">=</span> <span class="cn">true</span><span class="op">;</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  ...</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>Sometimes we may also need to call lua functions. There isn’t an easy way to do this (yet) from nix. So, instead we call directly from the raw rc attribute.</p>
-<pre class="nix"><code>configure.customRC = ''
-  colorscheme dracula
-  luafile ${neovimConfig}
-'';
-</code></pre>
+<div class="sourceCode" id="cb12"><pre class="sourceCode nix"><code class="sourceCode nix"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>configure.customRC = <span class="st">''</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="st">  colorscheme dracula</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="st">  luafile </span><span class="sc">${</span>neovimConfig<span class="sc">}</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="st">''</span>;</span></code></pre></div>
 <p>which enables syntax highlighting in Neovim then loads the config file.</p>
 <h1 id="adding-plugins-in-nixpkgs"><a href="#adding-plugins-in-nixpkgs"># Adding plugins in nixpkgs</a></h1>
 <p>Check out branch <code>2_plugins</code>. Most plugins have been already packaged and live in <code>nixpkgs</code>. To see, we can run:</p>
-<pre class="nix"><code>nix search nixpkgs $PLUGINNAME</code></pre>
+<div class="sourceCode" id="cb13"><pre class="sourceCode nix"><code class="sourceCode nix"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>nix search nixpkgs $PLUGINNAME</span></code></pre></div>
 <p>Often times, the source is out of date. To tell, we can look at the revision:</p>
 <div class="sourceCode" id="cb14"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="ex">nix</span> edit nixpkgs#<span class="va">$PLUGINNAME</span></span></code></pre></div>
 <p>Now, I’ve gone through and done this for most of the plugins I use on a day-to-day basis. For the out of date ones, I add nix flake inputs and call <code>overrideAttrs</code>. <code>overrideAttrs</code> is a function that takes a function as an input of the form <code>(oldattrs: {...})</code>. This function takes in one argument, <code>oldattrs</code>, and returns an attribute set which is then merged with the old attribute set. It overwrites any attributes we specify. In this case, we just wish to override the source code (which we have done in multiple places). We write a wrapper around this called <code>withSrc</code>.</p>
 <pre><code>      withSrc = pkg: src: pkg.overrideAttrs (_: { inherit src; });</code></pre>
 <p>Don’t be thrown off by the <code>src</code>. That essentially reads as: <code>{src = src}</code>. Adding in our plugins with this extra wrapper function:</p>
-<pre class="nix"><code>configure.packages.myVimPackage.start = with prev.vimPlugins; [
-    # Overwriting plugin sources with different version
-    (withSrc telescope-nvim inputs.telescope-src)
-    (withSrc cmp-buffer inputs.cmp-buffer)
-    (withSrc nvim-cmp inputs.nvim-cmp)
-    (withSrc cmp-nvim-lsp inputs.cmp-nvim-lsp)
-    # Plugins from nixpkgs
-    lsp_signature-nvim
-    lspkind-nvim
-    nerdcommenter
-    nvim-lspconfig
-    plenary-nvim
-    popup-nvim
-    # Compile syntaxes into treesitter
-    (prev.vimPlugins.nvim-treesitter.withPlugins (plugins: with plugins; [ tree-sitter-nix tree-sitter-rust ]))
-];</code></pre>
+<div class="sourceCode" id="cb16"><pre class="sourceCode nix"><code class="sourceCode nix"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>configure.packages.myVimPackage.start = <span class="kw">with</span> prev.vimPlugins<span class="op">;</span> <span class="op">[</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Overwriting plugin sources with different version</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">(</span>withSrc telescope<span class="op">-</span>nvim inputs.telescope<span class="op">-</span>src<span class="op">)</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">(</span>withSrc cmp<span class="op">-</span>buffer inputs.cmp<span class="op">-</span>buffer<span class="op">)</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">(</span>withSrc nvim<span class="op">-</span>cmp inputs.nvim<span class="op">-</span>cmp<span class="op">)</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">(</span>withSrc cmp<span class="op">-</span>nvim<span class="op">-</span>lsp inputs.cmp<span class="op">-</span>nvim<span class="op">-</span>lsp<span class="op">)</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Plugins from nixpkgs</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>    lsp_signature-nvim</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>    lspkind-nvim</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>    nerdcommenter</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>    nvim-lspconfig</span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>    plenary-nvim</span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>    popup-nvim</span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Compile syntaxes into treesitter</span></span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>    <span class="op">(</span>prev.vimPlugins.nvim<span class="op">-</span>treesitter.withPlugins <span class="op">(</span><span class="va">plugins</span><span class="op">:</span> <span class="kw">with</span> plugins<span class="op">;</span> <span class="op">[</span> tree-sitter-nix tree-sitter-rust <span class="op">]))</span></span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a><span class="op">]</span>;</span></code></pre></div>
 <p>Treesitter is an odd case. For those unfamiliar, tree-sitter provides syntax highlighting among a series of other convenient features. There is some useful documentation <a href="https://github.com/NixOS/nixpkgs/blob/master/doc/languages-frameworks/vim.section.md#tree-sitter">here</a> that we can start with. The available grammar list lives <a href="https://github.com/NixOS/nixpkgs/tree/master/pkgs/development/tools/parsing/tree-sitter/grammars">here</a>.</p>
 <h2 id="treesitter-expression"><a href="#treesitter-expression">## Treesitter expression</a></h2>
 <p>Let’s walk through how one might figure out how this <code>nvim-treesitter</code> expression works. The specific expression I’m thinking of is:</p>
-<pre class="nix"><code>(pkgs.vimPlugins.nvim-treesitter.withPlugins (
-  plugins: with plugins; [tree-sitter-nix tree-sitter-python tree-sitter-c tree-sitter-rust]
-))</code></pre>
+<div class="sourceCode" id="cb17"><pre class="sourceCode nix"><code class="sourceCode nix"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="op">(</span>pkgs.vimPlugins.nvim<span class="op">-</span>treesitter.withPlugins <span class="op">(</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="va">plugins</span><span class="op">:</span> <span class="kw">with</span> plugins<span class="op">;</span> <span class="op">[</span>tree-sitter-nix tree-sitter-python tree-sitter-c tree-sitter-rust<span class="op">]</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="op">))</span></span></code></pre></div>
 <p>The first thing we must do is figure out what <code>nvim-treesitter.withPlugins</code> is. We may do this by searching it in nixpkgs: <code>nix edit nixpkgs#vimPlugins.nvim-treesitter.withPlugins</code>. This searches the <code>nixpkgs</code> flake (which should be present in the registry when flakes are enabled. Think of the registry as a local cache of nixpkgs that exists exactly for this sort of thing). The resulting expression:</p>
-<pre class="nix"><code># Usage:
-# pkgs.vimPlugins.nvim-treesitter.withPlugins (p: [ p.tree-sitter-c p.tree-sitter-java ... ])
-# or for all grammars:
-# pkgs.vimPlugins.nvim-treesitter.withPlugins (_: tree-sitter.allGrammars)
-nvim-treesitter = super.nvim-treesitter.overrideAttrs (old: {
-  passthru.withPlugins =
-    grammarFn: self.nvim-treesitter.overrideAttrs (_: {
-      postPatch =
-        let
-          grammars = tree-sitter.withPlugins grammarFn;
-        in
-        ''
-          rm -r parser
-          ln -s ${grammars} parser
-        '';
-    });
-});</code></pre>
+<div class="sourceCode" id="cb18"><pre class="sourceCode nix"><code class="sourceCode nix"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Usage:</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="co"># pkgs.vimPlugins.nvim-treesitter.withPlugins (p: [ p.tree-sitter-c p.tree-sitter-java ... ])</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="co"># or for all grammars:</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="co"># pkgs.vimPlugins.nvim-treesitter.withPlugins (_: tree-sitter.allGrammars)</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>nvim<span class="op">-</span>treesitter = super.nvim<span class="op">-</span>treesitter.overrideAttrs <span class="op">(</span><span class="va">old</span><span class="op">:</span> <span class="op">{</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>  <span class="va">passthru</span>.<span class="va">withPlugins</span> <span class="op">=</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>    <span class="va">grammarFn</span><span class="op">:</span> self.nvim<span class="op">-</span>treesitter.overrideAttrs <span class="op">(</span><span class="va">_</span><span class="op">:</span> <span class="op">{</span></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>      <span class="va">postPatch</span> <span class="op">=</span></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>          <span class="va">grammars</span> <span class="op">=</span> tree<span class="op">-</span>sitter.withPlugins grammarFn<span class="op">;</span></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>        <span class="kw">in</span></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>        <span class="st">''</span></span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a><span class="st">          rm -r parser</span></span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a><span class="st">          ln -s </span><span class="sc">${</span>grammars<span class="sc">}</span><span class="st"> parser</span></span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a><span class="st">        ''</span><span class="op">;</span></span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>    <span class="op">});</span></span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a><span class="op">})</span>;</span></code></pre></div>
 <p>Let’s proceed line by line. <code>super.nvim-treesitter.overrideAttrs</code> is applying an overlay that effectively modifies the already defined <code>nvim-treesitter</code> package by overriding something about the “way” it is built (this is called a derivation). As before, <code>overrideAttrs</code> takes in a function that defines a set of attributes that “overrides” the pre-existing set of attributes and sets them to new values. Sort of like how with subtyping polymorphism applied to OOP, a child class “inherits” methods from its parent, but may (in some languages at least, notably Java) override them.</p>
 <p>In this case, this function defines which attributes to override. <code>old</code> is the old set of attributes. The derivation sets the <code>passthru</code> attribute which (complexity aside) at a high level allows us to set the plugins list with the syntax above. For more info see <a href="https://discourse.nixos.org/t/how-to-merge-several-derivation-outputs-for-plugin-system/537/2">here</a>.</p>
 <h1 id="adding-plugins-outside-nixpkgs"><a href="#adding-plugins-outside-nixpkgs"># Adding plugins outside nixpkgs</a></h1>
 <p>Check out <code>3_custom_plugin</code>. Sometimes plugins may not be added into <code>nixpkgs</code>. One example is the theme I like, <code>darcula</code>. Luckily, <code>nix</code> makes it easy to build plugins:</p>
-<pre class="nix"><code>(pkgs.vimUtils.buildVimPluginFrom2Nix { pname = &quot;dracula-nvim&quot;; version = &quot;master&quot;; src = dracula-nvim; })</code></pre>
+<div class="sourceCode" id="cb19"><pre class="sourceCode nix"><code class="sourceCode nix"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="op">(</span>pkgs.vimUtils.buildVimPluginFrom2Nix <span class="op">{</span> <span class="va">pname</span> <span class="op">=</span> <span class="st">&quot;dracula-nvim&quot;</span><span class="op">;</span> <span class="va">version</span> <span class="op">=</span> <span class="st">&quot;master&quot;</span><span class="op">;</span> <span class="va">src</span> <span class="op">=</span> dracula<span class="op">-</span>nvim<span class="op">;</span> <span class="op">})</span></span></code></pre></div>
 <p>This uses a builtin <code>vim</code> plugin builder. Most of the time, we just need to name the plugin, specify its version and source (which is an input). Generally this should build whichever plugin without much extra configuration. Note that to see more documentation <code>nix edit nixpkgs#vimUtils.buildVimPluginFrom2nix</code> works quite nicely.</p>
 <h1 id="adding-lsp"><a href="#adding-lsp"># Adding LSP</a></h1>
 <p>Check out <code>4_lsp</code>. We’ve already added all the plugins we need. Now all we need to do is (1) add the LSPs (and other system dependencies) we might need and (2) include configuration as plaintext. The former is done by filling out the <code>extraRuntimeDeps</code> attribute:</p>
-<pre class="nix"><code>extraRuntimeDeps = with pkgs; [ripgrep clang rust-analyzer inputs.rnix-lsp.defaultPackage.x86_64-linux];</code></pre>
+<div class="sourceCode" id="cb20"><pre class="sourceCode nix"><code class="sourceCode nix"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>extraRuntimeDeps = <span class="kw">with</span> pkgs<span class="op">;</span> <span class="op">[</span>ripgrep clang rust-analyzer inputs.rnix-lsp.defaultPackage.x86_64-linux<span class="op">]</span>;</span></code></pre></div>
 <p>Note that we need ripgrep for telescope, clang for tree-sitter, and we are building <code>rnix-lsp</code> from source. All with very little effort!</p>
 <p>I’ve just pasted what I would normally use to configure <code>neovim</code> into <code>neoVimConfig</code>. This lives in neoVimConfig, along with keybinds.</p>
 <p>Note: The <code>extraRuntimeDeps</code> is something I added. I ended up forking the underlying nixpkgs builder into my <code>DSL</code> repo because I could not figure out how to pass runtime dependencies onto the path. Ideally, one wants to modify the <code>PATH</code> variable to include the dependencies such as ripgrep. Sadly there does not seem to be an easy way to do this, so I added <code>extraRuntimeDeps</code> as an argument to do this. <code>extraRuntimeDeps</code> get passed to the <a href="https://github.com/NixOS/nixpkgs/blob/master/pkgs/build-support/setup-hooks/make-wrapper.sh#L132"><code>wrapProgram</code> bash function</a>, which allows an easy way for us to prepend (in this case, anyway) packages to our path.</p>

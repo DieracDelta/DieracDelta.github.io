@@ -71,12 +71,12 @@ main motivating factor for me.</p>
 <p>Switching flakes was nearly trivial, even if you’re using home-manager. The
 first step is to install flakes on your system. This is done by including
 the following in your <code>configuration.nix</code>:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode elixir"><code class="sourceCode elixir"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>  nix <span class="op">=</span> {</span>
+<div class="sourceCode" id="cb1"><pre class="sourceCode elixir"><code class="sourceCode elixir"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>  nix <span class="op">=</span> <span class="fu">{</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>      package <span class="op">=</span> pkgs<span class="op">.</span>nixUnstable;</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>      extraOptions <span class="op">=</span> <span class="vs">''</span></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>        experimental<span class="op">-</span>features <span class="op">=</span> nix<span class="op">-</span>command flakes</span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>      <span class="vs">''</span>;</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>     };</span></code></pre></div>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>     <span class="fu">}</span>;</span></code></pre></div>
 <p>This moves the <code>nix</code> package manager to unstable. Then, add <code>nixFlakes</code> to the
 list of packages to install flakes.</p>
 <h2 id="enabling-flakes"><a href="#enabling-flakes">## Enabling flakes</a></h2>
