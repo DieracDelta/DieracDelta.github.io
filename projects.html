@@ -60,8 +60,10 @@
 <li><a href="https://github.com/EspressoSystems/netlink">A Netlink fork</a> that exposes infra for adding custom qdiscs. I used this to mess with the network on an AWS cluster and locally on my 5950x desktop in a automated way. I would enter a separate network namespace, link it to the main network namespace, then add a heap of qdiscs to limit memory bandwidth, add in articial latency, drop packets, etc. This was all done directly with syscalls wrapepd by Rust code instead of using <code>ip link</code> and <code>ns</code>.</li>
 <li><a href="https://github.com/EspressoSystems/async-compatibility-layer">This</a> and <a href="https://github.com/EspressoSystems/nll">this</a> crate</li>
 </ul>
+<h3 id="nda-nix-dap-implementation">NDA: <a href="https://github.com/DieracDelta/nda">Nix DAP implementation</a></h3>
+<p>WIP implementation of the debug adapter protocol for Nix.</p>
 <h3 id="riscv-asm-lsp"><a href="https://github.com/DieracDelta/asm-lsp">RISCV Asm Lsp</a></h3>
-<p>A (very WIP) language server for RISCV assembly. Uses a TreeSitter parser and built with tower-lsp.</p>
+<p>A (very WIP) language server for RISC-V assembly. Uses a TreeSitter parser and built with tower-lsp.</p>
 <h3 id="nixpkgs"><a href="https://github.com/NixOS/nixpkgs">NixPkgs</a></h3>
 <p>I maintain a couple of Rust packages.</p>
 <h3 id="vimconfig"><a href="https://github.com/DieracDelta/vimconfig">VimConfig</a></h3>
