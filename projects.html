@@ -49,8 +49,15 @@
 <h3 id="espresso-systems"><a href="https://www.espressosys.com/">Espresso Systems</a></h3>
 <p>At Espresso Systems, we’ve open sourced a bunch of the repositories I’ve contributed to, including:</p>
 <ul>
-<li><a href="https://github.com/EspressoSystems/HotShot">HotShot</a>, a decentralized sequencer with a libp2p networking layer.</li>
-<li><a href="https://github.com/EspressoSystems/netlink">A Netlink fork</a> exposing calls for adding custom qdiscs.</li>
+<li><a href="https://github.com/EspressoSystems/HotShot">HotShot</a>, a consensus and DA solution for our decentralized sequencer. My contributions include:
+<ul>
+<li>A Libp2p networking backend</li>
+<li>A testing harness for consensus including some pretty nifty procedural macros and type-foo</li>
+<li>Consensus implementations including pipelined HotStuff</li>
+<li>Nix infra for HotShot</li>
+<li>An <a href="https://github.com/EspressoSystems/HotShot/tree/main/task">asyncronous task abstraction/harness</a> for controlling and communication between tasks. This includes some pretty slick <code>Future</code> and <code>Stream</code> implementations. <code>pin_project</code> and I are now very good friends : D</li>
+</ul></li>
+<li><a href="https://github.com/EspressoSystems/netlink">A Netlink fork</a> that exposes infra for adding custom qdiscs. I used this to mess with the network on an AWS cluster and locally on my 5950x desktop in a automated way. I would enter a separate network namespace, link it to the main network namespace, then add a heap of qdiscs to limit memory bandwidth, add in articial latency, drop packets, etc. This was all done directly with syscalls wrapepd by Rust code instead of using <code>ip link</code> and <code>ns</code>.</li>
 <li><a href="https://github.com/EspressoSystems/async-compatibility-layer">This</a> and <a href="https://github.com/EspressoSystems/nll">this</a> crate</li>
 </ul>
 <h3 id="riscv-asm-lsp"><a href="https://github.com/DieracDelta/asm-lsp">RISCV Asm Lsp</a></h3>

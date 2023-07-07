@@ -18,7 +18,7 @@
         <meta charset="utf-8">
         <meta http-equiv="x-ua-compatible" content="ie=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Justin Restivo - Async Trait-orous and the Case for BoxSyncFuture</title>
+        <title>Justin Restivo - The Async Trait-or and the Case for BoxSyncFuture</title>
         <link rel="stylesheet" href="../css/default.css" />
     </head>
     <body>
@@ -44,7 +44,7 @@
         </header>
 
         <main role="main">
-            <!-- <h1>Async Trait-orous and the Case for BoxSyncFuture</h1> -->
+            <!-- <h1>The Async Trait-or and the Case for BoxSyncFuture</h1> -->
             <article>
     <section class="header">
         Posted on July  6, 2023
@@ -144,7 +144,7 @@
 <span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>    <span class="pp">println!</span>(<span class="st">&quot;completed the timer!&quot;</span>)<span class="op">;</span></span>
 <span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>Cool, this works!</p>
-<h1 id="motivating-the-spamming-of-sync"><a href="#motivating-the-spamming-of-sync"># Motivating the Spamming of Sync</a></h1>
+<h1 id="spam-sync"><a href="#spam-sync"># Spam Sync</a></h1>
 <p>Suppose we want to send our timer generating function to a different task. Something like:</p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="at">#[</span><span class="pp">tokio::</span>main<span class="at">]</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">fn</span> main() <span class="op">{</span></span>
@@ -192,8 +192,9 @@ error: future cannot be sent between threads safely
 32  | |         }
     | |_________^ future created by async block is not `Send`
 </code></pre>
-<p>We need the function contained in <code>GenTimer</code> to be guaranteed to implement <code>Sync</code> so that we can pass around the pointer to the function (that is, the <code>Arc&lt;dyn...&gt;</code>. To do this, the future returned by the function must also be <code>Sync</code>.</p>
-<h1 id="async-trait-betrays-us"><a href="#async-trait-betrays-us"># <code>async-trait</code> betrays us</a></h1>
+<p>We need the function contained in <code>GenTimer</code> to be guaranteed to implement <code>Sync</code> so that we can pass around the pointer to the function (that is, the <code>Arc&lt;dyn...&gt;</code>. To do this, the future returned by the function must also be <code>Sync</code>. Let’s spam Sync:</p>
+<p><img src="../images/sync_meme.png" /></p>
+<h1 id="the-betrayal"><a href="#the-betrayal"># The Betrayal</a></h1>
 <p>Consider the following example, but inside our future we also call an async function defined in a trait.</p>
     </section>
 </article>
