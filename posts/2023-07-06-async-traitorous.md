@@ -7,7 +7,7 @@ title: "Async Trait-orous and the Case for BoxSyncFuture"
 
 # A Tale of Poor Ergonomics
 
-Our story begins with poor ergonomics. We don't have currying in Rust. This can often times be frustrating, but hey, at least it's possible! For example, in Haskell I can do:
+Our story begins with poor ergonomics. We don't have currying in Rust. For example, in Haskell I can do:
 
 ```haskell
 ghci> let addOne = (+ 1)
@@ -15,7 +15,7 @@ ghci> addOne 5
 6
 ```
 
-This is a function application. We apply `+` to 1 and get back a function that adds 1.
+This is a function application. We apply `+` to one and get back a function that adds one to its input.
 
 If we wish to do this in Rust, we can try first with a closure:
 
@@ -87,7 +87,9 @@ fn example_2() -> Pin<Box<dyn Future<Output = ()> + Send + Sync>>{
 }
 ```
 
-These functions are the same in signature to the rust compiler (or, at least I think they are...). Note the trait bounds. The output will be `Send` and `Sync` iff it is possible (e.g., if the future itself is `Sync` and `Send`, `Pin<Box<...>>` will be `Send` and `Sync`). This is useful s.t. that the future and references to that future can be passed between threads.
+These functions subtly different. `example_1` returns an `impl Future`, so the type will be known at compile time, whereas `example_2` boxes and pins the future, so its type will only be known at run time. We need this to be able to represent the type in other type definitions.
+
+And, note the trait bounds. The output of `example_2` will be `Send` and `Sync` iff it is possible (e.g., if the future itself is `Sync` and `Send`, `Pin<Box<...>>` will be `Send` and `Sync`). This is useful because now, both the returned future and references to this future can be passed between threads.
 
 Note: `example_2`'s type signature is particularly bad. The `future`'s crate has two type aliases to make this easier:
 
@@ -141,3 +143,11 @@ async fn main() {
 ```
 
 Cool, this works!
+
+# Motivating the Spamming of Sync
+
+TODO...
+
+# `async-trait` betrays us
+
+
