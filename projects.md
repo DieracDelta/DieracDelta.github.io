@@ -13,9 +13,13 @@ At Espresso Systems, we've open sourced a bunch of the repositories I've contrib
 - [A Netlink fork](https://github.com/EspressoSystems/netlink) that exposes infra for adding custom qdiscs. I used this to mess with the network on an AWS cluster and locally on my 5950x desktop in a automated way. I would enter a separate network namespace, link it to the main network namespace, then add a heap of qdiscs to limit memory bandwidth, add in articial latency, drop packets, etc. This was all done directly with syscalls wrapepd by Rust code instead of using `ip link` and `ns`.
 - [This](https://github.com/EspressoSystems/async-compatibility-layer) and [this](https://github.com/EspressoSystems/nll) crate
 
+### NDA: [Nix DAP implementation](https://github.com/DieracDelta/nda)
+
+WIP implementation of the debug adapter protocol for Nix.
+
 ### [RISCV Asm Lsp](https://github.com/DieracDelta/asm-lsp)
 
-A (very WIP) language server for RISCV assembly. Uses a TreeSitter parser and built with tower-lsp.
+A (very WIP) language server for RISC-V assembly. Uses a TreeSitter parser and built with tower-lsp.
 
 ### [NixPkgs](https://github.com/NixOS/nixpkgs)
 
