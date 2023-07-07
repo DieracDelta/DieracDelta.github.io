@@ -2,7 +2,7 @@
 author:
   name: "Justin Restivo"
 date: 2023-07-06
-title: "Async Trait-orous and the Case for BoxSyncFuture"
+title: "The Async Trait-or and the Case for BoxSyncFuture"
 ---
 
 # A Tale of Poor Ergonomics
@@ -141,7 +141,7 @@ async fn main() {
 
 Cool, this works!
 
-# Motivating the Spamming of Sync
+# Spam Sync
 
 Suppose we want to send our timer generating function to a different task. Something like:
 
@@ -198,9 +198,11 @@ error: future cannot be sent between threads safely
 
 ```
 
-We need the function contained in `GenTimer` to be guaranteed to implement `Sync` so that we can pass around the pointer to the function (that is, the `Arc<dyn...>`. To do this, the future returned by the function must also be `Sync`.
+We need the function contained in `GenTimer` to be guaranteed to implement `Sync` so that we can pass around the pointer to the function (that is, the `Arc<dyn...>`. To do this, the future returned by the function must also be `Sync`. Let's spam Sync:
 
-# `async-trait` betrays us
+![](../images/sync_meme.png)
+
+# The Betrayal
 
 Consider the following example, but inside our future we also call an async function defined in a trait.
 
