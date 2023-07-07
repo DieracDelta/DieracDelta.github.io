@@ -4,8 +4,13 @@
 
 At Espresso Systems, we've open sourced a bunch of the repositories I've contributed to, including:
 
-- [HotShot](https://github.com/EspressoSystems/HotShot), a decentralized sequencer with a libp2p networking layer.
-- [A Netlink fork](https://github.com/EspressoSystems/netlink) exposing calls for adding custom qdiscs.
+- [HotShot](https://github.com/EspressoSystems/HotShot), a consensus and DA solution for our decentralized sequencer. My contributions include:
+  - A Libp2p networking backend
+  - A testing harness for consensus including some pretty nifty procedural macros and type-foo
+  - Consensus implementations including pipelined HotStuff
+  - Nix infra for HotShot
+  - An [asyncronous task abstraction/harness](https://github.com/EspressoSystems/HotShot/tree/main/task) for controlling and communication between tasks. This includes some pretty slick `Future` and `Stream` implementations. `pin_project` and I are now very good friends : D
+- [A Netlink fork](https://github.com/EspressoSystems/netlink) that exposes infra for adding custom qdiscs. I used this to mess with the network on an AWS cluster and locally on my 5950x desktop in a automated way. I would enter a separate network namespace, link it to the main network namespace, then add a heap of qdiscs to limit memory bandwidth, add in articial latency, drop packets, etc. This was all done directly with syscalls wrapepd by Rust code instead of using `ip link` and `ns`.
 - [This](https://github.com/EspressoSystems/async-compatibility-layer) and [this](https://github.com/EspressoSystems/nll) crate
 
 ### [RISCV Asm Lsp](https://github.com/DieracDelta/asm-lsp)

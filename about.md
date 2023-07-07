@@ -8,16 +8,13 @@ I specialize in systems and devops and have an interest in formal methods.
 My interests include:
 
 - Distributed systems: topics like CRDTs (esp delta-CRDTs), state machine replication, and p2p communication
-  are fascinating. Generally techniques to make something typically dependent on a central server more 
-  decentralized are very interesting to me. Specific interests have included raft/paxos, HotStuff, libp2p. 
-- Devops. I love controlling managing servers and deploying consistent builds.
-  My specific interests center around using Nix 
-  (the package manager, Linux distro, and DSL) to declaratively control my systems.
-- Math: probability and category theory. 
-  I think the performance gains introduced with randomized algorithms are cool.
-  I also am fascinated with the parallels between programming languages and category theory.
-- All things low level. This includes embedded and osdev.
+  are fascinating. Generally techniques to make something typically dependent on a central authority more
+  decentralized are very interesting to me. Specific interests have included raft/paxos, HotStuff, and libp2p.
+- Devops. I love controlling managing servers and deploying hermetic builds. My specific interests center around using Nix (the package manager, Linux distro, and DSL) to declaratively control my systems.
+- Math:
+  - Topics: probability, category theory
+  - After taking [6.856](http://courses.csail.mit.edu/6.856/current/), I am constantly looking for places to sprinkle in randomness to improve algorithmic performance with high probability.
+  - I am fascinated with the Curry-Howard-Lambek correspondence.
+- All things low level. This includes embedded and osdev as well as clever optimizations to code (e.g. utilizing simd, cache locality, concurrency/parallelism, etc). [6.172](https://ocw.mit.edu/courses/6-172-performance-engineering-of-software-systems-fall-2018/) imparted an awareness of low level things that's hard to ignore.
 
-
-I'm currently working as a Systems Engineer at [Espresso Systems](https://www.espressosys.com/).
-Before Espresso, I worked at Draper Laboratories on systems-ey things. Before Draper, I was an RA at CSAIL while I completed my masters.
+I begin my PHD in PL/Formal Methods this fall ('23) at Yale. I'm currently working as a Systems Engineer at [Espresso Systems](https://www.espressosys.com/). Before Espresso, I worked at Draper Laboratories on systems-ey things. Before Draper, I was an RA at CSAIL.
