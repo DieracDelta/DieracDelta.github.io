@@ -52,11 +52,11 @@
     </section>
     <section>
         <h1 id="a-tale-of-poor-ergonomics"><a href="#a-tale-of-poor-ergonomics"># A Tale of Poor Ergonomics</a></h1>
-<p>Our story begins with poor ergonomics. We don’t have currying in Rust. This can often times be frustrating, but hey, at least it’s possible! For example, in Haskell I can do:</p>
+<p>Our story begins with poor ergonomics. We don’t have currying in Rust. For example, in Haskell I can do:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> <span class="kw">let</span> addOne <span class="ot">=</span> (<span class="op">+</span> <span class="dv">1</span>)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>ghci<span class="op">&gt;</span> addOne <span class="dv">5</span></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="dv">6</span></span></code></pre></div>
-<p>This is a function application. We apply <code>+</code> to 1 and get back a function that adds 1.</p>
+<p>This is a function application. We apply <code>+</code> to one and get back a function that adds one to its input.</p>
 <p>If we wish to do this in Rust, we can try first with a closure:</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> add_one <span class="op">=</span> <span class="op">|</span>x<span class="op">|</span> <span class="op">{</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    x <span class="op">+</span> <span class="dv">1</span></span>
@@ -103,7 +103,8 @@
 <span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Box</span><span class="pp">::</span>pin(<span class="kw">async</span> <span class="op">{</span> () <span class="op">}</span>)</span>
 <span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-<p>These functions are the same in signature to the rust compiler (or, at least I think they are…). Note the trait bounds. The output will be <code>Send</code> and <code>Sync</code> iff it is possible (e.g., if the future itself is <code>Sync</code> and <code>Send</code>, <code>Pin&lt;Box&lt;...&gt;&gt;</code> will be <code>Send</code> and <code>Sync</code>). This is useful s.t. that the future and references to that future can be passed between threads.</p>
+<p>These functions subtly different. <code>example_1</code> returns an <code>impl Future</code>, so the type will be known at compile time, whereas <code>example_2</code> boxes and pins the future, so its type will only be known at run time. We need this to be able to represent the type in other type definitions.</p>
+<p>And, note the trait bounds. The output of <code>example_2</code> will be <code>Send</code> and <code>Sync</code> iff it is possible (e.g., if the future itself is <code>Sync</code> and <code>Send</code>, <code>Pin&lt;Box&lt;...&gt;&gt;</code> will be <code>Send</code> and <code>Sync</code>). This is useful because now, both the returned future and references to this future can be passed between threads.</p>
 <p>Note: <code>example_2</code>’s type signature is particularly bad. The <code>future</code>’s crate has two type aliases to make this easier:</p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode rust"><code class="sourceCode rust"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> BoxFuture<span class="op">&lt;</span><span class="ot">'a</span><span class="op">,</span> T<span class="op">&gt;</span> <span class="op">=</span>  Pin<span class="op">&lt;</span><span class="dt">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="bu">Future</span><span class="op">&lt;</span>Output <span class="op">=</span> T<span class="op">&gt;</span> <span class="op">+</span> <span class="bu">Send</span> <span class="op">+</span> <span class="ot">'a</span><span class="op">&gt;&gt;</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> BoxLocalFuture<span class="op">&lt;</span><span class="ot">'a</span><span class="op">,</span> T<span class="op">&gt;</span> <span class="op">=</span> Pin<span class="op">&lt;</span><span class="dt">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="bu">Future</span><span class="op">&lt;</span>Output <span class="op">=</span> T<span class="op">&gt;</span> <span class="op">+</span> <span class="ot">'a</span><span class="op">&gt;&gt;</span></span></code></pre></div>
@@ -146,6 +147,9 @@
 <span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>    <span class="pp">println!</span>(<span class="st">&quot;completed the timer!&quot;</span>)<span class="op">;</span></span>
 <span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>Cool, this works!</p>
+<h1 id="motivating-the-spamming-of-sync"><a href="#motivating-the-spamming-of-sync"># Motivating the Spamming of Sync</a></h1>
+<p>TODO…</p>
+<h1 id="async-trait-betrays-us"><a href="#async-trait-betrays-us"># <code>async-trait</code> betrays us</a></h1>
     </section>
 </article>
 
