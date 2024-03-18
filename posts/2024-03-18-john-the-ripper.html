@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <!-- for latex rendering -->
+        <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <!-- google analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-PMP32CMWHS"></script>
+        <script>
+         window.dataLayer = window.dataLayer || [];
+         function gtag(){dataLayer.push(arguments);}
+         gtag('js', new Date());
+
+         gtag('config', 'G-PMP32CMWHS');
+        </script>
+        <!-- nerdfonts -->
+        <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/hack-font@3/build/web/hack.css">
+
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Justin Restivo - Using John the Ripper</title>
+        <link rel="stylesheet" href="../css/default.css" />
+    </head>
+    <body>
+        <header class="header">
+            <div class="logo">
+                <a href="../index.html">Justin Restivo</a>
+            </div>
+            <nav>
+                <a href="../index.html" class="topele">Home</a>
+                <span> | </span>
+                <a href="../about.html" class="topele">About</a>
+                <span> | </span>
+                <a href="../contact.html" class="topele">Contact</a>
+                <span> | </span>
+                <a href="../projects.html" class="topele">Projects</a>
+                <span> | </span>
+                <a href="https://www.linkedin.com/in/justinprestivo" class="topele">Linkedin</a>
+                <span> | </span>
+                <!--<a href="/justin_restivo_resume.pdf" class="topele">Resume</a>-->
+                <!--<span> | </span>-->
+                <a href="https://github.com/DieracDelta" class="topele">Github</a>
+            </nav>
+        </header>
+
+        <main role="main">
+            <!-- <h1>Using John the Ripper</h1> -->
+            <article>
+    <section class="header">
+        Posted on March 18, 2024
+        
+    </section>
+    <section>
+        <p>This is mostly for my own reference.</p>
+<p>Suppose we have a locked pdf. To extract the hash (that we then crack using john), run <code>pdf2john.pl</code>. On nix, this is packaged under John. That is:</p>
+<pre><code>nix build nixpkgs#john &amp;&amp; ./result/bin/pdf2john.pl my.pdf &gt;&gt; hash</code></pre>
+<p>Then we can use John to extract the hash. This works like:</p>
+<pre><code>nix run nixpkgs#john -- --wordlist=myWordlist hash</code></pre>
+<p>Wordlist is a newline delimited file of possible passwords to try. This will output the result of John into a temporary file (though, Im not sure where this is).</p>
+<p>To print the passphrase that unlocks the hash (and thereby the pdf):</p>
+<pre><code>nix run nixpkgs#john -- --show hash</code></pre>
+    </section>
+</article>
+
+        </main>
+
+    </body>
+</html>
