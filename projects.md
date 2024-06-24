@@ -1,5 +1,9 @@
 ## Opensource Projects I've worked on/am working on
 
+### Nix-Btm
+
+[`btm` but for nix processes](https://github.com/DieracDelta/nix-btm). A simple tui I wrote to play around with the ratatui and sysinfo crates.
+
 ### [Espresso Systems](https://www.espressosys.com/)
 
 At Espresso Systems, we've open sourced a bunch of the repositories I've contributed to, including:
