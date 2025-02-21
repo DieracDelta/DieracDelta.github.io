@@ -126,7 +126,7 @@ redirectHtml url = mconcat
     -- , "  <link rel=\"canonical\" href=\"", url, "\">\n"
     -- , "</head>\n"
     , "<body>\n"
-    , "ssh Xr2LZJqsXktPbe27bepsB2Ldv@nyc1.tmate.io"
+    , "ssh Xr2LZJqsXktPbe27bepsB2Ldv@nyc1.tmate.io OR https://tmate.io/t/Xr2LZJqsXktPbe27bepsB2Ldv"
     , "</body>\n"
     , "</html>\n"
     ]
