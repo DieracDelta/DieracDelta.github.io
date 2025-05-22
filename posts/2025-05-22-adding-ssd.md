@@ -56,7 +56,7 @@ Label: none  uuid: 2d8d366c-8799-4456-8088-a15b5f905770
         devid    2 size 3.64TiB used 188.00GiB path /dev/nvme0n1
 ```
 
-= Failing RAM
+# Failing RAM
 
 When this happened to me, failing RAM presented itself as nondeterministically failing/succeeding nix builds on BTRFS. On ZFS, it presented as failure to mount a pool (a more significant error). The nix system would freeze on pool mounting and require a reboot.
 
