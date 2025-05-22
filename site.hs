@@ -73,9 +73,9 @@ main = hakyll $ do
       >>= relativizeUrls
 
 
-  create ["foobar/index.html"] $ do
-    route idRoute
-    compile $ makeItem (redirectHtml "https://raw.githubusercontent.com/DieracDelta/practice_materials/refs/heads/master/02_14_25/example_1.c")
+  -- create ["foobar/index.html"] $ do
+  --   route idRoute
+  --   compile $ makeItem (redirectHtml "https://raw.githubusercontent.com/DieracDelta/practice_materials/refs/heads/master/02_14_25/example_1.c")
 
   -- create ["archive.html"] $ do
   --   route idRoute
@@ -116,17 +116,17 @@ main = hakyll $ do
 postCtx :: Context String
 postCtx = dateField "date" "%B %e, %Y" `mappend` defaultContext
 
-redirectHtml :: String -> String
-redirectHtml url = mconcat
-    [ "<!DOCTYPE html>\n"
-    , "<html>\n"
-    -- , "<head>\n"
-    -- , "  <meta charset=\"utf-8\">\n"
-    -- , "  <meta http-equiv=\"refresh\" content=\"0; url=", url, "\">\n"
-    -- , "  <link rel=\"canonical\" href=\"", url, "\">\n"
-    -- , "</head>\n"
-    , "<body>\n"
-    , "https://tmate.io/t/78dZ9EeDfQZYjB4F2JdMeDJW4"
-    , "</body>\n"
-    , "</html>\n"
-    ]
+-- redirectHtml :: String -> String
+-- redirectHtml url = mconcat
+--     [ "<!DOCTYPE html>\n"
+--     , "<html>\n"
+--     -- , "<head>\n"
+--     -- , "  <meta charset=\"utf-8\">\n"
+--     -- , "  <meta http-equiv=\"refresh\" content=\"0; url=", url, "\">\n"
+--     -- , "  <link rel=\"canonical\" href=\"", url, "\">\n"
+--     -- , "</head>\n"
+--     , "<body>\n"
+--     , "https://tmate.io/t/78dZ9EeDfQZYjB4F2JdMeDJW4"
+--     , "</body>\n"
+--     , "</html>\n"
+--     ]
