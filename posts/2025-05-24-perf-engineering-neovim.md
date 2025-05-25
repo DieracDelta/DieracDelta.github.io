@@ -1,7 +1,7 @@
 ---
 author:
   name: "Justin Restivo"
-date: 2025-05-23
+date: 2025-05-24
 title: "Performance Engineering Neovim"
 ---
 
@@ -35,9 +35,31 @@ Conceptually, lazy loading of neovim plugins happens allows for some sort of eve
 
 There's a couple of options for lazy loaders. I ended up using [`lze`](https://github.com/BirdeeHub/lze).
 
-# CPU optimizations
+The way this works is in three steps:
 
-I've based this on this [reddit post](https://www.reddit.com/r/NixOS/comments/1b77j9i/comment/ktibbxq/), and roberth's suggestions [here](https://github.com/NixOS/nixpkgs/issues/49765).
+First, mark the plugins you want to load lazily as `optional`. In `mnw`, this is done by setting the `plugins.opt` attribute in the `mnw.lib.wrap` function ([example](https://github.com/DieracDelta/vimconfig/blob/21ede78b6e32e60e97553fe70fe384a2335f5814/flake.nix#L607)).
+
+Then, include a snippet that provides a trigger and initialization options. For example,
+
+```lua
+require("lze").load {
+  "ferris-nvim", -- plugin name to load
+  ft = {"rust"}, -- the event is opening a rust file
+  after = function()
+    -- configuration that is performed when the event is hit
+    require('ferris').setup({})
+    vim.api.nvim_set_keymap('n', '<leader>rl', '<cmd>lua require("ferris.methods.view_memory_layout")()<cr>', {})
+    vim.api.nvim_set_keymap('n', '<leader>rhi', '<cmd>lua require("ferris.methods.view_hir")()<cr>', {})
+    vim.api.nvim_set_keymap('n', '<leader>rmi', '<cmd>lua require("ferris.methods.view_mir")()<cr>', {})
+    vim.api.nvim_set_keymap('n', '<leader>rb', '<cmd>lua require("ferris.methods.rebuild_macros")()<cr>', {})
+    vim.api.nvim_set_keymap('n', '<leader>rm', '<cmd>lua vim.cmd.RustLsp("expandMacro")<cr>', {})
+  end,
+}
+```
+
+# CPU optimizations (Cross Compilation)
+
+I've based this on this [reddit post](https://www.reddit.com/r/NixOS/comments/1b77j9i/comment/ktibbxq/).
 
 We would like CPU specific instructions (e.g. AVX or SSE4 or something) to be enabled for each computer we build on. This *may* be faster than without these instructions in some cases.
 
@@ -46,21 +68,21 @@ To enable arch specific CPU optimizations, we specify the `hostSystem`, `localSy
 ```
 import pkgs {
       inherit overlays;
-      # system that this will be built on
-      hostSystem = {
-        system = "x86_64-linux";
-        gcc.arch = "znver3";
-        gcc.tune = "znver3";
-        gcc.abi = "64";
-      };
-      #
+      # the system being built *on*
       localSystem = {
         system = "x86_64-linux";
         gcc.arch = "znver3";
         gcc.tune = "znver3";
         gcc.abi = "64";
       };
-      # system to build to build for
+      # the system to build *for*
+      hostSystem = {
+        system = "x86_64-linux";
+        gcc.arch = "znver3";
+        gcc.tune = "znver3";
+        gcc.abi = "64";
+      };
+      # compilers (probably doesn't apply much) emit binaries with vector instructions
       targetSystem = {
         system = "x86_64-linux";
         gcc.arch = "znver3";
@@ -70,10 +92,17 @@ import pkgs {
     };
 ```
 
-Note that `localSystem` and `hostSystem` may vary depending on if the entire system is compiled with those features.
+The `gcc.*` and `system` attributres will of course be processor specific, but in the case of my AMD 5950x threadripper, will enable the extra instruction sets that are supported by the zen3 microarchitecture.
 
-// TODO finish this once you figure out what this stuff means
+But, that's it.
 
+Useful links to follow about this cross compilation step:
+
+- We're due for a change to `buildSystem` to match the NixOS derivation `buildPlatform` once [this PR is merged](https://github.com/NixOS/nixpkgs/pull/324614/files)
+- What do these parameters actually mean? Check the [nixos documentation here](https://nixos.org/manual/nixpkgs/stable/#possible-dependency-types) and the[nixpkgs documentation here](https://github.com/NixOS/nixpkgs/blob/master/doc/stdenv/cross-compilation.chapter.md)
+    - buildPlatform is the machine doing the building
+    - hostPlatform is the machine to run the built binary (possibly a compiler) on
+    - targetplatform is the machine a compiler running on hostPlatform will emit binaries for
 
 
 # LTO
