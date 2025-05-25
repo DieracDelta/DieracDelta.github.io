@@ -1,5 +1,9 @@
 ## Opensource Projects I've worked on/am working on
 
+### [Flashcards](https://github.com/DieracDelta/Flashcards)
+
+A bunch of Anki flashcards from self studied materials and prior classes I've taken. Generated using typ2anki.
+
 ### Nix-Btm
 
 [`btm` but for nix processes](https://github.com/DieracDelta/nix-btm). A simple tui I wrote to play around with the ratatui and sysinfo crates.
