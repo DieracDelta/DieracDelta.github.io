@@ -1,72 +1,87 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset
-      xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
-            http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
-<!-- created with Free Online Sitemap Generator www.xml-sitemaps.com -->
-
-
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
-  <loc>https://justin.restivo.me/</loc>
-  <lastmod>2021-01-09T21:36:25+00:00</lastmod>
-  <priority>1.00</priority>
+  <loc>http://justin.restivo.me/./index.html</loc>
 </url>
 <url>
-  <loc>https://justin.restivo.me/index.html</loc>
-  <lastmod>2021-01-09T21:36:25+00:00</lastmod>
-  <priority>0.80</priority>
+  <loc>http://justin.restivo.me/./about.html</loc>
 </url>
 <url>
-  <loc>https://justin.restivo.me/about.html</loc>
-  <lastmod>2021-01-09T21:36:25+00:00</lastmod>
-  <priority>0.80</priority>
+  <loc>http://justin.restivo.me/./contact.html</loc>
 </url>
 <url>
-  <loc>https://justin.restivo.me/contact.html</loc>
-  <lastmod>2021-01-09T21:36:25+00:00</lastmod>
-  <priority>0.80</priority>
+  <loc>http://justin.restivo.me/./projects.html</loc>
 </url>
 <url>
-  <loc>https://justin.restivo.me/posts/2022-06-25-subtyping-rust.html</loc>
-  <lastmod>2021-06-25T21:36:25+00:00</lastmod>
-  <priority>0.80</priority>
+  <loc>http://justin.restivo.me/./posts/2025-05-24-perf-engineering-neovim.html</loc>
 </url>
 <url>
-  <loc>https://justin.restivo.me/posts/2021-01-10-deploying-blog.html</loc>
-  <lastmod>2021-01-09T21:36:25+00:00</lastmod>
-  <priority>0.80</priority>
+  <loc>http://justin.restivo.me/./posts/2025-05-24-nix-tricks.html</loc>
 </url>
 <url>
-  <loc>https://justin.restivo.me/posts/2021-01-09-flakes.html</loc>
-  <lastmod>2021-01-09T21:36:25+00:00</lastmod>
-  <priority>0.80</priority>
+  <loc>http://justin.restivo.me/./posts/2025-05-22-adding-ssd.html</loc>
 </url>
 <url>
-  <loc>https://justin.restivo.me/posts/2020-04-26-nixos.html</loc>
-  <lastmod>2021-01-09T21:36:25+00:00</lastmod>
-  <priority>0.80</priority>
+  <loc>http://justin.restivo.me/./posts/2024-10-02-checking-hibp.html</loc>
 </url>
 <url>
-  <loc>https://justin.restivo.me/posts/2020-02-02-writing-thesis.html</loc>
-  <lastmod>2021-01-09T21:36:25+00:00</lastmod>
-  <priority>0.80</priority>
+  <loc>http://justin.restivo.me/./posts/2024-03-18-john-the-ripper.html</loc>
 </url>
 <url>
-  <loc>https://justin.restivo.me/posts/2019-11-04-custom-keys.html</loc>
-  <lastmod>2021-01-09T21:36:25+00:00</lastmod>
-  <priority>0.80</priority>
+  <loc>http://justin.restivo.me/./posts/2023-07-06-async-traitorous.html</loc>
 </url>
 <url>
-  <loc>https://justin.restivo.me/posts/2019-07-21-vimstart.html</loc>
-  <lastmod>2021-01-09T21:36:25+00:00</lastmod>
-  <priority>0.80</priority>
+  <loc>http://justin.restivo.me/./posts/2022-10-16-dealing-with-unwieldy-generics.html</loc>
 </url>
 <url>
-  <loc>https://justin.restivo.me/posts/2019-07-21-vim-latex.html</loc>
-  <lastmod>2021-01-09T21:36:25+00:00</lastmod>
-  <priority>0.80</priority>
+  <loc>http://justin.restivo.me/./posts/2022-06-25-subtyping-rust.html</loc>
 </url>
-
-
+<url>
+  <loc>http://justin.restivo.me/./posts/2021-10-24-neovim-nix.html</loc>
+</url>
+<url>
+  <loc>http://justin.restivo.me/./posts/2021-05-30-nix-rust-riscv-toy-kernel.html</loc>
+</url>
+<url>
+  <loc>http://justin.restivo.me/./drafts/2022-10-09-polymorphism.html</loc>
+</url>
+<url>
+  <loc>http://justin.restivo.me/./drafts/2021-02-15-deploy-secrets-flakes-filehost.html</loc>
+</url>
+<url>
+  <loc>http://justin.restivo.me/./drafts/2021-01-10-deploying-blog.html</loc>
+</url>
+<url>
+  <loc>http://justin.restivo.me/./archived/2021-01-09-flakes.html</loc>
+</url>
+<url>
+  <loc>http://justin.restivo.me/./archived/2020-04-26-nixos.html</loc>
+</url>
+<url>
+  <loc>http://justin.restivo.me/./archived/2020-02-02-writing-thesis.html</loc>
+</url>
+<url>
+  <loc>http://justin.restivo.me/./archived/2019-11-04-custom-keys.html</loc>
+</url>
+<url>
+  <loc>http://justin.restivo.me/./archived/2019-07-21-vimstart.html</loc>
+</url>
+<url>
+  <loc>http://justin.restivo.me/./archived/2019-07-21-vim-latex.html</loc>
+</url>
+<url>
+  <loc>http://justin.restivo.me/../index.html</loc>
+</url>
+<url>
+  <loc>http://justin.restivo.me/../about.html</loc>
+</url>
+<url>
+  <loc>http://justin.restivo.me/../contact.html</loc>
+</url>
+<url>
+  <loc>http://justin.restivo.me/../projects.html</loc>
+</url>
+<url>
+  <loc>http://justin.restivo.me/image</loc>
+</url>
 </urlset>
