@@ -27,7 +27,7 @@ jobs:
     - name: Make binary executable
       run: chmod +x ./$TYPSITE_BIN_NAME
     - name: "Build Typsite"
-      run: ./$TYPSITE_BIN_NAME c
+      run: ./$TYPSITE_BIN_NAME c --config typsite
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
       with:
