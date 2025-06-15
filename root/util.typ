@@ -1,5 +1,3 @@
-
-
 // Utils
 
 #let to-string(content) = {
@@ -39,19 +37,16 @@
     return align(alignment, content)
   }
   let horizontally = if alignment == none { "left" } else if alignment == center { "center" } else if (
-    alignment == left
+  alignment == left
   ) { "left" } else if alignment == right { "right" } else if alignment.x == center { "center" } else if (
-    alignment.x == right
+  alignment.x == right
   ) { "right" } else { "left" }
   html.elem("div", attrs: (style: "text-align: " + horizontally + ";"))[#content]
 }
 
 #let typst_scale = scale
 
-
 #let inline-content = state("inline-content", false)
-
-
 
 #let inline(scale: 100%, alignment: none, fill: none, content) = {
   context {
@@ -78,10 +73,10 @@
 #let codeinline(lang: "text", theme: "onedark", content) = context {
   let lang = lang
   box[#html.elem(
-      "rewrite",
-      attrs: (id: "code-inline", lang: str(lang), theme: str(theme), content: to-string(content)),
-      content,
-    )]
+    "rewrite",
+    attrs: (id: "code-inline", lang: str(lang), theme: str(theme), content: to-string(content)),
+    content,
+  )]
 }
 
 #let codeblock(lang: "text", theme: "onedark", content) = {
@@ -93,10 +88,9 @@
   )
 }
 
-
 #let inline_math(body, block: bool, scale: 100%) = {
   if block {
-    html.elem("div", attrs: (class:"math-container"))[
+    html.elem("div", attrs: (class: "math-container"))[
       #html.elem("span", attrs: (class: "math-block", content: to-string(body)))[
         #inline(scale: scale)[#body]
       ]
@@ -113,7 +107,7 @@
 // Common
 #let img(path, width: auto) = context {
   if target() != "html" {
-    return image(path, width:width)
+    return image(path, width: width)
   }
   html.elem("img", attrs: (src: str(path), width: to-string([#width])))[ ]
 }
@@ -176,4 +170,3 @@
 
   html.elem("span", attrs: (style: styles.join(" ")))[#content]
 }
-

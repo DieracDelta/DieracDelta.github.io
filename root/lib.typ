@@ -1,8 +1,5 @@
-
-
 #let default-code-highlight-theme = "forest"
 #import "util.typ": *
-
 
 // Anchor & Goto
 #let anchor(id) = {
@@ -19,7 +16,6 @@
   }
 }
 
-
 #let footnote_def(name, content) = {
   if target() == "html" {
     box[#html.elem("rewrite", attrs: (id: "footnote-def", name: name), content)]
@@ -33,7 +29,6 @@
     box[#html.elem("rewrite", attrs: (id: "footnote-ref", name: name))]
   } else { }
 }
-
 
 #let schema(name, body) = context {
   if target() != "html" {
@@ -89,7 +84,6 @@
           }
           inline_math(it, block: it.block)
         }
-
 
         #show link: it => {
           context {
@@ -182,29 +176,48 @@
         }
 
         #show selector.or(
-          heading, // 
-          par, // 
-          text, // 
-          strong, // 
-          list, // 
-          emph, // ✅
-          overline, // ✅
-          underline, // ✅
-          super, // ✅
-          sub, // ✅
-          raw, // ✅
-          link, // ✅ (without location dest)
+          heading,
+          // 
+          par,
+          // 
+          text,
+          // 
+          strong,
+          // 
+          list,
+          // 
+          emph,
+          // ✅
+          overline,
+          // ✅
+          underline,
+          // ✅
+          super,
+          // ✅
+          sub,
+          // ✅
+          raw,
+          // ✅
+          link,
+          // ✅ (without location dest)
           //label, // ✅
-          ref, // ✅
+          ref,
+          // ✅
           // footnote, // ✅
-          math.equation, // ✅
-          highlight, // ✅
-          align, //
-          strike, //
+          math.equation,
+          // ✅
+          highlight,
+          // ✅
+          align,
+          //
+          strike,
+          //
           // footnote.entry //
           // table, //
-          terms, //
-          figure, //
+          terms,
+          //
+          figure,
+          //
         ): it => {
           context {
             let label = it.at("label", default: none)
@@ -232,7 +245,6 @@
     )
   ]
 }
-
 
 // Embed
 // sidebar: only_title | full | none
@@ -268,7 +280,6 @@
     )[ ]
   }
 }
-
 
 #let cite-title(slug) = context {
   if target() == "html" {
@@ -369,7 +380,6 @@
 }
 
 // MetaGraph
-
 
 #let parent(slug) = context {
   if target() == "html" {

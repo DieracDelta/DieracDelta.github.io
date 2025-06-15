@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{page_title}</title>
+    <link rel="stylesheet" href="../assets/schemas/page.css" />
+    <link rel="stylesheet" href="../assets/math-block.css" />
+    <link rel="stylesheet" href="../assets/math-inline.css" />
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-PMP32CMWHS"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+
+      gtag("config", "G-PMP32CMWHS");
+    </script>
+  </head>
+
+  <body>
+    <header>
+      <div class="header-nav">
+        <span><strong>Justin Restivo</strong></span>
+        | <a href="/index.html">HOME</a> | <a href="/about.html">ABOUT</a> |
+        <a href="/contact.html">CONTACT</a> |
+        <a href="/projects.html">PROJECTS</a> |
+        <a href="https://www.linkedin.com/in/justinprestivo">LINKEDIN</a> |
+        <a href="https://github.com/DieracDelta">GITHUB</a>
+      </div>
+      <hr />
+    </header>
+    <div id="grid-wrapper">
+      <article>
+        <section class="block" id="{slug@anchor}">
+          <!-- <details open> -->
+          <summary>
+            <header>
+              <h1>
+                <metadata get="title" />
+              </h1>
+              <div class="metadata">
+                <ul>
+                  <li class="meta-item">Author: <metadata get="author" /></li>
+                  <li class="meta-item">Date: <metadata get="date" /></li>
+                </ul>
+              </div>
+            </header>
+          </summary>
+          <content />
+          <!-- Where to put Content-->
+          <!-- </details> -->
+        </section>
+        <!-- <footer></footer> -->
+      </article>
+      <!-- <sidebar /> -->
+      <!-- Where to put sidebar -->
+    </div>
+  </body>
+</html>

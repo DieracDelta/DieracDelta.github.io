@@ -1,0 +1,128 @@
+:root {
+  color-scheme: dark;
+  --separator-color: #fc5a03;
+  --content-gap: 15px;
+  --radius: 4px;
+
+  --text-color: #659f08;
+  --background-color: #252627;
+
+  --background-color-pre: #111;
+  --background-color-code: #111;
+
+  --hover-color-block: rgba(25, 29, 29, 0.5);
+  --hover-color-link: rgba(50, 29, 29, 0.5);
+  --target-color: #ffff00;
+
+  --link-color: #fc5a03;
+  --slug-color: #999;
+  --logo-color: #659f08;
+  --logo-hover-color: #fc5a03;
+  --span-taxon-color: #659f08;
+  --article-taxon-color: #659f08;
+  --mark-color: #ffff00;
+  --filter-math: none;
+}
+
+body {
+  font-family: 'Fira Code', monospace;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  font-family: monospace;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.header-nav {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+a:hover {
+  color: var(--logo-hover-color);
+  background-color: var(--hover-color-link);
+}
+
+a {
+  color: var(--link-color);
+  text-decoration: none;
+}
+
+a:hover {
+  background-color: var(--hover-color-link);
+  color: var(--text-color);
+}
+
+.logo {
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--logo-color);
+}
+
+.logo:hover {
+  color: var(--logo-hover-color);
+}
+
+.block {
+  background-color: transparent;
+  padding: 5px 10px;
+  border-radius: var(--radius);
+  transition: background-color 0.2s ease-in-out;
+}
+
+.block:hover {
+  background-color: var(--hover-color-block);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-color);
+  font-weight: bold;
+  margin: 0.5em 0 0.3em;
+}
+
+p {
+  margin: 0.5em 0;
+}
+
+ul {
+  padding-left: 1.2em;
+}
+
+hr {
+  border: none;
+  height: 1px;
+  background: var(--separator-color);
+  margin: 1em 0;
+}
+
+.mark {
+  background-color: var(--mark-color);
+  color: black;
+}
+
+/* Navigation styles */
+nav {
+  background-color: var(--background-color);
+  color: var(--text-color);
+  font-size: 14px;
+  border-left: 1px solid #222;
+}
+
+/* Tables */
+table, th, td {
+  border: 1px solid #444;
+  border-collapse: collapse;
+  padding: 5px;
+  color: var(--text-color);
+}
+
+th {
+  background-color: #1a1a1a;
+}
+
+/* Footnotes and metadata */
+.footnote-definition-label,
+.footnote-reference,
+.metadata {
+  color: var(--link-color);
+}

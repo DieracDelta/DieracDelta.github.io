@@ -5,21 +5,26 @@
     typsite.url = "github:Glomzzz/typsite";
     flake-utils.url = "github:numtide/flake-utils";
   };
-  outputs = {
-    typst,
-    typsite,
-    flake-utils,
-    nixpkgs,
-    ...
-  }:
+  outputs =
+    {
+      typst,
+      typsite,
+      flake-utils,
+      nixpkgs,
+      ...
+    }:
     flake-utils.lib.eachDefaultSystem (
-      system: let
+      system:
+      let
         pkgs = import nixpkgs {
           inherit system;
         };
-      in {
+      in
+      {
         devShells.default = pkgs.mkShell {
-          packages = [
+          packages = with pkgs; [
+            prettypst
+            tinymist
             typst.packages.${system}.default
             typsite.packages.${system}.default
           ];
