@@ -1,14 +1,25 @@
 // Utils
 
+#let bool-to-str(val) = {
+  if val {
+    "true"
+  } else {
+    "false"
+  }
+}
+
 #let to-string(content) = {
   if type(content) == none {
     return ""
+  }
+  if type(content) == bool {
+    return bool-to-str(content)
   }
   if type(content) == str {
     return content
   }
   if content.has("text") {
-    if type(content.text) == "string" {
+    if type(content.text) == str {
       content.text
     } else {
       to-string(content.text)
@@ -24,17 +35,12 @@
   }
 }
 
-#let bool_to_str(val) = {
-  if val {
-    "true"
-  } else {
-    "false"
-  }
-}
-
 #let text-align(alignment, content) = context {
   if target() != "html" {
     return align(alignment, content)
+  }
+  if alignment == none {
+    return content
   }
   let horizontally = if alignment == none { "left" } else if alignment == center { "center" } else if (
   alignment == left
@@ -44,26 +50,29 @@
   html.elem("div", attrs: (style: "text-align: " + horizontally + ";"))[#content]
 }
 
-#let typst_scale = scale
+#let typst-scale = scale
 
 #let inline-content = state("inline-content", false)
 
-#let inline(scale: 100%, alignment: none, fill: none, content) = {
+#let inline(scale: 100%, alignment: none, fill: none, auto-filter: false, content) = {
   context {
     let content = if fill != none { block(content, fill: fill) } else { content }
-    let content = typst_scale(scale, origin: left + top, content)
+    let content = typst-scale(scale, origin: left + top, content)
     if target() != "html" {
       return align(alignment, content)
     }
-    let size = measure(box(content))
+    let size = measure(content)
     let width = size.width * scale
     let height = size.height * scale
     let width = if width == 0pt { auto } else { width }
     let height = if height == 0pt { auto } else { height }
+    let content-frame(content) = html.elem("span", attrs: (class: "auto-svg", scale: to-string([#scale])), content)
+    if auto-filter {
+      content-frame = content => html.elem("span", attrs: (class: "auto-filter"), content-frame(content))
+    }
     let content = [
       #inline-content.update(true)
-      #let frame = html.frame(content)
-      #html.elem("span", attrs: (class: "auto-svg", scale: to-string([#scale])), frame)
+      #content-frame(html.frame(content))
       #inline-content.update(false)
     ]
     text-align(alignment, content)
@@ -91,14 +100,14 @@
 #let inline_math(body, block: bool, scale: 100%) = {
   if block {
     html.elem("div", attrs: (class: "math-container"))[
-      #html.elem("span", attrs: (class: "math-block", content: to-string(body)))[
-        #inline(scale: scale)[#body]
+      #html.elem("span", attrs: (class: "math-block"))[
+        #inline(scale: scale, auto-filter: true)[#body]
       ]
     ]
   } else {
     box[
-      #html.elem("span", attrs: (id: "math-inline", content: to-string(body)))[
-        #inline(scale: scale)[#body]
+      #html.elem("span", attrs: (class: "math-inline"))[
+        #inline(scale: scale + 70%, auto-filter: true)[#body]
       ]
     ]
   }
@@ -169,4 +178,12 @@
   }
 
   html.elem("span", attrs: (style: styles.join(" ")))[#content]
+}
+
+#let details(title, content) = {
+  let details = html.elem("span", attrs: (class: "fold-container"))[
+    #html.elem("span", attrs: (class: "ellipsis", onclick: "this.parentNode.classList.toggle('open')"), title)
+    #html.elem("span", attrs: (class: "hidden-content"), [\[ #content \]])
+  ]
+  details
 }

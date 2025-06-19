@@ -21,7 +21,14 @@
   --span-taxon-color: #659f08;
   --article-taxon-color: #659f08;
   --mark-color: #ffff00;
-  --filter-math: none;
+}
+
+.math-inline {
+    filter: invert(100%);
+}
+
+.math-block {
+    filter: invert(100%);
 }
 
 body {

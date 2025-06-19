@@ -1,6 +1,11 @@
 #import "../lib.typ": *
 #show: schema.with("page")
 
+// #show math.equation: it => {
+//   let math-class(content) = html.elem("span", attrs: (class: "math-equation"), content)
+//   math-class(html.frame(it))
+// }
+
 #title[Understanding Subtyping in Rust]
 #date[2022-06-25]
 #author[Justin Restivo]

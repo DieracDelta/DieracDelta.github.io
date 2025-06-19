@@ -15,7 +15,8 @@
 // espresso setup
 // oral routine
 // cooking techniques
-// light situation
+// lighting situation
+// desk situation: walking pad, desk itself
 
 = Fitness
 
@@ -23,8 +24,6 @@
 // walking pad
 
 = Cooking
-
-// == Misc
 
 == Recipes
 
