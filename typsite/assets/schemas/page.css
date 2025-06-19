@@ -11,7 +11,8 @@
   --background-color-code: #111;
 
   --hover-color-block: rgba(25, 29, 29, 0.5);
-  --hover-color-link: rgba(50, 29, 29, 0.5);
+  --hover-color-link: #BFFF00;
+
   --target-color: #ffff00;
 
   --link-color: #fc5a03;
@@ -25,6 +26,10 @@
 
 .link {
   color: var(--link-color)
+}
+
+.link:hover {
+  color: var(--hover-color-link);
 }
 
 .math-inline {
@@ -49,10 +54,6 @@ body {
   font-weight: bold;
 }
 
-a:hover {
-  color: var(--logo-hover-color);
-  background-color: var(--hover-color-link);
-}
 
 a {
   color: var(--link-color);
@@ -60,8 +61,8 @@ a {
 }
 
 a:hover {
-  background-color: var(--hover-color-link);
-  color: var(--text-color);
+  /* background-color: var(--hover-color-link); */
+  color: var(--hover-color-link);
 }
 
 .logo {
