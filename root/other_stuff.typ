@@ -10,6 +10,12 @@
 - #cite("./health/sourcing_food.typ")[Sourcing food]
 
 // sourcing items
+// water
+// cooking supplies (knives, cutting board, chopsticks, tupperware)
+// espresso setup
+// oral routine
+// cooking techniques
+// light situation
 
 = Fitness
 
@@ -18,9 +24,7 @@
 
 = Cooking
 
-== Misc
-
-// espresso setup
+// == Misc
 
 == Recipes
 
