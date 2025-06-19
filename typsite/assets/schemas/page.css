@@ -23,6 +23,10 @@
   --mark-color: #ffff00;
 }
 
+.link {
+  color: var(--link-color)
+}
+
 .math-inline {
     filter: invert(100%);
 }
