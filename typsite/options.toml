@@ -1,9 +1,9 @@
 [default_metadata.content]
 # you can add any default metadata you want here
-title = "Untitled"
+title = "Justin Restivo's Blog"
 taxon = ""
-date = "Unknown Date"
-author = "Unknown Author"
+date = "Sometime in the future..."
+author = "Justin Restivo"
 test = "TEST!!!!ddddd"
 [default_metadata.options]
 heading_numbering = "Bullet" # Bullet | Roman | Alphabet | None
