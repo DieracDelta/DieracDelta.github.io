@@ -4,7 +4,7 @@
   --content-gap: 15px;
   --radius: 4px;
 
-  --text-color: #659f08;
+  --text-color: #ffffff;
   --background-color: #252627;
 
   --background-color-pre: #111;
@@ -86,8 +86,20 @@ a:hover {
   background-color: var(--hover-color-block);
 }
 
+.custom {
+  color: #659f08;
+}
+
+summary {
+  color: #88cc0d;
+}
+
+summary span {
+  display: none;
+}
+
 h1, h2, h3, h4, h5, h6 {
-  color: var(--text-color);
+  color: #659f08;
   font-weight: bold;
   margin: 0.5em 0 0.3em;
 }
