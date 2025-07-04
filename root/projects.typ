@@ -3,17 +3,17 @@
 
 = Opensource Projects I've worked on/am working on
 
-== #link("https://github.com/DieracDelta/Flashcards")[Flashcards]
+== Flashcards
 
-A bunch of Anki flashcards from self studied materials and prior classes I've taken. Generated using typ2anki.
+A bunch of Anki #link("https://github.com/DieracDelta/Flashcards")[Flashcards] from self studied materials and prior classes I've taken. Generated using typ2anki.
 
 == Nix-Btm
 
 #link("https://github.com/DieracDelta/nix-btm")[`btm` but for nix processes]. A simple tui I wrote to play around with the ratatui and sysinfo crates.
 
-== #link("https://www.espressosys.com/")[Espresso Systems]
+== Espresso Sytems
 
-At Espresso Systems, we've open sourced a bunch of the repositories I've contributed to, including:
+At #link("https://www.espressosys.com/")[Espresso Systems], we've open sourced a bunch of the repositories I've contributed to, including:
 
 - #link("https://github.com/EspressoSystems/HotShot")[HotShot], a consensus and DA solution for our decentralized sequencer. My contributions include:
   - A Libp2p networking backend
@@ -24,65 +24,67 @@ At Espresso Systems, we've open sourced a bunch of the repositories I've contrib
 - #link("https://github.com/EspressoSystems/netlink")[A Netlink fork] that exposes infra for adding custom qdiscs. I used this to mess with the network on an AWS cluster and locally on my 5950x desktop in a automated way. I would enter a separate network namespace, link it to the main network namespace, then add a heap of qdiscs to limit memory bandwidth, add in articial latency, drop packets, etc. This was all done directly with syscalls wrapepd by Rust code instead of using `ip link` and `ns`.
 - #link("https://github.com/EspressoSystems/async-compatibility-layer")[This] and #link("https://github.com/EspressoSystems/nll")[this] crate
 
-== NDA: #link("https://github.com/DieracDelta/nda")[Nix DAP implementation]
+== DAWN
 
-WIP implementation of the debug adapter protocol for Nix.
+#link("https://github.com/DieracDelta/DAWN")[DAWN is a WIP Nix implementation] of the debug adapter protocol. Aka "Debug Adapter with Nix"
 
-== #link("https://github.com/DieracDelta/asm-lsp")[RISCV Asm Lsp]
+== RISCV Asm Lsp
 
-A (very WIP) language server for RISC-V assembly. Uses a TreeSitter parser and built with tower-lsp.
+#link("https://github.com/DieracDelta/asm-lsp")[ A (very WIP) language server for RISC-V assembly]. Uses a TreeSitter parser and built with tower-lsp.
 
-== #link("https://github.com/NixOS/nixpkgs")[NixPkgs]
+== Nixpkgs
 
-I maintain a couple of Rust packages.
+I maintain #link("https://github.com/NixOS/nixpkgs")[a couple of Rust packages in NixPkgs].
 
-== #link("https://github.com/DieracDelta/vimconfig")[VimConfig]
+== Neovim
 
-My personal vim config, assembled with Nix and nix2vim. Comes with all the bells and whistles common in most IDEs. I gave a talk at #link("https://www.youtube.com/watch?v=iwsoF9ISfaw")[vimconf] about it.
+#link("https://github.com/DieracDelta/vimconfig")[My personal vim "distro"] , assembled with Nix and nix2vim. Comes with all the bells and whistles common in most IDEs. I gave a talk at #link("https://www.youtube.com/watch?v=iwsoF9ISfaw")[vimconf] about it.
 
-== #link("https://github.com/DieracDelta/flake_generator")[Flake Generator]
+== Flake Generator
 
-A cli using skim + rnix to parse nix flakes into an AST and then modify that AST. Good for generating nix best practice boilerplate code.
+#link("https://github.com/DieracDelta/flake_generator")[A cli using skim + rnix to parse nix flakes into an AST and then modify that AST]. Good for generating nix best practice boilerplate code.
 
 This was really an opportunity for me to play with Rust Analyzer's syntax tree library Rowan.
 
-== #link("https://github.com/DieracDelta/advent-of-code-2020")[Advent of Code]
+== AOC
 
-I try to run through these every year as an excuse to learn a new language. I've done most of #link("https://github.com/DieracDelta/advent-of-code-2020")[2020], some of #link("https://github.com/DieracDelta/advent-of-code-2019")[2019] and #link("https://github.com/DieracDelta/advent-of-code-2018")[2018]. This year (#link("https://github.com/DieracDelta/advent-of-code-2022")[2022]) will probably be in Idris.
+I try to run through Advent of Code every year as an excuse to learn a new language. I've done most of #link("https://github.com/DieracDelta/advent-of-code-2020")[2020], some of #link("https://github.com/DieracDelta/advent-of-code-2019")[2019] and #link("https://github.com/DieracDelta/advent-of-code-2018")[2018]. This year (#link("https://github.com/DieracDelta/advent-of-code-2022")[2022]) will probably be in Idris.
 
-== #link("https://github.com/DieracDelta/DieracDelta.github.io")[This blog]
+== This Blog
 
-My blog has had several iterations:
+#link("https://github.com/DieracDelta/DieracDelta.github.io")[My blog] has had several iterations:
 
-- I hosted a version written with vuejs, but got tired of maintaining the host after someone broke into some of the services I was hosting (presumably due to a security vulnerability I didn't patch quickly enough)
+- I hosted a version written with vuejs, but got tired of maintaining the host after someone broke into some of the services I was hosting (presumably due to a cve I didn't patch quickly enough)
 - I moved to Hugo + github pages
 - I swapped out Hugo for Hakyll because I like Haskell.
 - Typst recently added a HTML backend, and I much prefer typst to markdown (it's just way more powerful). So, my blog's current iteration is in typst using Typsite.
 
-== #link("https://github.com/DieracDelta/NixKernelTutorial")[Kernel Tutorial]
+The core idea at each point was to maintain a markdown archive of thoughts.
 
-Tied to blog post, explains how to use nix to do kernel dev in Rust.
+== Kernel Tutorial
 
-== #link("https://github.com/DieracDelta/flakes")[Flakes]
+#link("https://github.com/DieracDelta/NixKernelTutorial")[A Kernel Hello world tied to blog post], explains how to use nix to do kernel dev in Rust.
 
-An exercise in code obfuscation. My system configs for my various computers running NixOS.
+== Flakes
 
-== #link("https://github.com/DieracDelta/lights")[Alienware]
+#link("https://github.com/DieracDelta/flakes")[My flake config. Aka an exercise in code obfuscation]. My system configs for my various computers running NixOS.
 
-SysV-style daemon and corresponding user-facing library for controlling the lights on the Alienware 15 R3 laptop.
+== Alienware Lights
 
-== #link("https://github.com/DieracDelta/deepfry")[Deepfrier]
+#link("https://github.com/DieracDelta/lights")[A SysV-style daemon and corresponding user-facing library for controlling the lights on the Alienware 15 R3 laptop.]
 
-Python script for deepfry-ing screenshots
+== Deepfrier
 
-== #link("https://dspace.mit.edu/handle/1721.1/129858")[MIT Master's thesis]
+#link("https://github.com/DieracDelta/deepfry")[Deepfrier] is a Python script for deepfry-ing screenshots using imagemagik and tesseractocr
 
-Discusses security on a tagged architectures.
+== MIT Master's Thesis
 
-== #link("https://github.com/DieracDelta/BeaverDocs")[BeaverDocs]
+#link("https://dspace.mit.edu/handle/1721.1/129858")[My Master's thesis] discusses security on a tagged architectures.
 
-School project where I worked in group to create proof of concept peer to peer collaborative text editor. My contributions were to the RGATreeSplit CRDT implementation used internally to represent text operations.
+== BeaverDocs
 
-== #link("https://github.com/DieracDelta/DuckeeGO")[DuckeeGO]
+#link("https://github.com/DieracDelta/BeaverDocs")[BeaverDocs] was a undergrad group project to create proof of concept peer to peer collaborative text editor. My contributions were to the RGATreeSplit CRDT implementation used internally to represent text operations.
 
-School project where I worked in group to create proof of concept concolic execution engine for golang. My contributions were on augmentations to the golang AST.
+== DuckeeGO
+
+#link("https://github.com/DieracDelta/DuckeeGO")[DuckeeGO] was a undergrad group project where I worked in group to create proof of concept concolic execution engine for golang. My contributions were on augmentations to the golang AST.
