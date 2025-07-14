@@ -28,3 +28,4 @@
 - #cite("./archive/2019-07-21-vimstart.typ")[Getting Started with (Neo)Vim]
 - #cite("./archive/2020-02-02-writing-thesis.typ")[Writing a Thesis]
 - #cite("./archive/2021-01-09-flakes.typ")[Switching to Nix Flakes]
+- #cite("./posts/2025-07-13-replacing-rust-with-ocaml.typ")[s\/Rust\/Ocaml]
