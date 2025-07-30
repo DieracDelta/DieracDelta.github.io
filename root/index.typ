@@ -3,6 +3,7 @@
 
 = S Tier Posts
 
+- #cite("./posts/2025-07-30-debugging-nix.typ")[Debugging Nix Expressions]
 - #cite("./posts/2025-05-24-perf-engineering-neovim.typ")[Performance Engineering Neovim]
 - #cite("./posts/2025-05-24-nix-tricks.typ")[Quick 'n Dirty 1-liners]
 - #cite("./posts/2025-05-22-adding-ssd.typ")[Weird Filesystem Things]
