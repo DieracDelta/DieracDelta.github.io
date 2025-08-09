@@ -60,3 +60,117 @@ Label: none  uuid: 2d8d366c-8799-4456-8088-a15b5f905770
 When this happened to me, failing RAM presented itself as nondeterministically failing/succeeding nix builds on BTRFS. On ZFS, it presented as failure to mount a pool (a more significant error). The nix system would freeze on pool mounting and require a reboot.
 
 To identify this, I pulled out the memtest86 #link("https://www.memtest.org/")[iso] dded onto a thumb drive, and booted off the thumbdrive. I have 4x32GB drives. I ran with each individual stick in order to identify which sticks were broken. The tests take a nontrivial amount of time (I ran each overnight). Then, the RAM can be RMA-ed.
+
+= Failing SSD
+
+I haven't had this happen yet, but as a user, I'd like to monitor usage of my storage. It turns out there's this protocol denoted SMART (Self-Monitoring, Analysis and Reporting Technology) that can be used to view stats about the SSD (and, monitor for failures). `smartmontools` is in `nixpkgs`, so installation is trivial. To check if the protocol is supported:
+
+```
+✦ ❯ sudo smartctl -i /dev/nvme0n1
+smartctl 7.5 2025-04-30 r5714 [x86_64-linux-6.12.30] (local build)
+Copyright (C) 2002-25, Bruce Allen, Christian Franke, www.smartmontools.org
+
+=== START OF INFORMATION SECTION ===
+Model Number:                       WD_BLACK SN850X 4000GB
+Serial Number:                      23501N800832
+Firmware Version:                   624361WD
+PCI Vendor/Subsystem ID:            0x15b7
+IEEE OUI Identifier:                0x001b44
+Total NVM Capacity:                 4,000,787,030,016 [4.00 TB]
+Unallocated NVM Capacity:           0
+Controller ID:                      8224
+NVMe Version:                       1.4
+Number of Namespaces:               1
+Namespace 1 Size/Capacity:          4,000,787,030,016 [4.00 TB]
+Namespace 1 Formatted LBA Size:     512
+Namespace 1 IEEE EUI-64:            001b44 8b4c2be799
+Local Time is:                      Sat Aug  9 09:45:49 2025 EDT
+```
+
+To do a quick health check:
+
+```
+✦ ❯ sudo smartctl -H /dev/nvme0n1
+smartctl 7.5 2025-04-30 r5714 [x86_64-linux-6.12.30] (local build)
+Copyright (C) 2002-25, Bruce Allen, Christian Franke, www.smartmontools.org
+
+=== START OF SMART DATA SECTION ===
+SMART overall-health self-assessment test result: PASSED
+```
+
+And, to see all the nitty gritty details about the drive:
+
+```
+✦ ❯ sudo smartctl -a /dev/nvme0n1
+
+=== START OF INFORMATION SECTION ===
+PCI Vendor/Subsystem ID:            0x15b7
+
+=== START OF INFORMATION SECTION ===                                                                                                                                                                                                                                              [0/226673]
+Model Number:                       WD_BLACK SN850X 4000GB
+Serial Number:                      23501N800832
+Firmware Version:                   624361WD
+PCI Vendor/Subsystem ID:            0x15b7
+IEEE OUI Identifier:                0x001b44
+Total NVM Capacity:                 4,000,787,030,016 [4.00 TB]
+Unallocated NVM Capacity:           0
+Controller ID:                      8224
+NVMe Version:                       1.4
+Number of Namespaces:               1
+Namespace 1 Size/Capacity:          4,000,787,030,016 [4.00 TB]
+Namespace 1 Formatted LBA Size:     512
+Namespace 1 IEEE EUI-64:            001b44 8b4c2be799
+Local Time is:                      Sat Aug  9 09:50:27 2025 EDT
+Firmware Updates (0x14):            2 Slots, no Reset required
+Optional Admin Commands (0x0017):   Security Format Frmw_DL Self_Test
+Optional NVM Commands (0x00df):     Comp Wr_Unc DS_Mngmt Wr_Zero Sav/Sel_Feat Timestmp Verify
+Log Page Attributes (0x1e):         Cmd_Eff_Lg Ext_Get_Lg Telmtry_Lg Pers_Ev_Lg
+Maximum Data Transfer Size:         128 Pages
+Warning  Comp. Temp. Threshold:     90 Celsius
+Critical Comp. Temp. Threshold:     94 Celsius
+Namespace 1 Features (0x02):        NA_Fields
+
+Supported Power States
+St Op     Max   Active     Idle   RL RT WL WT  Ent_Lat  Ex_Lat
+ 0 +     9.00W    9.00W       -    0  0  0  0        0       0
+ 1 +     6.00W    6.00W       -    0  0  0  0        0       0
+ 2 +     4.50W    4.50W       -    0  0  0  0        0       0
+ 3 -   0.0250W       -        -    3  3  3  3     3100   11900
+ 4 -   0.0050W       -        -    4  4  4  4     3900   45700
+
+Supported LBA Sizes (NSID 0x1)
+Id Fmt  Data  Metadt  Rel_Perf
+ 0 +     512       0         2
+ 1 -    4096       0         1
+
+=== START OF SMART DATA SECTION ===
+SMART overall-health self-assessment test result: PASSED
+
+SMART/Health Information (NVMe Log 0x02, NSID 0xffffffff)
+Critical Warning:                   0x00
+Temperature:                        53 Celsius
+Available Spare:                    100%
+Available Spare Threshold:          10%
+Percentage Used:                    1%
+Data Units Read:                    638,648,086 [326 TB]
+Data Units Written:                 202,608,891 [103 TB]
+Host Read Commands:                 15,199,979,401
+Host Write Commands:                6,698,107,947
+Controller Busy Time:               5,839
+Power Cycles:                       70
+Power On Hours:                     10,057
+Unsafe Shutdowns:                   22
+Media and Data Integrity Errors:    0
+Error Information Log Entries:      0
+Warning  Comp. Temperature Time:    1
+Critical Comp. Temperature Time:    0
+
+Error Information (NVMe Log 0x01, 16 of 256 entries)
+No Errors Logged
+
+Self-test Log (NVMe Log 0x06, NSID 0xffffffff)
+Self-test status: No self-test in progress
+No Self-tests Logged
+```
+
+The useful information here include temps, read/write, power consumption, and unsafe shutdown stats. I knew the SSD had shutdown unsafely when I was having SSD problems, but I had no idea about the overheating implied by the warning temperature.
