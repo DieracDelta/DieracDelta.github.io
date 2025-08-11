@@ -25,6 +25,8 @@
 
 = Cooking
 
+- #cite("./health/natto.typ")[Sourcing food]
+
 == Recipes
 
 // rye bread
