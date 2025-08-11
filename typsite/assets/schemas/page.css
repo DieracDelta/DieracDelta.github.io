@@ -29,6 +29,7 @@
 }
 
 .link:hover {
+  cursor: pointer;
   color: var(--hover-color-link);
 }
 
