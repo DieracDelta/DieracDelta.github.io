@@ -25,8 +25,6 @@
 
 = Cooking
 
-- #cite("./health/natto.typ")[Sourcing food]
-
 == Recipes
 
 // rye bread
@@ -36,6 +34,8 @@
 // creami ice cream
 
 == Ferments
+
+- #cite("./health/natto.typ")[Natto]
 
 // ketchup
 // pickles

@@ -5,7 +5,7 @@
 #date[2025-08-11]
 #author[Justin Restivo]
 
-Natto has a bunch of K2 (1tbp = 150mg K2). TODO fill out motivation more
+Natto has a bunch of K2 (1tbsp = 150mg K2). TODO fill out motivation more
 
 = Tools
 
@@ -32,3 +32,9 @@ This is specialized wrt portioning s.t. the result fits in my instant pot/bowl.
 - Run "Yogurt mode" for 16.5 hours at 103F
 - The result smells faintly of amonia, and is very stringy. It also really tastes and smells like natto.
 - Refrigerate result for a few days, then freeze (optional)
+
+= Cleaning
+
+Ideally I would both clean and sanitize the equipment prior to the natto. Natto is basic not acidic, so it's a bit unusual in that sense. This makes sanitation more important (it seems that acidity kills bacteria).
+
+However, I did neither clean nor sanitize and I got "lucky". Natto out competed any of the other growing organisms. I attribute this to using several tbps of natto (e.g. a LOT of starter).
