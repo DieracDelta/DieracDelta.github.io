@@ -3,6 +3,7 @@
 
 = S Tier Posts
 
+- #cite("./posts/2025-08-27-haskell-development.typ")[Developing with Haskell]
 - #cite("./posts/2025-07-30-debugging-nix.typ")[Debugging Nix Expressions]
 - #cite("./posts/2025-05-24-perf-engineering-neovim.typ")[Performance Engineering Neovim]
 - #cite("./posts/2025-05-24-nix-tricks.typ")[Quick 'n Dirty 1-liners]
