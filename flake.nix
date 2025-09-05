@@ -2,7 +2,7 @@
   description = "Typsite Env";
   inputs = {
     typst.url = "github:typst/typst/";
-    typsite.url = "github:Glomzzz/typsite/v0.1.4-24";
+    typsite.url = "github:Glomzzz/typsite";
     flake-utils.url = "github:numtide/flake-utils";
   };
   outputs =
