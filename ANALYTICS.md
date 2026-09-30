@@ -13,7 +13,8 @@ Historical Google Analytics records are not migrated or deleted by this change.
 - Public configuration: `typsite/assets/analytics-config.json` → `/analytics-config.json`.
 - Typsite copies the **contents** of `typsite/assets/` to the publication root;
   both schemas use `/analytics.js` and `/analytics.css`, including nested articles.
-- Private dashboard: `https://office-desktop.tail5ca7.ts.net:3013`, through Tailscale.
+- Private dashboard: `https://umami.office-desktop.restivo.me`, through the existing
+  private DNS/Caddy ingress over Tailscale. The public collector cannot serve it.
 
 The privacy landmark deliberately uses `div[role="contentinfo"]`: Typsite reserves
 `<footer>` as a template directive and removes that tag and its attributes.
