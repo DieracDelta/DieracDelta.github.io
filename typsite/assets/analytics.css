@@ -1,0 +1,6 @@
+.analytics-privacy { max-width: 70ch; margin: 2rem auto; padding: 0 1rem; font-size: .85rem; line-height: 1.6; }
+.analytics-privacy summary { cursor: pointer; padding-block: .5rem; }
+.analytics-privacy p { margin-block: .75rem; }
+.analytics-privacy button { font: inherit; padding: .4rem .7rem; cursor: pointer; }
+.analytics-privacy button:disabled { cursor: not-allowed; }
+.analytics-privacy [hidden] { display: none !important; }
