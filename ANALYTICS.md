@@ -1,7 +1,7 @@
 # Blog analytics
 
 The blog uses the existing self-hosted Umami instance for **pageviews only**,
-with its own website ID, separate from IronMain. Neither schema loads Google
+with its own website ID. Neither schema loads Google
 Analytics or its former `G-PMP32CMWHS` tag. Existing Google Fonts styling is
 unchanged; this is not a claim that all Google-hosted resources were removed.
 Historical Google Analytics records are not migrated or deleted by this change.
@@ -9,7 +9,7 @@ Historical Google Analytics records are not migrated or deleted by this change.
 ## Configuration and rollout
 
 - Canonical blog: `https://justin.restivo.me` (the GitHub Pages hostname redirects here).
-- Public tracker/collector: `https://ironmain.dev/analytics`.
+- Public tracker/collector: `https://analytics.restivo.me` (`/script.js` and `/api/send` only).
 - Public configuration: `typsite/assets/analytics-config.json` → `/analytics-config.json`.
 - Typsite copies the **contents** of `typsite/assets/` to the publication root;
   both schemas use `/analytics.js` and `/analytics.css`, including nested articles.
@@ -19,16 +19,26 @@ The privacy landmark deliberately uses `div[role="contentinfo"]`: Typsite reserv
 `<footer>` as a template directive and removes that tag and its attributes.
 
 The matching `system_config` change contains the same configuration in
-`lib/blog-analytics.json`. Its `ironmain-umami-blog.service` registers **Justin's
-Blog** through local PostgreSQL, using the existing IronMain website owner. It
-never reads or resets the administrator password. Re-running it preserves existing
-website settings; conflicting IDs/domains fail instead of overwriting data.
+`lib/blog-analytics.json`. The existing desktop provisioning service registers
+**Justin's Blog** through local PostgreSQL without reading or resetting the
+administrator password. Existing website settings are preserved; conflicting
+IDs/domains fail instead of overwriting data. Keep the ID identical in both
+repositories; this endpoint migration does not create a new ID or reset data.
 
-Deploy **desktop first**, then **nixos-arm**, before publishing this blog change.
-Desktop creates the website and accepts the blog's Origin on its private relay.
-ARM enables exact-origin CORS/preflight for the public collector. No dashboard or
-administration route is made public. No manual website creation, API key, or
-password is required. Keep the website ID identical in both repositories.
+For the already deployed backend, set up **DNS, rebuild nixos-arm, verify HTTPS,
+then publish the blog**. Create a DNS-only A record `analytics.restivo.me` pointing
+to ARM's public IPv4 address (`150.136.78.22` at the time of this change), not a
+CNAME to another website. Do not add AAAA unless ARM's public IPv6 ingress works.
+Caddy provisions HTTPS over the existing public 80/443 ingress. DNS is not managed
+by this repository; no DNS records or live systems have been changed.
+
+If the previous backend/site provisioning is not deployed yet, deploy desktop
+first. Otherwise desktop does not need rebuilding for this endpoint-only change.
+ARM exposes only the tracker and exact-origin collection/preflight for this blog;
+all other paths, including the dashboard and admin APIs, return 404. No manual
+website creation, API key, or password is required. The old collection route no
+longer accepts the blog, so analytics can pause between the ARM rebuild and blog
+publication; navigation remains functional.
 
 Branch/PR workflows build only; deployment is restricted to pushes on `master`.
 Merging this blog change into `master` publishes it, so finish the infrastructure
@@ -65,8 +75,8 @@ cookies may be shared with other sites; visitors may clear them in browser setti
 1. Verify **Justin's Blog** appears in Umami with the configured domain and ID.
 2. Visit a homepage and article with JavaScript enabled and privacy signals/opt-out
    disabled. Check the separate blog dashboard for pageviews.
-3. Network requests should use the public HTTPS collector, never the private
-   dashboard. Cross-origin collection should have a successful OPTIONS preflight
+3. Network requests should use `https://analytics.restivo.me`, never the private
+   dashboard or another website's domain. Cross-origin collection should have a successful OPTIONS preflight
    followed by POST. There must be no Google Analytics/Tag Manager requests.
 4. Inspect a payload after visiting a URL with a query/fragment: only the page
    path should appear. `/index.html` is counted as `/`.

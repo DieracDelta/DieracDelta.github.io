@@ -65,7 +65,7 @@
       });
       if (!response.ok) throw new Error("Analytics configuration unavailable");
       const config = await response.json();
-      if (config.domain !== location.hostname || config.endpoint !== "https://ironmain.dev/analytics" ||
+      if (config.domain !== location.hostname || config.endpoint !== "https://analytics.restivo.me" ||
         !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(config.websiteId)) {
         throw new Error("Invalid analytics configuration");
       }
