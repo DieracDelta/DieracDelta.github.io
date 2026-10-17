@@ -126,7 +126,7 @@
 }
 
 #let href(url, content) = {
-  html.elem("span", attrs: (onclick: "window.location.href = '" + str(url) + "'"), content)
+  html.elem("a", attrs: (href: str(url)), content)
 }
 #let link_local(url, content) = {
   link_local_style[#href(url, content)]

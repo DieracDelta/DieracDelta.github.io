@@ -4,6 +4,7 @@
 #title[Deploying Hakyll Blog with Nix and Github Actions]
 #date[2021-01-10]
 #author[Justin Restivo]
+#description[How I moved my static blog from a paid server to GitHub Pages, building a Hakyll site with Nix and deploying it with GitHub Actions.]
 
 = Motivation
 

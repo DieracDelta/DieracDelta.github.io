@@ -4,6 +4,7 @@
 #title[The Async Trait-or and the Case for BoxSyncFuture]
 #date[2023-07-06]
 #author[Justin Restivo]
+#description[Why async closures and async functions in traits are awkward in Rust, and the case for a BoxSyncFuture type.]
 
 = A Tale of Poor Ergonomics
 

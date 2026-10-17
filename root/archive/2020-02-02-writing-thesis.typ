@@ -4,6 +4,7 @@
 #title[Writing a Thesis]
 #date[2020-02-02]
 #author[Justin Restivo]
+#description[What did and did not help when writing my master's thesis in LaTeX, from organizing notes to avoiding common LaTeX mistakes.]
 
 I intend this blog entry to summarize how I went about writing my masters thesis using latex. My goal is to showcase things that did and did not help me in this endeavor.
 

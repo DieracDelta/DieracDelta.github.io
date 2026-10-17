@@ -4,6 +4,7 @@
 #title[Deploying a Nix Rust Filehost]
 #date[2021-02-15]
 #author[Justin Restivo]
+#description[Deploying a Rust file host to a VPS with Nix flakes, including its services and secrets, instead of configuring the server by hand.]
 
 = Motivation
 

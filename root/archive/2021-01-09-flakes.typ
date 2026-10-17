@@ -4,6 +4,7 @@
 #title[Switching to Nix Flakes]
 #date[2021-01-09]
 #author[Justin Restivo]
+#description[My experience switching my NixOS configuration to Nix flakes, and why it made my system feel more stable and flexible.]
 
 = Motivation
 

@@ -350,6 +350,12 @@
   }
 }
 
+// Search/link-preview summary; keep it to one sentence without double quotes.
+#let description(content) = set-metacontent("description", content)
+
+// Set to "noindex, follow" for scratch pages that should stay out of search.
+#let robots(content) = set-metacontent("robots", content)
+
 #let metacontent(meta_key, from: "$self") = context {
   if target() == "html" {
     box[#html.elem("metacontent", attrs: ("get": meta_key, from: from))]

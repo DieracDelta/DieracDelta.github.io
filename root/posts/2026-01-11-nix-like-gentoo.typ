@@ -4,6 +4,7 @@
 #title[Running NixOS like Gentoo]
 #date[2026-01-11]
 #author[Justin Restivo]
+#description[Getting Gentoo-style customization on NixOS, such as building packages for a specific CPU like znver3, while keeping Nix builds pure.]
 
 I used to daily drive Gentoo before NixOS. Nix's value add was that it had the nice parts of Gentoo (the useflags, customizability, and from-source packages) while retaining the usability of something like Ubuntu. Since I've come to Nix, I've wanted to run it like Gentoo: all the useflags, mega optimization, custom linker, etc. Here's a writeup of how I've made rebuilding the world every week with all the #link("bells and whistles")[https://www.shlomifish.org/humour/by-others/funroll-loops/Gentoo-is-Rice.html] of Gentoo ferrari practical.
 

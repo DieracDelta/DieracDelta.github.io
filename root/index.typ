@@ -1,9 +1,12 @@
 #import "lib.typ": *
 #show: schema.with("index")
 
+#page-title[Justin Restivo's Blog: Nix, Rust and Systems Programming]
+#description[Notes and tutorials by Justin Restivo on Nix and NixOS, Rust, Haskell, Neovim and systems programming.]
+
 = S Tier Posts
 
-- #cite("./posts/2026-01-11-nix-like-gentoo.typ")[Quick 'n Dirty 1-liners]
+- #cite("./posts/2026-01-11-nix-like-gentoo.typ")[Running NixOS like Gentoo]
 - #cite("./posts/2025-08-27-haskell-development.typ")[Developing with Haskell]
 - #cite("./posts/2025-07-30-debugging-nix.typ")[Debugging Nix Expressions]
 - #cite("./posts/2025-05-24-perf-engineering-neovim.typ")[Performance Engineering Neovim]

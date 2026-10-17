@@ -1,9 +1,10 @@
 #import "../lib.typ": *
 #show: schema.with("page")
 
-#title[Sourcing Food]
+#title[Natto]
 #date[2025-08-11]
 #author[Justin Restivo]
+#description[Notes on making natto, a fermented soybean food rich in vitamin K2, at home.]
 
 Natto has a bunch of K2 (1tbsp = 150mg K2). TODO fill out motivation more
 

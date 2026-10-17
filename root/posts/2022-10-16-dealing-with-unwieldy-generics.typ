@@ -4,6 +4,7 @@
 #title[Subtyping with associated types on traits in Rust]
 #date[2023-07-06]
 #author[Justin Restivo]
+#description[Working around Rust's lack of trait subtyping that preserves associated types, to tame traits with many generic parameters.]
 
 = Motivating the Problem
 

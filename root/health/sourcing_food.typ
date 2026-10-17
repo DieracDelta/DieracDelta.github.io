@@ -4,6 +4,7 @@
 #title[Sourcing Food]
 #date[2025-06-19]
 #author[Justin Restivo]
+#description[A maintained list of places I buy food, spices and seasonings.]
 
 This is intended as a maintained list of places to source food.
 

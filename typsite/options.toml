@@ -4,6 +4,8 @@ title = "Justin Restivo's Blog"
 taxon = ""
 date = "Sometime in the future..."
 author = "Justin Restivo"
+description = "Notes and tutorials by Justin Restivo on Nix and NixOS, Rust, Haskell, Neovim and systems programming."
+robots = "index, follow"
 test = "TEST!!!!ddddd"
 [default_metadata.options]
 heading_numbering = "Bullet" # Bullet | Roman | Alphabet | None

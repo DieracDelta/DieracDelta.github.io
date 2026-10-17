@@ -4,6 +4,7 @@
 #title[Haskell Development]
 #date[2025-08-27]
 #author[Justin Restivo]
+#description[Unintuitive things I've run into while developing in Haskell, starting with running a local Hoogle server for a project's documentation.]
 
 This is meant to be an aggregation of unintuitive things I've encountered when developing with haskell.
 

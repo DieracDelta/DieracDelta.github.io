@@ -4,6 +4,7 @@
 #title[Checking myself in HIBP]
 #date[2024-10-02]
 #author[Justin Restivo]
+#description[Checking whether my passwords appear in the Have I Been Pwned breach database by downloading its password hashes and comparing them locally.]
 
 = Motivation
 

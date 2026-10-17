@@ -4,6 +4,7 @@
 #title[Using John the Ripper]
 #date[2024-03-18]
 #author[Justin Restivo]
+#description[A quick reference for unlocking a password-protected PDF with John the Ripper and pdf2john, run through Nix.]
 
 This is mostly for my own reference.
 

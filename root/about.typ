@@ -1,6 +1,9 @@
 #import "lib.typ": *
 #show: schema.with("index")
 
+#page-title[About Justin Restivo]
+#description[About Justin Restivo: MIT computer science graduate working on systems and DevOps, with interests in Nix, distributed systems and formal methods.]
+
 Hello! I'm a recent computer science graduate from MIT ('19 B.S. and '20 MEng).
 I specialize in systems and devops and have an interest in formal methods.
 

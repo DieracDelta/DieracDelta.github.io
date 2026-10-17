@@ -4,6 +4,7 @@
 #title[Quick 'n Dirty 1-liners]
 #date[2025-05-24]
 #author[Justin Restivo]
+#description[Quick Nix one-liners, such as building an arbitrary Nix expression from a pinned nixpkgs with custom CPU flags.]
 
 I'm dumping my quick dirty one liners here.
 

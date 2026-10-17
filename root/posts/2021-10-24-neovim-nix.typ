@@ -4,6 +4,7 @@
 #title[A Portable Text Editor: Nix \<3 Neovim]
 #date[2021-10-24]
 #author[Justin Restivo]
+#description[How I built a portable Neovim configuration with Nix, plus a 2025 retrospective on why compiling Nix to Lua turned out to be an antipattern.]
 
 = EDIT (2025)
 

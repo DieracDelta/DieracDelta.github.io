@@ -3,7 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{page_title}</title>
+    <title>{page-title}</title>
+    <meta name="description" content="{description}" />
+    <meta name="robots" content="{robots}" />
+    <link rel="canonical" href="https://justin.restivo.me{slug}" />
+    <meta property="og:site_name" content="Justin Restivo's Blog" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="{page-title}" />
+    <meta property="og:description" content="{description}" />
+    <meta property="og:url" content="https://justin.restivo.me{slug}" />
+    <meta name="twitter:card" content="summary" />
     <link rel="stylesheet" href="../assets/schemas/page.css" />
     <link
       href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap"
@@ -17,7 +26,7 @@
     <header>
       <div class="header-nav">
         <span class="custom"><strong>Justin Restivo</strong></span>
-        | <a href="/index.html">HOME</a> | <a href="/about.html">ABOUT</a> |
+        | <a href="/">HOME</a> | <a href="/about.html">ABOUT</a> |
         <a href="/contact.html">CONTACT</a> |
         <a href="/projects.html">PROJECTS</a> |
         <a href="https://www.linkedin.com/in/justinprestivo">LINKEDIN</a> |

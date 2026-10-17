@@ -4,6 +4,7 @@
 #title[Performance Engineering Neovim]
 #date[2025-05-24]
 #author[Justin Restivo]
+#description[Measures I've taken to speed up Neovim, including Lua bytecode caching with vim.loader and lazy loading, and how to measure startup time.]
 
 This is meant to be an objdump of measures I've taken to to bump the performance of neovim. But, I make no guarantees about *observable* speed improvements.
 

@@ -4,6 +4,7 @@
 #title[Weird Filesystem Things]
 #date[2025-05-22]
 #author[Justin Restivo]
+#description[Notes on unusual filesystem tasks, starting with adding a new SSD to an existing Btrfs system without repartitioning.]
 
 This is meant as an aggregation of weird filesystem things I've done in the past so I can remember them in the future.
 

@@ -1,6 +1,7 @@
 #import "lib.typ": *
 
 #show: schema.with("page")
+#robots[noindex, follow]
 
 
 #title[文章]

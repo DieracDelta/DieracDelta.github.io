@@ -4,6 +4,7 @@
 #title[Getting Started with (Neo)Vim]
 #date[2019-07-21]
 #author[Justin Restivo]
+#description[A beginner's guide to getting started with Neovim, based on the workflow and configuration I use.]
 
 = What is vim and why should I use it?
 

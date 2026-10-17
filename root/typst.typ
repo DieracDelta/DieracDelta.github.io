@@ -2,6 +2,7 @@
 #import "lib.typ": *
 
 #show : schema.with("page")
+#robots[noindex, follow]
 
 
 #title[Typst 简介]

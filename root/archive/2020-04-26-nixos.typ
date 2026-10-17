@@ -4,6 +4,7 @@
 #title[An honest review of NixOS]
 #date[2020-04-26]
 #author[Justin Restivo]
+#description[An honest 2020 review of NixOS: why I switched from other Linux distributions, what worked well, and the pain points.]
 
 The overarching goal of this post comes in four main parts:
 
