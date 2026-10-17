@@ -4,6 +4,7 @@
 #title[Custom Keybinds on Gentoo]
 #date[2019-11-04]
 #author[Justin Restivo]
+#description[How to bind custom USB keyboard keys on Gentoo using eudev and the hardware database (hwdb).]
 
 = how to bind custom usb keyboard keys using eudev on gentoo
 

@@ -4,6 +4,7 @@
 #title[Vim and Latex]
 #date[2019-07-21]
 #author[Justin Restivo]
+#description[My Vim workflow for writing LaTeX, using coc.nvim with the texlab language server.]
 
 I'll give a brief overview on how to get a decent vim workflow going. I started out with reading #link("https://castel.dev/post/lecture-notes-1/")[this blog], and I recommend you also do this. However, some of the things he suggested I could not get to work. That being said I'll just give an overview of things I enabled, as they are somewhat different than what he's done.
 

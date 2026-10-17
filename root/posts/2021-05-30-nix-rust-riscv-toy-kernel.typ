@@ -3,6 +3,7 @@
 #title[Writing a "hello world" Riscv Kernel with Nix in Rust]
 #date[2021-05-30]
 #author[Justin Restivo]
+#description[A step-by-step tutorial on writing a hello world RISC-V kernel in Rust, using Nix to provide the cross-compilation toolchain.]
 
 = Motivation
 

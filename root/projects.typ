@@ -1,6 +1,9 @@
 #import "lib.typ": *
 #show: schema.with("index")
 
+#page-title[Projects by Justin Restivo]
+#description[Open-source projects by Justin Restivo, including nix-btm, HotShot consensus work at Espresso Systems, Nixpkgs packages and Nix tooling.]
+
 = Opensource Projects I've worked on/am working on
 
 == Flashcards

@@ -4,6 +4,8 @@
 #title[MISC MUSINGS]
 // #date[2025-06-19]
 #author[Justin Restivo]
+#page-title[Misc Musings | Justin Restivo]
+#description[Miscellaneous notes by Justin Restivo, including where to source food and making natto at home.]
 
 = Health
 

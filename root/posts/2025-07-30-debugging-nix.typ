@@ -4,6 +4,7 @@
 #title[Debugging Nix Expressions]
 #date[2025-07-30]
 #author[Justin Restivo]
+#description[Lesser-known ways to debug Nix builds, including the -L flag for build logs and running a flake derivation's build phases in nix develop.]
 
 I wanted to discuss some features of Nix that I don't see discussed very often related to debugging.
 

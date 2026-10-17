@@ -4,6 +4,7 @@
 #title[s\/Rust\/Ocaml]
 #date[2025-07-24]
 #author[Justin Restivo]
+#description[Building the CompCert verified C compiler as a static binary and as WebAssembly with Nix, and how OCaml tooling compares with Rust.]
 
 = Motivation
 

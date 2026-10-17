@@ -9,6 +9,7 @@
 #title[Understanding Subtyping in Rust]
 #date[2022-06-25]
 #author[Justin Restivo]
+#description[An introduction to subtyping and variance in Rust, explaining covariance and contravariance through categories and functors.]
 
 = Expected background
 

@@ -27,6 +27,8 @@ jobs:
           experimental-features = nix-command flakes pipe-operators
     - name: "Build Typsite"
       run: nix develop -c typsite c --config typsite
+    - name: "Add sitemap and homepage canonical URL"
+      run: python3 scripts/seo-postprocess.py
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
       with:

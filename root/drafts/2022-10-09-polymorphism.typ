@@ -1,5 +1,6 @@
 #import "../lib.typ": *
 #show: schema.with("page")
+#robots[noindex, follow]
 
 #title[Programming Paradigms and Polymorphism]
 #date[2022-10-09]
