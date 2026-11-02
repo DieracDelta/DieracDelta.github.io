@@ -280,6 +280,49 @@
   }
 }
 
+#let intro(body) = context {
+  if target() != "html" {
+    return body
+  }
+  html.elem("div", attrs: (class: "intro"), body)
+}
+
+#let prompt(body) = context {
+  if target() != "html" {
+    return body
+  }
+  html.elem("p", attrs: (class: "prompt"), body)
+}
+
+// Project cards (see projects.typ). Wrap a run of cards in #project-grid.
+#let project-grid(body) = context {
+  if target() != "html" {
+    return body
+  }
+  html.elem("div", attrs: (class: "project-grid"), body)
+}
+
+#let project(name, url: none, tags: (), badge: none, body) = context {
+  if target() != "html" {
+    return [*#name* -- #body]
+  }
+  let title = if url == none { name } else {
+    html.elem("a", attrs: (href: str(url), class: "project-name"), name)
+  }
+  html.elem("div", attrs: (class: "project-card"))[
+    #html.elem("div", attrs: (class: "project-head"))[
+      #title
+      #if badge != none { html.elem("span", attrs: (class: "project-badge"), badge) }
+    ]
+    #html.elem("div", attrs: (class: "project-body"), body)
+    #if tags.len() > 0 {
+      html.elem("div", attrs: (class: "project-tags"))[
+        #for tag in tags { html.elem("span", attrs: (class: "tag"), tag) }
+      ]
+    }
+  ]
+}
+
 #let cite-title(slug) = context {
   if target() == "html" {
     box[
