@@ -4,57 +4,59 @@
 #page-title[Projects by Justin Restivo]
 #description[Open-source projects by Justin Restivo, including bpftop, nix-btm, srcbot, Nixpkgs contributions, HotShot consensus work at Espresso Systems and Nix tooling.]
 
-Stuff I've built or contributed to, roughly newest first. Most of it involves Nix, Rust, or both. Everything else lives on #link("https://github.com/DieracDelta")[my GitHub].
+Stuff I've built or contributed to. Everything else lives on #link("https://github.com/DieracDelta")[my GitHub].
 
 = Recent
 
 #project-grid[
   #project("bpftop", url: "https://github.com/DieracDelta/bpftop", tags: ("Rust", "eBPF", "TUI"))[
-    An `htop`-style process monitor that walks the kernel task list with a BPF iterator instead of reading `/proc` for every process. A refresh is about 100 syscalls whether there are 1.5k or 11k processes; htop makes 70k to 350k. It also tracks per-process network and disk I/O, the owning systemd unit or container, NVIDIA GPU usage, and can freeze a whole cgroup so you can stop a runaway process without killing it.
+    An `htop`-style process monitor that walks the kernel task list with a BPF iterator instead of reading `/proc` for every process. A refresh is about 100 syscalls whether there are 1.5k or 11k processes; htop makes 70k to 350k. It can also freeze a whole cgroup, so you can stop a runaway process without killing it.
   ]
 
-  #project("nix-btm", url: "https://github.com/DieracDelta/nix-btm", tags: ("Rust", "C++", "Nix"))[
-    `htop` for Nix. This started as a small ratatui toy and grew into a C++ logger plugin loaded into Nix, a daemon that matches build events to cgroups, and a TUI for watching, freezing, killing, renicing and memory-limiting builds across users and remote builders.
+  #project("Nix-Btm", url: "https://github.com/DieracDelta/nix-btm", tags: ("Rust", "C++", "Nix"))[
+    #link("https://github.com/DieracDelta/nix-btm")[`btm` but for nix processes]. A simple tui I wrote to play around with the ratatui and sysinfo crates.
+
+    It's since grown into a Nix plugin, a daemon and a TUI that can freeze, kill, renice and memory-limit builds.
   ]
 
   #project("srcbot", url: "https://github.com/DieracDelta/srcbot", tags: ("Rust", "Nix", "Nixpkgs"))[
-    A companion to `nixpkgs-review`. It builds the intermediate attributes a PR touches (`goModules`, `cargoDeps`, ...), fixes stale fixed-output hashes and pushes them to a branch, sweeps whole package sets to check they still build from source, and sends builds to remote machines for multi-arch checks.
+    A companion to `nixpkgs-review`. It builds the intermediate attributes a PR touches (`goModules`, `cargoDeps`, ...), fixes stale fixed-output hashes and pushes them to a branch, and checks that whole package sets still build from source.
   ]
 
   #project("shapeBPF", url: "https://github.com/DieracDelta/shapeBPF", tags: ("Rust", "eBPF", "Networking"))[
-    Bandwidth shaping per process or cgroup, driven from a TUI. qdiscs cap upload, and a BPF program drops packets to cap download. Bandwidth-hungry processes can be moved into an ephemeral cgroup and throttled harder.
+    Per-process and per-cgroup bandwidth shaping from a TUI. qdiscs cap upload, and a BPF program drops packets to cap download. You can also move a bandwidth-hungry process into its own ephemeral cgroup and throttle it harder.
   ]
 
   #project("WRhythm", url: "https://github.com/DieracDelta/WRhythm", tags: ("Swift", "iOS", "watchOS"))[
-    A Subsonic/Navidrome client for iPhone, macOS and Apple Watch. It can hand playback between devices, streams on the watch without a phone, caches recent and upcoming tracks for offline playback, and builds playlists with sonicSimilarity and #link("https://github.com/DieracDelta/audiomuse-ai-nix")[AudioMuse-AI] (which I also packaged with Nix).
+    A Subsonic/Navidrome client for iPhone, macOS and Apple Watch. You can move playback between devices, stream on the watch without your phone, and keep listening offline from cached recent and upcoming tracks.
   ]
 
   #project("tmux-revive-llms", url: "https://github.com/DieracDelta/tmux-revive-llms", tags: ("Rust", "tmux"))[
-    A Rust replacement for `tmux-resurrect` and `tmux-continuum` that also resumes Claude Code and Codex sessions by ID when it restores panes. Tested with NixOS VM checks.
+    A Rust replacement for `tmux-resurrect` and `tmux-continuum` that also resumes Claude Code and Codex sessions by ID when it restores panes.
   ]
 
   #project("visp", url: "https://github.com/DieracDelta/visp-lang", tags: ("Rust", "Lisp", "Agents"), badge: "WIP")[
-    A small Lisp for scripting coding-agent workflows: declare tracks of Claude or Codex steps, memory and pipelines, then run them against an issue in a worktree.
+    A Lisp for scripting coding-agent workflows (Claude, Codex) and running them against an issue in a worktree.
   ]
 
   #project("rsoq.nvim", url: "https://github.com/DieracDelta/rsoq.nvim", tags: ("Rust", "Neovim", "Coq"), badge: "WIP")[
-    A Rust rewrite of #link("https://github.com/tomtomjhj/coq-lsp.nvim")[coq-lsp.nvim], loaded into Neovim as a native Lua module.
+    A Rust rewrite of #link("https://github.com/tomtomjhj/coq-lsp.nvim")[coq-lsp.nvim].
   ]
 ]
 
 = Upstream
 
 #project-grid[
-  #project("Nixpkgs", url: "https://github.com/NixOS/nixpkgs/pulls?q=is%3Apr+author%3ADieracDelta+is%3Amerged", tags: ("Nix",))[
-    130+ merged PRs. I maintain a handful of packages, mostly Rust ones.
+  #project("Nixpkgs", url: "https://github.com/NixOS/nixpkgs", tags: ("Nix",))[
+    I maintain #link("https://github.com/NixOS/nixpkgs")[a couple of Rust packages in NixPkgs].
   ]
 
   #project("psi-code", url: "https://github.com/siraben/psi-code", tags: ("C", "Lua", "TUI"))[
-    A portable coding agent. I moved the TUI runtime into Lua and added Vim keybindings, OSC 52 yanking, theming, an OpenAI Codex OAuth provider, and message queueing with async tools.
+    A portable coding agent. I moved its TUI into Lua and added Vim keybindings, OSC 52 yanking, an OpenAI Codex OAuth provider, and message queueing.
   ]
 
   #project("agent-deck", url: "https://github.com/asheshgoplani/agent-deck", tags: ("Go", "tmux"))[
-    Cut TUI lag by parsing much less tmux output.
+    I cut its TUI lag by parsing less tmux output.
   ]
 
   #project("Odds and ends", tags: ("Rust", "Nix"))[
@@ -66,84 +68,88 @@ Stuff I've built or contributed to, roughly newest first. Most of it involves Ni
   ]
 ]
 
-= Espresso Systems
+= Espresso Sytems
 
-At #link("https://www.espressosys.com/")[Espresso Systems] (2022–2024) I worked on consensus and networking. The repositories I worked on are open source:
+At #link("https://www.espressosys.com/")[Espresso Systems], we've open sourced a bunch of the repositories I've contributed to, including:
 
-#project-grid[
-  #project("HotShot", url: "https://github.com/EspressoSystems/HotShot", tags: ("Rust", "Consensus", "libp2p"))[
-    Consensus and data availability for Espresso's decentralized sequencer. I wrote the libp2p networking backend, consensus implementations including pipelined HotStuff, a consensus testing harness with some nifty procedural macros and type-foo, the Nix infra, and an #link("https://github.com/EspressoSystems/HotShot/tree/main/task")[async task harness] with some fun `Future` and `Stream` implementations. `pin_project` and I are now very good friends.
-  ]
-
-  #project("netlink fork", url: "https://github.com/EspressoSystems/netlink", tags: ("Rust", "Linux", "Networking"))[
-    Exposes infra for adding custom qdiscs. I used it to automate network chaos on an AWS cluster and on my desktop: enter a fresh network namespace, link it to the main one, then stack qdiscs to add latency, drop packets and limit bandwidth. All of it was syscalls wrapped in Rust, without shelling out to `ip`.
-  ]
-
-  #project("Async crates", tags: ("Rust",))[
-    #link("https://github.com/EspressoSystems/async-compatibility-layer")[async-compatibility-layer], so the same code runs on tokio or async-std, and #link("https://github.com/EspressoSystems/nll")[nll].
-  ]
-]
+- #link("https://github.com/EspressoSystems/HotShot")[HotShot], a consensus and DA solution for our decentralized sequencer. My contributions include:
+  - A Libp2p networking backend
+  - A testing harness for consensus including some pretty nifty procedural macros and type-foo
+  - Consensus implementations including pipelined HotStuff
+  - Nix infra for HotShot
+  - An #link("https://github.com/EspressoSystems/HotShot/tree/main/task")[asyncronous task abstraction/harness] for controlling and communication between tasks. This includes some pretty slick `Future` and `Stream` implementations. `pin_project` and I are now very good friends : D
+- #link("https://github.com/EspressoSystems/netlink")[A Netlink fork] that exposes infra for adding custom qdiscs. I used this to mess with the network on an AWS cluster and locally on my 5950x desktop in a automated way. I would enter a separate network namespace, link it to the main network namespace, then add a heap of qdiscs to limit memory bandwidth, add in articial latency, drop packets, etc. This was all done directly with syscalls wrapepd by Rust code instead of using `ip link` and `ns`.
+- #link("https://github.com/EspressoSystems/async-compatibility-layer")[This] and #link("https://github.com/EspressoSystems/nll")[this] crate
 
 = Research and school
 
 #project-grid[
   #project("detypstify", url: "https://github.com/detypstify/typic", tags: ("Rust", "ML", "Typst"))[
-    OCR that turns images of math into Typst, running entirely in the browser. I worked on the UI, Typst to SVG rendering, in-browser inference, and the data and CI plumbing.
+    OCR that turns images of math into Typst, entirely in the browser. I worked on the UI, Typst-to-SVG rendering and in-browser inference.
   ]
 
-  #project("MIT Master's thesis", url: "https://dspace.mit.edu/handle/1721.1/129858", tags: ("Security", "RISC-V"))[
-    Security on tagged architectures.
+  #project("MIT Master's Thesis", url: "https://dspace.mit.edu/handle/1721.1/129858", tags: ("Security",))[
+    #link("https://dspace.mit.edu/handle/1721.1/129858")[My Master's thesis] discusses security on a tagged architectures.
   ]
 
   #project("Flashcards", url: "https://github.com/DieracDelta/Flashcards", tags: ("Typst", "Anki"))[
-    Anki decks from material I've self-studied and classes I've taken, written in Typst and generated with typ2anki.
+    A bunch of Anki #link("https://github.com/DieracDelta/Flashcards")[Flashcards] from self studied materials and prior classes I've taken. Generated using typ2anki.
   ]
 
   #project("BeaverDocs", url: "https://github.com/DieracDelta/BeaverDocs", tags: ("JavaScript", "CRDTs"))[
-    An undergrad group project: a proof-of-concept peer-to-peer collaborative text editor. I worked on the RGATreeSplit CRDT used to represent text operations.
+    #link("https://github.com/DieracDelta/BeaverDocs")[BeaverDocs] was a undergrad group project to create proof of concept peer to peer collaborative text editor. My contributions were to the RGATreeSplit CRDT implementation used internally to represent text operations.
   ]
 
   #project("DuckeeGO", url: "https://github.com/DieracDelta/DuckeeGO", tags: ("Go", "Program analysis"))[
-    An undergrad group project: a proof-of-concept concolic execution engine for Go. I worked on the augmentations to the Go AST.
+    #link("https://github.com/DieracDelta/DuckeeGO")[DuckeeGO] was a undergrad group project where I worked in group to create proof of concept concolic execution engine for golang. My contributions were on augmentations to the golang AST.
   ]
 ]
 
 = Older tooling
 
 #project-grid[
-  #project("Neovim config", url: "https://github.com/DieracDelta/vimconfig", tags: ("Lua", "Nix", "Neovim"))[
-    My personal vim "distro", assembled with Nix and nix2vim, with the usual IDE bells and whistles. Try it with `nix run github:DieracDelta/vimconfig`. I gave a #link("https://www.youtube.com/watch?v=iwsoF9ISfaw")[talk at VimConf] about it (#link("https://github.com/DieracDelta/vimconf_talk")[repo]).
+  #project("Neovim", url: "https://github.com/DieracDelta/vimconfig", tags: ("Lua", "Nix", "Neovim"))[
+    #link("https://github.com/DieracDelta/vimconfig")[My personal vim "distro"] , assembled with Nix and nix2vim. Comes with all the bells and whistles common in most IDEs. I gave a talk at #link("https://www.youtube.com/watch?v=iwsoF9ISfaw")[vimconf] about it.
   ]
 
-  #project("DAWN", url: "https://github.com/DieracDelta/DAWN", tags: ("Rust", "Nix", "DAP"))[
-    Debug Adapter with Nix: a WIP implementation of the debug adapter protocol for Nix.
+  #project("DAWN", url: "https://github.com/DieracDelta/DAWN", tags: ("Rust", "Nix", "DAP"), badge: "WIP")[
+    #link("https://github.com/DieracDelta/DAWN")[DAWN is a WIP Nix implementation] of the debug adapter protocol. Aka "Debug Adapter with Nix"
   ]
 
-  #project("flake_generator", url: "https://github.com/DieracDelta/flake_generator", tags: ("Rust", "Nix"))[
-    A CLI that uses skim and rnix to parse Nix flakes into an AST and edit it, for generating best-practice boilerplate. Mostly an excuse to play with Rowan, rust-analyzer's syntax tree library.
+  #project("Flake Generator", url: "https://github.com/DieracDelta/flake_generator", tags: ("Rust", "Nix"))[
+    #link("https://github.com/DieracDelta/flake_generator")[A cli using skim + rnix to parse nix flakes into an AST and then modify that AST]. Good for generating nix best practice boilerplate code.
+
+    This was really an opportunity for me to play with Rust Analyzer's syntax tree library Rowan.
   ]
 
-  #project("asm-lsp", url: "https://github.com/DieracDelta/asm-lsp", tags: ("Rust", "LSP", "RISC-V"), badge: "WIP")[
-    A language server for RISC-V assembly, built on a Tree-sitter grammar and tower-lsp.
+  #project("RISCV Asm Lsp", url: "https://github.com/DieracDelta/asm-lsp", tags: ("Rust", "LSP", "RISC-V"), badge: "WIP")[
+    #link("https://github.com/DieracDelta/asm-lsp")[ A (very WIP) language server for RISC-V assembly]. Uses a TreeSitter parser and built with tower-lsp.
   ]
 
-  #project("NixKernelTutorial", url: "https://github.com/DieracDelta/NixKernelTutorial", tags: ("Rust", "Nix", "RISC-V"))[
-    A RISC-V kernel hello world in Rust, built with Nix. Goes with #cite("./posts/2021-05-30-nix-rust-riscv-toy-kernel.typ")[this post].
+  #project("Kernel Tutorial", url: "https://github.com/DieracDelta/NixKernelTutorial", tags: ("Rust", "Nix", "RISC-V"))[
+    #link("https://github.com/DieracDelta/NixKernelTutorial")[A Kernel Hello world tied to blog post], explains how to use nix to do kernel dev in Rust.
   ]
 
-  #project("Alienware lights", url: "https://github.com/DieracDelta/lights", tags: ("C", "Linux"))[
-    A SysV-style daemon and user-facing library for controlling the lights on the Alienware 15 R3.
+  #project("Alienware Lights", url: "https://github.com/DieracDelta/lights", tags: ("C", "Linux"))[
+    #link("https://github.com/DieracDelta/lights")[A SysV-style daemon and corresponding user-facing library for controlling the lights on the Alienware 15 R3 laptop.]
   ]
 
-  #project("deepfry", url: "https://github.com/DieracDelta/deepfry", tags: ("Python",))[
-    Deep-fries screenshots with ImageMagick and Tesseract OCR.
+  #project("Deepfrier", url: "https://github.com/DieracDelta/deepfry", tags: ("Python",))[
+    #link("https://github.com/DieracDelta/deepfry")[Deepfrier] is a Python script for deepfry-ing screenshots using imagemagik and tesseractocr
   ]
 
-  #project("Advent of Code", tags: ("Haskell", "Rust", "OCaml"))[
-    An excuse to learn a new language every year: #link("https://github.com/DieracDelta/advent-of-code-2018")[2018] (OCaml), #link("https://github.com/DieracDelta/advent-of-code-2019")[2019] (Rust), #link("https://github.com/DieracDelta/advent-of-code-2020")[2020] (Haskell), #link("https://github.com/DieracDelta/advent-of-code-2021")[2021] and #link("https://github.com/DieracDelta/advent-of-code-2022")[2022].
+  #project("AOC", tags: ("Haskell", "Rust", "OCaml"))[
+    I try to run through Advent of Code every year as an excuse to learn a new language. I've done most of #link("https://github.com/DieracDelta/advent-of-code-2020")[2020], some of #link("https://github.com/DieracDelta/advent-of-code-2019")[2019] and #link("https://github.com/DieracDelta/advent-of-code-2018")[2018]. This year (#link("https://github.com/DieracDelta/advent-of-code-2022")[2022]) will probably be in Idris.
   ]
 
-  #project("This blog", url: "https://github.com/DieracDelta/DieracDelta.github.io", tags: ("Typst",))[
-    Version four. It started as a self-hosted Vue site, which I dropped after someone broke into services on the same box (probably through a CVE I didn't patch fast enough). Then Hugo on GitHub Pages, then Hakyll because I like Haskell. Now it's Typst via #link("https://github.com/Glomzzz/typsite")[typsite], since Typst has an HTML backend and is far more capable than Markdown.
+  #project("This Blog", url: "https://github.com/DieracDelta/DieracDelta.github.io", tags: ("Typst",))[
+    #link("https://github.com/DieracDelta/DieracDelta.github.io")[My blog] has had several iterations:
+
+    - I hosted a version written with vuejs, but got tired of maintaining the host after someone broke into some of the services I was hosting (presumably due to a cve I didn't patch quickly enough)
+    - I moved to Hugo + github pages
+    - I swapped out Hugo for Hakyll because I like Haskell.
+    - Typst recently added a HTML backend, and I much prefer typst to markdown (it's just way more powerful). So, my blog's current iteration is in typst using Typsite.
+
+    The core idea at each point was to maintain a markdown archive of thoughts.
   ]
 ]
