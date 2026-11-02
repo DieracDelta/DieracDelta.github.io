@@ -7,7 +7,8 @@ pre {
   line-height: 1.55;
   border-radius: var(--radius);
   background-color: var(--background-color-pre);
-  padding: .5em;
+  border: 1px solid var(--border-color, #333);
+  padding: .75em 1em;
   margin-top: 0em;
   overflow-x: auto;
   white-space: pre-wrap;
@@ -24,17 +25,9 @@ code {
   padding: 0.2em;
 }
 
-@media (prefers-color-scheme: dark) {
-  pre[color-scheme="light"] {
-    display: none;
-  }
-
-}
-
-@media (prefers-color-scheme: light) {
-  pre[color-scheme="dark"] {
-    display: none;
-  }
+/* The site is always dark, so always use the dark highlighting. */
+pre[color-scheme="light"] {
+  display: none;
 }
 
 /* !forest */
@@ -42,4 +35,14 @@ pre>code {
   border-radius: 0;
   background-color: transparent;
   padding: 0;
+}
+
+/* On phones, wrapping mangles terminal output and tables; scroll instead. */
+@media (max-width: 600px) {
+  pre {
+    white-space: pre;
+    word-wrap: normal;
+    font-size: 95%;
+    -webkit-overflow-scrolling: touch;
+  }
 }
