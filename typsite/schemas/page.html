@@ -17,21 +17,29 @@
     <link rel="stylesheet" href="../assets/schemas/page.css" />
     <link rel="stylesheet" href="../assets/math-block.css" />
     <link rel="stylesheet" href="../assets/math-inline.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="/nav.js" defer></script>
     <link rel="stylesheet" href="/analytics.css" />
     <script src="/analytics.js" defer></script>
   </head>
 
   <body>
     <header>
-      <div class="header-nav">
-        <span class="custom"><strong>Justin Restivo</strong></span>
-        | <a href="/">HOME</a> | <a href="/about.html">ABOUT</a> |
-        <a href="/contact.html">CONTACT</a> |
-        <a href="/projects.html">PROJECTS</a> |
-        <a href="https://www.linkedin.com/in/justinprestivo">LINKEDIN</a> |
-        <a href="https://github.com/DieracDelta">GITHUB</a> |
+      <nav class="header-nav" aria-label="Site">
+        <span class="custom"><strong><a href="/">Justin Restivo</a></strong></span>
+        <a href="/">HOME</a>
+        <a href="/about.html">ABOUT</a>
+        <a href="/projects.html">PROJECTS</a>
         <a href="/other_stuff.html">MISC MUSINGS</a>
-      </div>
+        <a href="/contact.html">CONTACT</a>
+        <a href="https://github.com/DieracDelta">GITHUB</a>
+        <a href="https://www.linkedin.com/in/justinprestivo">LINKEDIN</a>
+      </nav>
       <hr />
     </header>
     <div id="grid-wrapper">
@@ -61,7 +69,8 @@
       <!-- Where to put sidebar -->
     </div>
     <!-- Typsite reserves the footer tag; use an explicit contentinfo landmark. -->
-    <div class="analytics-privacy" role="contentinfo" aria-label="Analytics privacy">
+    <div class="analytics-privacy" role="contentinfo" aria-label="Site footer">
+      <p class="site-credits">© Justin Restivo · written in <a href="https://typst.app">Typst</a>, built with <a href="https://github.com/Glomzzz/typsite">typsite</a> · <a href="https://github.com/DieracDelta/DieracDelta.github.io">source</a></p>
       <details>
         <summary>Website analytics &amp; privacy</summary>
         <p>I use self-hosted Umami for pageview statistics, including referring websites, browser/device information and approximate location. Analytics do not set cookies. IP addresses are processed to derive daily visitor identifiers and location estimates, but are not stored in analytics records. URL queries, fragments and referrer paths are excluded.</p>

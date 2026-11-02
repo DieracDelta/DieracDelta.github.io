@@ -4,6 +4,12 @@
 #page-title[Justin Restivo's Blog: Nix, Rust and Systems Programming]
 #description[Notes and tutorials by Justin Restivo on Nix and NixOS, Rust, Haskell, Neovim and systems programming.]
 
+#intro[
+  #prompt[whoami]
+
+  Notes on Nix, Rust, Haskell, Neovim and systems programming. I'm a PhD student at Yale working on programming languages and formal methods. Here's #link("/projects.html")[what I've been building] and #link("/about.html")[more about me].
+]
+
 = S Tier Posts
 
 - #cite("./posts/2026-01-11-nix-like-gentoo.typ")[Running NixOS like Gentoo]

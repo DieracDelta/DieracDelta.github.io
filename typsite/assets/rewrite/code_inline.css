@@ -1,19 +1,11 @@
 code {
   border-radius: var(--radius);
   background-color: var(--background-color-code);
-  padding: 0.2em;
+  padding: 0.1em 0.35em;
   font-size: 0.9em;
 }
 
-@media (prefers-color-scheme: dark) {
-  code[color-scheme="light"] {
-    display: none;
-  }
-
-}
-
-@media (prefers-color-scheme: light) {
-  code[color-scheme="dark"] {
-    display: none;
-  }
+/* The site is always dark, so always use the dark highlighting. */
+code[color-scheme="light"] {
+  display: none;
 }
