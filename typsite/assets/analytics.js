@@ -19,13 +19,13 @@
     if (!button || !status) return;
     button.hidden = false;
     button.disabled = !production || browserOptOut();
-    button.textContent = browserOptOut() ? "Disabled by your browser" :
-      optedOut ? "Allow usage analytics" : "Disable usage analytics";
-    status.textContent = !production ? "Analytics do not run on previews or plain HTTP." :
-      browserOptOut() ? "Analytics are disabled by Do Not Track or Global Privacy Control." :
-      optedOut ? (saved ? "Analytics are disabled in this browser on this site." :
-        "Analytics are disabled for this page, but your browser blocked saving the preference. Use Do Not Track or Global Privacy Control to keep them disabled across pages.") :
-      "Analytics are allowed in this browser. You can disable them below.";
+    button.textContent = browserOptOut() ? "Turned off by your browser" :
+      optedOut ? "Turn on analytics" : "Turn off analytics";
+    status.textContent = !production ? "Analytics only run on justin.restivo.me." :
+      browserOptOut() ? "Your browser asked not to be tracked, so analytics are off." :
+      optedOut ? (saved ? "Analytics are off in this browser." :
+        "Analytics are off for this page, but your browser wouldn't let me save the setting.") :
+      "Analytics are on.";
   };
   const referrer = () => {
     try {
