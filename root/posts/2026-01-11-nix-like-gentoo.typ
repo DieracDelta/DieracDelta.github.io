@@ -275,22 +275,47 @@ nix-build --expr 'with import /path/to/local/nixpkgs/checkout {config.allowUnfre
 
 then sorts the failures into "the source is gone" and "the hash changed". The result was #link("https://github.com/NixOS/nixpkgs/issues/471645")[137 packages whose source 404s], #link("https://github.com/NixOS/nixpkgs/issues/471498")[a long list whose source hash no longer matches], and #link("https://github.com/NixOS/nixpkgs/issues/471115")[a bunch of python packages] in the same state. I fixed some of these upstream, mostly hash fixes for Maven, Composer and PyPI sources.
 
+= Things I never got working
+
+The original plan included a custom linker (mold, via `moldStdenv`) and LTO everywhere. I never got either to work, so neither is in my config.
+
 = Practicality
 
-Rebuilding the world while using the machine is only bearable if the builds get out of the way. I deprioritize the nix daemon:
+Rebuilding the world while using the machine is only bearable if the builds get out of the way. I never want a build to max out memory or make my desktop laggy, so the nix daemon (and every build it runs) gets fenced in with systemd:
 
 ```nix
 systemd.services.nix-daemon.serviceConfig = {
+  # lowest-ish CPU priority, and only touch the disk when nothing else wants it
   Nice = lib.mkForce 15;
   IOSchedulingClass = lib.mkForce "idle";
   IOSchedulingPriority = lib.mkForce 7;
-  # NOTE we could add these if we really wanted to limit under contention
-  # CPUWeight = 10;
-  # IOWeight = 10;
+  # builds only get 20 of the 32 hardware threads
+  AllowedCPUs = "0-19";
+  MemoryHigh = "80G"; # Soft limit - throttles allocations when exceeded
+  MemoryMax = "100G"; # Hard limit - OOM killer if exceeded
 };
+
+nix.settings.max-jobs = 6; # at most 6 derivations building at once
+nix.settings.cores = 5;    # each build gets up to 5 threads (make -j5)
 ```
 
-and do the opposite for the things I need to be snappy while a build is running (ssh, sunshine for remote desktop, eternal terminal):
+How this works:
+
+- Builds run as children of `nix-daemon.service`, so everything in `serviceConfig` applies to every build at once, not to each build separately. (I also set `use-cgroups = true` so nix puts each build in its own cgroup underneath the daemon's.)
+- `Nice = 15` means builds only get CPU time that I'm not using. `AllowedCPUs = "0-19"` goes further and pins builds to 20 of the 5950x's 32 threads, so there are always 12 threads that a build can never touch.
+- `MemoryHigh` is the soft limit. Once builds use more than 80G, the kernel starts reclaiming their memory aggressively and slows down their allocations. `MemoryMax` is the hard limit: past 100G, the OOM killer kills a *build*, not my browser. I have 128GB of RAM, so this leaves roughly 28GB for everything else no matter what is building.
+- `max-jobs` and `cores` set the parallelism: at most 6 derivations at once, each with up to 5 threads. That's 30 threads of work competing for the 20 allowed ones, which keeps the allowed CPUs busy without spawning an absurd number of compiler processes. Each compiler process is what eats memory, so this also keeps memory use from spiking in the first place.
+
+Note: `IOSchedulingClass = "idle"` turned out to do nothing on my machine. Both of my NVMe drives use the `none` I/O scheduler, and only BFQ honors I/O classes. What actually works is capping the build's write bandwidth per drive with `IOWriteBandwidthMax`:
+
+```nix
+systemd.services.nix-daemon.serviceConfig.IOWriteBandwidthMax = [
+  "/dev/disk/by-id/nvme-Samsung_SSD_990_PRO_4TB_S7KGNJ0X121581J 20M"
+  "/dev/disk/by-id/nvme-WD_BLACK_SN850X_4000GB_23501N800832 20M"
+];
+```
+
+I do the opposite for the things I need to be snappy while a build is running (ssh, sunshine for remote desktop, eternal terminal):
 
 ```nix
 systemd.services.eternal-terminal.serviceConfig = {
@@ -301,4 +326,4 @@ systemd.services.eternal-terminal.serviceConfig = {
 };
 ```
 
-I also set `nix.settings.max-jobs = 4` and `nix.settings.cores = 24`. The goal is that builds use the whole machine when it's idle, but ssh and remote desktop stay responsive during a full rebuild.
+And as a last line of defense, `earlyoom` kills the biggest process if the whole machine runs low on memory anyway.
