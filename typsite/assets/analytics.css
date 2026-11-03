@@ -1,6 +1,6 @@
-.analytics-privacy { max-width: 70ch; margin: 2rem auto; padding: 0 1rem; font-size: .85rem; line-height: 1.6; }
-.analytics-privacy summary { cursor: pointer; padding-block: .5rem; }
-.analytics-privacy p { margin-block: .75rem; }
-.analytics-privacy button { font: inherit; padding: .4rem .7rem; cursor: pointer; }
-.analytics-privacy button:disabled { cursor: not-allowed; }
-.analytics-privacy [hidden] { display: none !important; }
+.analytics-panel { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem 1rem; margin-top: 1.5rem; padding: .9rem 1rem; border: 1px solid var(--border-color); border-radius: 6px; }
+.analytics-panel p { margin: 0; color: var(--muted-color); }
+.analytics-panel button { font: inherit; font-size: .9em; padding: .35rem .8rem; color: var(--link-color); background: transparent; border: 1px solid var(--link-color); border-radius: 4px; cursor: pointer; }
+@media (hover: hover) { .analytics-panel button:hover:not(:disabled) { color: var(--background-color); background: var(--link-color); } }
+.analytics-panel button:disabled { color: var(--muted-color); border-color: var(--border-color); cursor: not-allowed; }
+.analytics-panel [hidden] { display: none !important; }

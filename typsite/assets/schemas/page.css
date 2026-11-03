@@ -518,7 +518,7 @@ span[style*="inline-block"]:has(> code) {
 }
 
 .site-credits {
-  max-width: 70ch;
+  max-width: 90ch;
   margin: 3rem auto 0;
   padding: 1.2rem 1rem 0;
   border-top: 1px dashed var(--border-color);
