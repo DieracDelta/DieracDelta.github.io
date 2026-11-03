@@ -200,7 +200,6 @@ But, disabling tests is not so trivial (e.g. this didn't work). I #link("https:/
 waffle8946 had the novel idea to unset `doCheck` and `doInstallCheck` in the shell instead. Nix decides whether to run checkPhase by looking at the `doCheck` *environment variable* while the build is running. So if an early phase runs `unset doCheck`, the check phase gets skipped no matter what the builder set. I ended up doing this in a custom phase to force that phase to #link("https://github.com/DieracDelta/flakes/blob/093a9b13244e0640d41bf58dc7eb5c819e8e5bf7/overlays/stdenv.nix?plain=1#L7")[always be run]:
 
 ```nix
-# literally nuke all testphases because we ball
 final: prev: {
   stdenv = prev.stdenv // {
     mkDerivation =
