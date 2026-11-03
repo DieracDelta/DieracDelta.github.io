@@ -7,18 +7,21 @@
 = S Tier Posts
 
 - #cite("./posts/2026-01-11-nix-like-gentoo.typ")[Running NixOS like Gentoo]
-- #cite("./posts/2025-08-27-haskell-development.typ")[Developing with Haskell]
-- #cite("./posts/2025-07-30-debugging-nix.typ")[Debugging Nix Expressions]
 - #cite("./posts/2025-05-24-perf-engineering-neovim.typ")[Performance Engineering Neovim]
-- #cite("./posts/2025-05-24-nix-tricks.typ")[Quick 'n Dirty 1-liners]
 - #cite("./posts/2025-05-22-adding-ssd.typ")[Weird Filesystem Things]
-- #cite("./posts/2024-10-02-checking-hibp.typ")[Checking myself in HIBP]
-- #cite("./posts/2024-03-18-john-the-ripper.typ")[Using John the Ripper]
 - #cite("./posts/2023-07-06-async-traitorous.typ")[The Async Trait-or and the Case for BoxSyncFuture]
 - #cite("./posts/2022-10-16-dealing-with-unwieldy-generics.typ")[Subtyping with associated types on traits in Rust]
 - #cite("./posts/2022-06-25-subtyping-rust.typ")[Understanding Subtyping in Rust]
 - #cite("./posts/2021-10-24-neovim-nix.typ")[A Portable Text Editor: Nix \<3 Neovim]
 - #cite("./posts/2021-05-30-nix-rust-riscv-toy-kernel.typ")[Writing a "hello world" Riscv Kernel with Nix in Rust]
+
+= Driveby Posts
+
+- #cite("./posts/2025-08-27-haskell-development.typ")[Developing with Haskell]
+- #cite("./posts/2025-07-30-debugging-nix.typ")[Debugging Nix Expressions]
+- #cite("./posts/2025-05-24-nix-tricks.typ")[Quick 'n Dirty 1-liners]
+- #cite("./posts/2024-10-02-checking-hibp.typ")[Checking myself in HIBP]
+- #cite("./posts/2024-03-18-john-the-ripper.typ")[Using John the Ripper]
 
 = A Tier Posts (probably still drafty-ish)
 
