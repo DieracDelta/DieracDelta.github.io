@@ -262,7 +262,7 @@ The relocs flag broke a few things, so they get skipped:
 - OVMF, which builds EFI binaries
 - `heroic-epic-integration` and `galaxy-dummy-service`, which are MinGW (Windows) builds
 
-= Rebuilding the world finds rot
+= The world is rotten
 
 A fun side effect of building everything from source with no substituters: you find out which packages can't be built from source anymore. Normally you never notice, because the binary cache already has the output.
 
