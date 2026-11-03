@@ -153,7 +153,7 @@ I #link("https://github.com/NixOS/nixpkgs/issues/414362")[opened an issue] for t
 
 = Does this actually work?
 
-How do you know the flags are actually making it into the binaries? I used #link("https://github.com/pkgw/elfx86exts")[`elfx86exts`], which disassembles a binary and tells you which instruction set extensions it uses. As a case study I built htop from source with and without `-march=native`. Without:
+Okay, so in theory at this point we applied use flags everywhere. But...how do we check that in practice we did actually do that? I used #link("https://github.com/pkgw/elfx86exts")[`elfx86exts`], which disassembles a binary and tells you which instruction set extensions it uses. As a case study I built htop from source with and without `-march=native`. Without:
 
 ```
 File format and CPU architecture: Elf, X86_64
@@ -181,9 +181,9 @@ Instruction set extensions used: AVX, AVX2, BMI, BMI2, CMOV, MODE64, NOVLX
 CPU Generation: Unknown
 ```
 
-The htop in my nix store built with `-march=znver3` matches the second one, so the flags are being applied. I did the same spot check on the Haskell packages.
+The second build uses AVX and AVX2 (the `vmovd` and `vinserti128` vector instructions), BMI2 (`shlx`) and NOVLX (`vpxor`). The first one only gets as far as SSE2 and BMI. The htop in my nix store built with `-march=znver3` has the same extra instruction sets as the second one, so the flags are being applied. I did the same spot check on the Haskell packages.
 
-Note: this tells you that the instructions are there, not that anything is faster. I make no guarantees about *observable* speed improvements.
+Note: this only shows that the new instructions are in the binary. I make no guarantees about *observable* speed improvements.
 
 = But compiling takes a really long time
 
@@ -249,12 +249,12 @@ Even then, a handful of packages build their test suite regardless of `doCheck` 
 
 = Adding `-pipe` and `-Wl,-z,pack-relative-relocs`
 
-Two more Gentoo classics. #link("https://github.com/DieracDelta/flakes/blob/093a9b13244e0640d41bf58dc7eb5c819e8e5bf7/utility-functions.nix?plain=1#L52")[This] is where I add them globally:
+I also add two flags that Gentoo users like to set. #link("https://github.com/DieracDelta/flakes/blob/093a9b13244e0640d41bf58dc7eb5c819e8e5bf7/utility-functions.nix?plain=1#L52")[This] is where I add them globally:
 
-- `-pipe` makes gcc pass data between its stages through pipes instead of temporary files. Less disk IO, slightly more memory.
+- `-pipe` makes gcc pass data between its stages through pipes instead of temporary files. This means less disk IO, but it uses a bit more memory.
 - `-Wl,-z,pack-relative-relocs` makes the linker store relative relocations in the compact `DT_RELR` format, which makes binaries a bit smaller.
 
-Instead of an overlay, I set `config.replaceStdenv` to a stdenv whose `mkDerivationFromStdenv` appends `-pipe` to `NIX_CFLAGS_COMPILE` and the relocs flag to `NIX_CFLAGS_LINK`. One gotcha: always put them in `env`, not at the top level, otherwise you get conflicts with packages that later use `overrideAttrs` or structured attrs.
+Instead of an overlay, I set `config.replaceStdenv` to a stdenv whose `mkDerivationFromStdenv` appends `-pipe` to `NIX_CFLAGS_COMPILE` and the relocs flag to `NIX_CFLAGS_LINK`. One gotcha: always put them in `env`. If they're at the top level, you get conflicts with packages that later use `overrideAttrs` or structured attrs.
 
 The relocs flag broke a few things, so they get skipped:
 
@@ -301,9 +301,9 @@ nix.settings.cores = 5;    # each build gets up to 5 threads (make -j5)
 
 How this works:
 
-- Builds run as children of `nix-daemon.service`, so everything in `serviceConfig` applies to every build at once, not to each build separately. (I also set `use-cgroups = true` so nix puts each build in its own cgroup underneath the daemon's.)
+- Builds run as children of `nix-daemon.service`, so the limits in `serviceConfig` cover all of the builds combined. (I also set `use-cgroups = true` so nix puts each build in its own cgroup underneath the daemon's.)
 - `Nice = 15` means builds only get CPU time that I'm not using. `AllowedCPUs = "0-19"` goes further and pins builds to 20 of the 5950x's 32 threads, so there are always 12 threads that a build can never touch.
-- `MemoryHigh` is the soft limit. Once builds use more than 80G, the kernel starts reclaiming their memory aggressively and slows down their allocations. `MemoryMax` is the hard limit: past 100G, the OOM killer kills a *build*, not my browser. I have 128GB of RAM, so this leaves roughly 28GB for everything else no matter what is building.
+- `MemoryHigh` is the soft limit. Once builds use more than 80G, the kernel starts reclaiming their memory aggressively and slows down their allocations. `MemoryMax` is the hard limit: past 100G, the OOM killer kills one of the builds, so my browser survives. I have 128GB of RAM, so this leaves roughly 28GB for everything else no matter what is building.
 - `max-jobs` and `cores` set the parallelism: at most 6 derivations at once, each with up to 5 threads. That's 30 threads of work competing for the 20 allowed ones, which keeps the allowed CPUs busy without spawning an absurd number of compiler processes. Each compiler process is what eats memory, so this also keeps memory use from spiking in the first place.
 
 Note: `IOSchedulingClass = "idle"` turned out to do nothing on my machine. Both of my NVMe drives use the `none` I/O scheduler, and only BFQ honors I/O classes. What actually works is capping the build's write bandwidth per drive with `IOWriteBandwidthMax`:
